@@ -55,7 +55,7 @@ typedef enum
     TCPType = 0x00000001,
     EPPType = 0x00000002,
     LTPType = 0x00000003,
-}CLAType_t;
+} CLAType_t;
 
 typedef struct
 {
@@ -189,10 +189,8 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
 BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
 
 /**
- * \brief     Configure the given convergence layer, BPA Storage output queues, rate limit for
- *            sending and receiving bundles, the destination LTP engine ID (if LTP CL), and TCPCLP
- *            session (if TCPCLP for the given contact)
- * \note      As of right now, this function only establishes the port and IP number for the contact
+ * \brief     Find the requested contact ID in the Contacts Table and pass that information to the
+ *            CLA proxy to configure the CLA with
  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to setup
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
