@@ -114,3 +114,18 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
+BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
+{
+    /*
+    1) Checks if path is available for assignment
+    2) Assigns an instance of BI and CLA
+    3) Configures assigned instances of BI, CT, EBP, CLA based on configuration
+    4) Registers CLA with Storage given the table configuration (Path ID, EID map)
+    */
+
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}

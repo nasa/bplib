@@ -21,17 +21,21 @@
 #ifndef BPLIB_CLA_H
 #define BPLIB_CLA_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_qm.h"
 
+/* ======== */
+/* Typedefs */
+/* ======== */
+
 /* There are 4 types of control message types, received from CL*/
-typedef enum 
+typedef enum
 {
     SentIt              = 0, /* LTP Only, CL sends out */
     SessionComplete     = 1, /*For LTP, Other end received*/
@@ -39,7 +43,7 @@ typedef enum
     SessionStarted      = 3 /* Session started, do nothing*/
 }BPLib_CLA_CtrlMsgTypes_t;
 
-typedef enum 
+typedef enum
 {
     UDPType = 0x00000000,
     TCPType = 0x00000001,
@@ -56,10 +60,13 @@ typedef struct
     uint8_t     MsgTypes;
 } BPLib_CLA_CtrlMsg_t;
 
-/*
-** Contacts Table
-*/
+/* =========== */
+/* Global Data */
+/* =========== */
 
+/**
+ * \brief Global Contacts Table
+ */
 typedef struct
 {
     uint32_t            ContactID;
@@ -67,7 +74,7 @@ typedef struct
     CLAType_t           CLAType;
      /**
       * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
-      * pnode_contact_tbl.c is
+      * bpnode_contact_tbl.c is
       * .CLAddr = "127.0.0.1"
       * which makes it a string containing an IP address, not an EID.
       */
@@ -86,14 +93,11 @@ struct BPLib_CLA_ContactsTable
     BPLib_CLA_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
 };
 
-/*
-** Table Type def
-*/
- typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;  
+typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;
 
-/*
-** Exported Functions
-*/
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /**
  * \brief Convergence Layer Adaptor initialization
@@ -115,11 +119,11 @@ BPLib_Status_t BPLib_CLA_Init(void);
  * \brief CLA Ingress function
  *
  *  \par Description
- *       Receive bundle from CL and pass it Bundle Interface 
+ *       Receive bundle from CL and pass it Bundle Interface
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
- * 
+ *
  *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContId Contact ID
  *  \param[in] Bundle Pointer to bundle to ingress
@@ -129,18 +133,18 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, 
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
                                     const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
  *
  *  \par Description
- *       Receive bundle from Bundle Interface and send it to CL 
+ *       Receive bundle from Bundle Interface and send it to CL
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
- * 
+ *
  *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContId Contact ID
  *  \param[in] BundleOut Pointer to put egressing bundle into
@@ -151,8 +155,9 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut, 
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut,
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
+
 /**
  * \brief Validate Contact Table configurations
  *
@@ -160,7 +165,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
+ *       - This function is called by whatever external task handles table management.
  *         Every time a new Contact table is loaded, this function should be called to
  *         validate its parameters.
  *
@@ -170,5 +175,19 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
  *  \retval BPLIB_SUCCESS Validation was successful
  */
 BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
+
+/**
+ * \brief     Configure the given convergence layer, BPA Storage output queues, rate limit for
+ *            sending and receiving bundles, the destination LTP engine ID (if LTP CL), and TCPCLP
+ *            session (if TCPCLP for the given contact)
+ * \note      As of right now, this function only establishes the port and IP number for the contact
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to setup
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Contact ID could not be found in the Contacts Table
+ * \retval    BPLIB_CLA_CONTACTS_MAX_REACHED: Setting up contact would exceed maximum simultaneous
+ *                                            contacts allowed
+ */
+BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId);
 
 #endif /* BPLIB_CLA_H */
