@@ -876,16 +876,11 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 
 void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - If contact has been stopped, Node Configuration deconfigures the CLA
-    - Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
+    Status = BPLib_CLA_ContactTeardown(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
