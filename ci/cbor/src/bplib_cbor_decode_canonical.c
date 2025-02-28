@@ -85,7 +85,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    if (CanonicalBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
+    if (CanonicalBlockIndex >= BPLIB_MAX_NUM_CANONICAL_BLOCKS)
     {
         return BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR;
     }
