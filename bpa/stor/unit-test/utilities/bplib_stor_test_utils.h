@@ -31,6 +31,14 @@
 
 #include "bplib_api_types.h"
 #include "bplib_stor.h"
+#include "bplib_em_handlers.h"  /* For BPLib_EM_SendEvent handler */
+
+
+/*
+** Global Data
+*/
+
+extern BPLib_Instance_t BplibInst;
 
 
 /*

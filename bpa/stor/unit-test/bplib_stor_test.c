@@ -22,6 +22,7 @@
  * Include
  */
 #include "bplib_stor_test_utils.h"
+#include "bplib_nc.h"
 
 /*
 ** Test function for
@@ -46,6 +47,33 @@ void Test_BPLib_STOR_ScanCache_NullInstError(void)
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(inst, max_num_bundles_to_scan), BPLIB_NULL_PTR_ERROR);
 }
 
+void Test_BPLib_STOR_ScanCache_NullQueue(void)
+{
+    uint32_t max_num_bundles_to_scan = 1;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
+
+    
+    UT_SetDeferredRetcode(UT_KEY(BPLib_NC_GetAppState), 1, BPLIB_NC_APP_STATE_STARTED);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &(BplibInst.BundleCacheList), sizeof(BplibInst.BundleCacheList), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_EID_PatternIsMatch), 1, true);
+
+    UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, max_num_bundles_to_scan), BPLIB_SUCCESS);
+    UtAssert_UINT16_EQ(Bundle.Meta.EgressID, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID);
+}
+
+void Test_BPLib_STOR_CacheBundle_Nominal(void)
+{
+    BPLib_Bundle_t Bundle;
+
+    UtAssert_INT32_EQ(BPLib_STOR_CacheBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+}
+
 /*
 ** More BPLib_STOR_ScanCache tests would go here, but this is very temporary code,
 ** so its probably not worth further unit testing.
@@ -56,4 +84,6 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
     UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NullInstError, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullInstError");
+    UtTest_Add(Test_BPLib_STOR_ScanCache_NullQueue, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullQueue");
+    UtTest_Add(Test_BPLib_STOR_CacheBundle_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_CacheBundle_Nominal");
 }
