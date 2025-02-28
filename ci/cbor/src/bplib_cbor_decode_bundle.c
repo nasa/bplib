@@ -33,7 +33,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     /* A CandBundleLen less than 2 implies empty contents. */
     if (CandBundleLen <= 2)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR;
     }
 
     printf("Candidate bundle received with size %lu: \n", CandBundleLen);
@@ -58,7 +58,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     QStatus = QCBORDecode_GetError(&ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR;
     }
 
     /* First, parse the primary block */
@@ -93,14 +93,14 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
     if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
     {
-        return BPLIB_CBOR_DEC_PAST_MAX_BLOCKS_ERR;
+        return BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR;
     }
 
     QCBORDecode_ExitArray(&ctx);
     QStatus = QCBORDecode_GetError(&ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR;
     }
 
     return Status;

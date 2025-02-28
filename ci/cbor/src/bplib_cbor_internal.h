@@ -48,9 +48,7 @@
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_CANON_LIM_ERR: index past max supported canonical blocks
- * \retval    BPLIB_CBOR_DEC_ERR: QCBOR library decode error
- * \retval    BPLIB_CBOR_DEC_CANON_ERR: other decode error
+ * \retval    BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR: index past max supported canonical blocks
  */
 BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
                                           BPLib_Bundle_t* bundle,
@@ -65,7 +63,19 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_PRI_ERR: decode error
+ * \retval    BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR: CBOR primary block decode error - entry array
+ * \retval    BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR: CBOR primary block decode error - exit array
+ * \retval    BPLIB_CBOR_DEC_PRIM_VERSION_DEC_ERR: CBOR primary block decode error - decode version field
+ * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_VERSION_ERR: CBOR primary block decode error - wrong version field
+ * \retval    BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR: CBOR primary block decode error - decode flag field
+ * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: CBOR primary block decode error - wrong flag field
+ * \retval    BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR: CBOR primary block decode error - decode crc type field
+ * \retval    BPLIB_CBOR_DEC_PRIM_DEST_EID_DEC_ERR: CBOR primary block decode error - decode Dest EID field
+ * \retval    BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR: CBOR primary block decode error - decode Src EID field
+ * \retval    BPLIB_CBOR_DEC_PRIM_REPORT_EID_DEC_ERR: CBOR primary block decode error - decode Report-To EID field
+ * \retval    BPLIB_CBOR_DEC_PRIM_CREATE_TIME_DEC_ERR: CBOR primary block decode error - decode create time field
+ * \retval    BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR: CBOR primary block decode error - decode lifetime field
+ * \retval    BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR: CBOR primary block decode error - decode crc value field
  */
 BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle);
 
@@ -82,7 +92,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 typedef BPLib_Status_t (*QCBOR_UInt64Parser)(QCBORDecodeContext* ctx, uint64_t* parsed);
 
@@ -94,7 +103,6 @@ typedef BPLib_Status_t (*QCBOR_UInt64Parser)(QCBORDecodeContext* ctx, uint64_t* 
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
@@ -106,7 +114,6 @@ typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* 
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
@@ -119,7 +126,6 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
@@ -137,7 +143,6 @@ typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* par
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* ArrayLen);
 
@@ -148,7 +153,6 @@ BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* A
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
 
@@ -165,7 +169,6 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
@@ -177,7 +180,6 @@ BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* p
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
@@ -190,7 +192,6 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
@@ -204,7 +205,6 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 

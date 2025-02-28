@@ -42,7 +42,6 @@
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t *bundle);
 

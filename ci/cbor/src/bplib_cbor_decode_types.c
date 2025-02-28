@@ -21,7 +21,7 @@ BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* A
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR;
     }
 
     /* Ensure the length isn't indicating this is an indefinite array 
@@ -30,7 +30,7 @@ BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* A
     if (Arr.val.uCount > QCBOR_MAX_ITEMS_IN_ARRAY)
     {
         *ArrayLen = 0;
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR;
     }
 
     /* Now it is safe to conclude this is a definite array */
@@ -51,7 +51,7 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx)
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_EXIT_DEF_ARRAY_QCBOR_ERR;
     }
 
     return BPLIB_SUCCESS;
@@ -74,7 +74,7 @@ BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* p
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_GET_UINT64_QCBOR_ERR;
     }
     return BPLIB_SUCCESS;
 }
@@ -93,7 +93,7 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_EID_ENTER_OUTER_ARRAY_ERR;
     }
 
     /* Parse URI Type: Note only IPN accepted */
@@ -104,42 +104,42 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     }
     if (parsed->Scheme != BPLIB_EID_SCHEME_IPN)
     {
-        return BPLIB_CBOR_NOT_IMPL;
+        return BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR;
     }
 
     /* Enter SSP Array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR;
     }
 
     /* Node Number */
     Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Node);
     if (Status != BPLIB_SUCCESS)
     {
-        return Status;
+        return BPLIB_CBOR_DEC_TYPES_EID_IPN_NODE_DEC_ERR;
     }
 
     /* Node Service */
     Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Service);
     if (Status != BPLIB_SUCCESS)
     {
-        return Status;
+        return BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR;
     }
 
     /* Exit SSP Array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
     {
-        return Status;
+        return BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR;
     }
 
     /* Exit EID Array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
     {
-        return Status;
+        return BPLIB_CBOR_DEC_TYPES_EID_EXIT_OUTER_ARRAY_ERR;
     }
 
     return BPLIB_SUCCESS;
@@ -159,28 +159,28 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_TIMESTAMP_ENTER_ARRAY_ERR;
     }
 
     /* First Element of the array should be creation timestamp */
     Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->CreateTime);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_TIMESTAMP_CREATE_DEC_ERR;
     }
 
     /* Second Element of the array should be creation timestamp */
     Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->SequenceNumber);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_TIMESTAMP_SEQ_NUM_DEC_ERR;
     }
 
     /* Exit timestamp Array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
     {
-        return Status;
+        return BPLIB_CBOR_DEC_TYPES_TIMESTAMP_EXIT_ARRAY_ERR;
     }
 
     return QCBOR_SUCCESS;
@@ -201,7 +201,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_CRC_ENTER_BYTE_STR_ERR;
     }
 
     if (crc_type == BPLib_CRC_Type_CRC16)
@@ -210,7 +210,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
         {
             printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
                 TemporaryByteStringBuffer.len);
-            return BPLIB_CBOR_DEC_ERR;
+            return BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR;
         }
         else
         {
@@ -227,7 +227,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
         {
             printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
                 TemporaryByteStringBuffer.len);
-            return BPLIB_CBOR_DEC_ERR;
+            return BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR;
         }
         else
         {
@@ -241,6 +241,6 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
     }
     else
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR;
     }
 }

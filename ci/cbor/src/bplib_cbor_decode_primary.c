@@ -54,79 +54,79 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR;
     }
 
     /* Version */
     Status = PrimaryBlockParser.VersionParser(ctx, &Version);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_VERSION_DEC_ERR;
     }
     if (Version != BPLIB_BUNDLE_PROTOCOL_VERSION)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_WRONG_VERSION_ERR;
     }
 
     /* Flags */
     Status = PrimaryBlockParser.FlagsParser(ctx, &bundle->blocks.PrimaryBlock.BundleProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
     /* Check flags to make sure we support the requested options */
     if (bundle->blocks.PrimaryBlock.BundleProcFlags != 4)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR;
     }
 
     /* CRC Type */
     Status = PrimaryBlockParser.CRCTypeParser(ctx, &bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR;
     }
 
     /* Dest EID */
     Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_DEST_EID_DEC_ERR;
     }
 
     /* Source EID */
     Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR;
     }
 
     /* Report EID */
     Status = PrimaryBlockParser.ReportEIDParser(ctx, &bundle->blocks.PrimaryBlock.ReportToEID);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_REPORT_EID_DEC_ERR;
     }
 
     /* Creation Timestamp */
     Status = PrimaryBlockParser.CreationTimestampParser(ctx, &bundle->blocks.PrimaryBlock.Timestamp);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_CREATE_TIME_DEC_ERR;
     }
 
     /* Lifetime */
     Status = PrimaryBlockParser.LifetimeParser(ctx, &bundle->blocks.PrimaryBlock.Lifetime);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR;
     }
 
     /* CRC Value */
     Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal, bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
     }
 
 
@@ -152,7 +152,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
     }
 
     return BPLIB_SUCCESS;

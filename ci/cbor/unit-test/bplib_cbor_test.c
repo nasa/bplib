@@ -148,7 +148,8 @@ void Test_BPLib_CBOR_DecodeBundle_LengthError(void)
     BPLib_Bundle_t bundle;
 
     /* CandBundleLen expected to be at least 2 */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(primary_and_payload_with_aa_x_20, 2, &bundle), BPLIB_CBOR_DEC_ERR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(primary_and_payload_with_aa_x_20, 2, &bundle),
+        BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
 }
 
 void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
@@ -162,7 +163,7 @@ void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
                                            sizeof(bad_bundle),
                                            &bundle);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_PRI_ERR);
+    UtAssert_INT32_EQ(ReturnStatus, -1);
 
 }
 
@@ -227,7 +228,7 @@ void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
                                            sizeof(bundle_with_too_many_canonical_blocks),
                                            &bundle);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_PAST_MAX_BLOCKS_ERR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR);
 
 }
 

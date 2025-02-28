@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
 
     if (CanonicalBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
     {
-        return BPLIB_CBOR_DEC_CANON_LIM_ERR;
+        return BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR;
     }
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
@@ -96,14 +96,14 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &ArrayLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_ENTER_ARRAY_ERR;
     }
 
     /* Block Type */
     Status = CanonicalBlockParser.BlockTypeParser(ctx, &BlockType);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_BLOCK_TYPE_DEC_ERR;
     }
 
     /* Once we know the block type, we can be smarter about decoding data directly into `bundle` */
@@ -122,9 +122,6 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
             ** however, for now, continue decoding the block data into a spare buffer, for debugging
             */
             CanonicalBlockHdr = &SpareCanonicalBlockHdr;
-            /*
-            return BPLIB_CBOR_DEC_CANON_LIM_ERR;
-            */
         }
         else
         {
@@ -138,21 +135,21 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR;
     }
 
     /* Flags */
     Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BundleProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
     }
 
     /* CRC Type */
     Status = CanonicalBlockParser.CRCTypeParser(ctx, &CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_CRC_TYPE_DEC_ERR;
     }
 
     printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
@@ -170,7 +167,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_CANON_ENTER_BYTE_STR_ERR;
     }
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
@@ -187,7 +184,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         if (Status != BPLIB_SUCCESS)
         {
             printf("\t\t Prev Node Block Data Parser Error!\n");
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_PREV_NODE_EID_DEC_ERR;
         }
 
         printf("\t\t EID Forwarded (scheme.node.service): %lu.%lu.%lu\n",
@@ -206,7 +203,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         if (Status != BPLIB_SUCCESS)
         {
             printf("\t\t Age Block Data Parser Error!\n");
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_AGE_BLOCK_DEC_ERR;
         }
 
         printf("\t\t Age (in milliseconds): %lu\n",
@@ -222,7 +219,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         if (Status != BPLIB_SUCCESS)
         {
             printf("\t\t Hop Count Block Data Parser Error 1!\n");
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_HOP_BLOCK_ENTER_ARRAY_ERR;
         }
         printf("\t\t Hop Count Definite Array Length: %lu\n", AgeBlockDataArrayLen);
 
@@ -231,14 +228,14 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         if (Status != BPLIB_SUCCESS)
         {
             printf("\t\t Hop Count Block Data Parser Error 2!\n");
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR;
         }
         Status = HopCountBlockDataParser.BundleHopCountParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
         if (Status != BPLIB_SUCCESS)
         {
             printf("\t\t Hop Count Block Data Parser Error 3!\n");
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR;
         }
 
         printf("\t\t Hop Limit: %lu\n",
@@ -250,7 +247,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
         if (Status != BPLIB_SUCCESS)
         {
-            return BPLIB_CBOR_DEC_CANON_ERR;
+            return BPLIB_CBOR_DEC_HOP_BLOCK_EXIT_ARRAY_ERR;
         }
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_CREB)
@@ -275,14 +272,14 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_ERR;
+        return BPLIB_CBOR_DEC_CANON_EXIT_BYTE_STR_ERR;
     }
 
     /* CRC Value */
     Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_CANON_ERR;
+        return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
     }
     printf("\t CRC Value: 0x%lX\n", CanonicalBlockHdr->CrcVal);
 
@@ -290,7 +287,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRI_ERR;
+        return BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR;
     }
 
     return BPLIB_SUCCESS;
