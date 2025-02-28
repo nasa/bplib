@@ -18,9 +18,10 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include <stdio.h>
 
 #include "bplib_cla.h"
@@ -28,12 +29,20 @@
 #include "bplib_bi.h"
 #include "bplib_qm.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
 
-/*
-** Function Definitions
-*/
+uint16_t BPLib_CLA_NumContactsSetUp;
 
-BPLib_Status_t BPLib_CLA_Init(void) {
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+BPLib_Status_t BPLib_CLA_Init(void)
+{
+    BPLib_CLA_NumContactsSetUp = 0;
+
     return BPLIB_SUCCESS;
 }
 

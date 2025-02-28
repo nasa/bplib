@@ -65,6 +65,12 @@ typedef struct
 /* =========== */
 
 /**
+ * \brief Static value that tracks the total number
+ *        of contacts set up so far
+ */
+extern uint16_t BPLib_CLA_NumContactsSetUp;
+
+/**
  * \brief Global Contacts Table
  */
 typedef struct
