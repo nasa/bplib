@@ -786,36 +786,28 @@ void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
 
 void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    /* TODO: Verify that table was validated via cFS table upload */
 
-    1) Verify that table was validated via cFS table upload.    
-    2) Checks if path is available for assignment
-    3) Assigns an instance of BI and CLA
-    4) Configures assigned instances of BI, CT, EBP, CLA based on configuration
-    5) Registers CLA with Storage given the table configuration (Path ID, EID map)
+   Status = BPLib_CLA_ContactSetup(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact setup directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-setup directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_SETUP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact setup directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-setup directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
