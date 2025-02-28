@@ -58,6 +58,7 @@ target_link_libraries(coverage-bplib_bi-testrunner PUBLIC
     ut_coverage_link
     ut_assert
     bplib_em_stubs
+    bplib_eid_stubs
     bplib_mem_stubs
     bplib_qm_stubs
     bplib_cbor_stubs
