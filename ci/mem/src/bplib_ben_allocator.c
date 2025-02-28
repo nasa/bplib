@@ -143,7 +143,7 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
         }
     }
 
-    printf("MEMAlloc: Blocks Free %lu\n", pool->num_free);
+    //printf("MEMAlloc: Blocks Free %lu\n", pool->num_free);
     return ret;
 }
 
@@ -165,5 +165,5 @@ void BPLib_MEM_PoolImplFree(BPLib_MEM_PoolImpl_t* pool, void* to_free)
         pool->mem_next = (void*)(to_free);
     }
     pool->num_free++;
-    printf("MEMFree: Blocks Free %lu\n", pool->num_free);
+    //printf("MEMFree: Blocks Free %lu\n", pool->num_free);
 }

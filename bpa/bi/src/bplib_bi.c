@@ -78,10 +78,10 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     /* Validate the deserialized bundle (this does nothing right now) */
     Status = BPLib_BI_ValidateBundle();
 
-    printf("Ingressing packet of %lu bytes from CLA, jamming deserialized Dest EID to %lu.%lu\n",
-        (unsigned long)Size,
-        bundle->blocks.PrimaryBlock.DestEID.Node,
-        bundle->blocks.PrimaryBlock.DestEID.Service);
+    // printf("Ingressing packet of %lu bytes from CLA, jamming deserialized Dest EID to %lu.%lu\n",
+    //     (unsigned long)Size,
+    //     bundle->blocks.PrimaryBlock.DestEID.Node,
+    //     bundle->blocks.PrimaryBlock.DestEID.Service);
 
     BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;

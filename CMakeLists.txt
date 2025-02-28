@@ -176,10 +176,11 @@ else()
 
   endif()
 
-  # Build the test tools, if directed
-  if (BPLIB_BUILD_TEST_TOOLS)
-    add_subdirectory(app)
-  endif()
+  target_compile_definitions(bplib_time PRIVATE 
+    BPLIB_TIME_FILE_NAME="/bplib_time.dat"
+  )
+  add_subdirectory(app)
+
 
 endif()
 

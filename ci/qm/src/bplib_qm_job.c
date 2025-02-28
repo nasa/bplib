@@ -35,7 +35,8 @@ static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return CONTACT_IN_CT_TO_STOR;
+    //return CONTACT_IN_CT_TO_STOR;
+    return CONTACT_OUT_STOR_TO_CT;
 }
 
 static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)

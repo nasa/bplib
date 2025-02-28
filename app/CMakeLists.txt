@@ -14,9 +14,9 @@ project(BPLIB_TEST_APP C)
 # Sanity check: bpcat assumes a POSIX system
 # and uses pthread calls.  If not POSIX, then
 # this tool will not build.
-if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
-  message(FATAL_ERROR "BPLib Test applications require POSIX")
-endif()
+# if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
+#   message(FATAL_ERROR "BPLib Test applications require POSIX")
+# endif()
 
 set(BPAPP_COMPILE_FEATURES "c_std_99")
 set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")

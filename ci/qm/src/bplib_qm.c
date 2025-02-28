@@ -220,7 +220,7 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
+        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, 100))
         {
             next_job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
             if (next_job_func)

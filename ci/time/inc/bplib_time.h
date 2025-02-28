@@ -41,7 +41,9 @@
 /**
 ** \brief Time data file name 
 */
+#ifndef BPLIB_TIME_FILE_NAME
 #define BPLIB_TIME_FILE_NAME "/cf/bplib_time.dat"
+#endif
 
 /**
 ** \brief Length of the time data ring buffers
