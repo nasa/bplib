@@ -78,6 +78,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     QCBORError QStatus;
     uint64_t BlockType;
     uint32_t CurrentTraversalOffset;
+    UsefulBufC CanonBlockDataByteStrInfo;
 
     if ((ctx == NULL) || (bundle == NULL))
     {
@@ -163,7 +164,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     ** next should be the canonical-block-specific data
     ** this should be wrapped in a CBOR byte-string
     */
-    QCBORDecode_EnterBstrWrapped(ctx, QCBOR_TAG_REQUIREMENT_NOT_A_TAG, NULL);
+    QCBORDecode_EnterBstrWrapped(ctx, QCBOR_TAG_REQUIREMENT_NOT_A_TAG, &CanonBlockDataByteStrInfo);
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
     {
@@ -260,7 +261,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
-        printf("\t Payload Block Data Parsing Skipped!\n");
+        bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
+        printf("\t Payload Block Data Length: %lu bytes\n",
+            bundle->blocks.PrimaryBlock.TotalAduLength);
     }
     else
     {
