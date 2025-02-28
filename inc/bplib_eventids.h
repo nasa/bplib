@@ -149,6 +149,11 @@
 /* ============ */
 #define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
 
+/* ============= */
+/* CLA event IDs */
+/* ============= */
 
+#define BPLIB_CLA_UNKNOWN_CONTACT_DBG_EID      (651u)
+#define BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID (652u)
 
 #endif /* BPLIB_EVENTIDS_H */

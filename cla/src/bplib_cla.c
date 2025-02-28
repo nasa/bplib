@@ -22,12 +22,7 @@
 /* Includes */
 /* ======== */
 
-#include <stdio.h>
-
 #include "bplib_cla.h"
-#include "bplib_cla_internal.h"
-#include "bplib_bi.h"
-#include "bplib_qm.h"
 
 /* =========== */
 /* Global Data */
@@ -133,8 +128,48 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
     */
 
     BPLib_Status_t Status;
+    uint16_t ContactNum;
+    BPLib_CLA_ContactsSet_t ContactInfo;
 
-    Status = BPLIB_SUCCESS;
+    if (BPLib_CLA_NumContactsSetUp < BPLIB_MAX_NUM_CONTACTS)
+    {
+        /* Default to an unknown contact to make logic cleaner */
+        Status = BPLIB_CLA_UNKNOWN_CONTACT;
+
+        for (ContactNum = 0; ContactNum < BPLIB_MAX_NUM_CONTACTS; ContactNum++)
+        {
+            ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactNum];
+
+            if (ContactInfo.ContactID == ContactId)
+            {
+                Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo);
+
+                if (Status == BPLIB_SUCCESS)
+                {
+                    BPLib_CLA_NumContactsSetUp++;
+                }
+
+                break;
+            }
+        }
+
+        if (Status == BPLIB_CLA_UNKNOWN_CONTACT)
+        {
+            BPLib_EM_SendEvent(BPLIB_CLA_UNKNOWN_CONTACT_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "No contact with ID %d found in Contacts Table",
+                                ContactId);
+        }
+    }
+    else
+    {
+        Status = BPLIB_CLA_CONTACTS_MAX_REACHED;
+
+        BPLib_EM_SendEvent(BPLIB_CLA_UNKNOWN_CONTACT_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "Setting up contact with ID %d would exceed max allowed",
+                            ContactId);
+    }
 
     return Status;
 }

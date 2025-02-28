@@ -238,8 +238,8 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR            ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
-
-
+#define BPLIB_CLA_CONTACTS_MAX_REACHED                 ((BPLib_Status_t) -179) /* Max number of contacts active */
+#define BPLIB_CLA_UNKNOWN_CONTACT                      ((BPLib_Status_t) -180) /* Contact ID not found in Contacts Table */
 
 // TODO TIME Helpers
 
