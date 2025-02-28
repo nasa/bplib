@@ -196,6 +196,13 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    if (crc_type == BPLib_CRC_Type_None)
+    {
+        /* if the CRC is of type "none", assume there is no CRC and skip further decoding */
+        *parsed = 0;
+        return BPLIB_SUCCESS;
+    }
+
     /* get the CRC as a byte string */
     QCBORDecode_GetByteString(ctx, &TemporaryByteStringBuffer);
     QStatus = QCBORDecode_GetError(ctx);

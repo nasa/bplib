@@ -86,6 +86,11 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     {
         return BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR;
     }
+    /*
+    ** TODO: since we don't support BPSec yet,
+    ** technically we could throw an error here when CRC is "none".
+    ** Ref: https://www.rfc-editor.org/rfc/rfc9171.html#section-4.3.1-5.6
+    */
 
     /* Dest EID */
     Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
@@ -123,7 +128,8 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* CRC Value */
-    Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal, bundle->blocks.PrimaryBlock.CrcType);
+    Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal,
+                                                bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
