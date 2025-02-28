@@ -22,7 +22,9 @@ set(BPAPP_COMPILE_FEATURES "c_std_99")
 set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
 set(BPAPP_LINK_LIBRARIES bplib)
 
-add_executable(bpcat bpcat.c)
+add_executable(bpcat bpcat.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/src/
+)
 
 # compile this app as c99 (but this does not impose the same requirement on other users)
 target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})
@@ -31,7 +33,7 @@ target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})
 target_compile_options(bpcat PRIVATE ${BPAPP_COMPILE_OPTIONS})
 
 # Low level test apps may include "private" headers, whereas higher level tests should not
-target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
+target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
 
 # link with bplib
 target_link_libraries(bpcat ${BPAPP_LINK_LIBRARIES})

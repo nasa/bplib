@@ -45,10 +45,12 @@
 
 #include "bplib.h"
 
+#define NUM_GEN_WORKER 3
+
 static BPLib_Instance_t            BplibInst;
 static pthread_t cla_in_thr;
 static pthread_t cla_out_thr;
-static pthread_t gen_worker_thr;
+static pthread_t gen_worker_thr[NUM_GEN_WORKER];
 
 /* Returns current monotonic time */
 int64_t BPA_TIMEP_GetMonotonicTime(void)
@@ -270,6 +272,7 @@ void* gen_worker_loop()
     {
         BPLib_QM_RunJob(&BplibInst, 100);
     }
+    return NULL;
 }
 
 void* cla_out_loop()
@@ -299,8 +302,6 @@ void* cla_out_loop()
     return NULL;
 }
 
-
-
 void BPCat_Main()
 {
     BPLib_Status_t InitStatus;
@@ -328,7 +329,6 @@ void BPCat_Main()
     //     return;
     // }
 
-
     InitStatus = BPLib_QM_QueueTableInit(&BplibInst, 1024);
     if (InitStatus != BPLIB_SUCCESS)
     {
@@ -346,11 +346,14 @@ void BPCat_Main()
 
     pthread_create(&cla_in_thr, NULL, cla_in_loop, NULL);
     pthread_create(&cla_out_thr, NULL, cla_out_loop, NULL);
-    pthread_create(&gen_worker_thr, NULL, gen_worker_loop, NULL);
+    for (int i = 0; i < NUM_GEN_WORKER; i++)
+    {
+        pthread_create(&gen_worker_thr[i], NULL, gen_worker_loop, NULL);
+    }
 
     while (true)
     {
-        BPLib_QM_SortJobs(&BplibInst, 100);
+        BPLib_QM_SortJobs(&BplibInst, 1000);
     }
 }
 
