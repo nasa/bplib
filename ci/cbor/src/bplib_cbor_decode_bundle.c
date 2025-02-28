@@ -93,7 +93,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
     if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
     {
-        return BPLIB_CBOR_DEC_PAST_MAX_BLOCKS;
+        return BPLIB_CBOR_DEC_PAST_MAX_BLOCKS_ERR;
     }
 
     QCBORDecode_ExitArray(&ctx);
