@@ -201,4 +201,13 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
  */
 BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId);
 
+/**
+ * \brief     If the contact has been stopped, deconfigure the CLA via BI, CT, EBP, and CLA
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to teardown
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_CONTACT_RUNNING: Contact has not been stopped
+ */
+BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId);
+
 #endif /* BPLIB_CLA_H */

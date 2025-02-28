@@ -173,3 +173,13 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
 
     return Status;
 }
+
+BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
+{
+    BPLib_Status_t Status;
+
+    /* TODO: Verify that contact has been stopped */
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
