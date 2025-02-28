@@ -102,8 +102,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         }
         */
     }
-    
-    QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
 
     /* Pull bundles from cache queue and process them */
     while (BundlesScheduled < MaxBundlesToScan && Status == BPLIB_SUCCESS)
@@ -113,6 +111,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         {
             if (QueuedBundle != NULL)
             {
+                QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
+                
                 /* If destination EID matches this node, look for an available channel */
                 if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                             BPLIB_EID_INSTANCE))
