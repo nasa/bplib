@@ -227,7 +227,7 @@ void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
                                            sizeof(bundle_with_too_many_canonical_blocks),
                                            &bundle);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_PAST_MAX_BLOCKS_ERR);
 
 }
 
