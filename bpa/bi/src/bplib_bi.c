@@ -24,6 +24,8 @@
 #include "bplib_bi.h"
 #include "bplib_cbor.h"
 #include "bplib_qm.h"
+#include "bplib_as.h"
+#include "bplib_eid.h"
 #include "bplib_bblocks.h"
 
 #include <stdio.h>
@@ -64,6 +66,9 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
         BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID,
             BPLib_EM_EventType_ERROR,
             "Error decoding bundle, RC = %d", DecodeStatus);
+
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
 
         return DecodeStatus;
     }
