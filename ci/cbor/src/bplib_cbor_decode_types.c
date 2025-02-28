@@ -218,8 +218,6 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
     {
         if (TemporaryByteStringBuffer.len != 2)
         {
-            printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
-                TemporaryByteStringBuffer.len);
             return BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR;
         }
         else
@@ -235,8 +233,6 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
     {
         if (TemporaryByteStringBuffer.len != 4)
         {
-            printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
-                TemporaryByteStringBuffer.len);
             return BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR;
         }
         else

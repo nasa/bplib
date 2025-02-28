@@ -74,7 +74,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
     BPLib_CanBlockHeader_t SpareCanonicalBlockHdr;
     size_t ArrayLen;
-    size_t AgeBlockDataArrayLen;
+    size_t HopCountBlockDataArrayLen;
     QCBORError QStatus;
     uint64_t BlockType;
     uint32_t CurrentTraversalOffset;
@@ -153,13 +153,6 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_CRC_TYPE_DEC_ERR;
     }
 
-    printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
-    printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
-    printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
-    printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
-    printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
-    printf("\t Header Offset: %lu\n", CanonicalBlockHdr->HeaderOffset);
-
     /*
     ** next should be the canonical-block-specific data
     ** this should be wrapped in a CBOR byte-string
@@ -173,76 +166,46 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
     CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
-    printf("\t Data Offset: %lu\n", CanonicalBlockHdr->DataOffset);
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
-        printf("\t Prev Node Block Data: \n");
-        printf("\t\t Prev Node Block MetaData Length: %lu\n", sizeof(BPLib_PrevNodeBlockData_t));
-
         Status = PrevNodeBlockDataParser.EidForwardedParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("\t\t Prev Node Block Data Parser Error!\n");
             return BPLIB_CBOR_DEC_PREV_NODE_EID_DEC_ERR;
         }
-
-        printf("\t\t EID Forwarded (scheme.node.service): %lu.%lu.%lu\n",
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Scheme, 
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Node,
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Service);
-
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Age)
     {
-        printf("\t Age Block Data: \n");
-        printf("\t\t Age Block MetaData Length: %lu\n", sizeof(BPLib_AgeBlockData_t));
-
         Status = AgeBlockDataParser.BundleAgeParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.AgeBlockData.Age);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("\t\t Age Block Data Parser Error!\n");
             return BPLIB_CBOR_DEC_AGE_BLOCK_DEC_ERR;
         }
-
-        printf("\t\t Age (in milliseconds): %lu\n",
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.AgeBlockData.Age);
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_HopCount)
     {
-        printf("\t Hop Count Block Data: \n");
-        printf("\t\t Hop Count MetaData Length: %lu\n", sizeof(BPLib_AgeBlockData_t));
-
         /* Enter the hop count block data array */
-        Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &AgeBlockDataArrayLen);
+        Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &HopCountBlockDataArrayLen);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("\t\t Hop Count Block Data Parser Error 1!\n");
             return BPLIB_CBOR_DEC_HOP_BLOCK_ENTER_ARRAY_ERR;
         }
-        printf("\t\t Hop Count Definite Array Length: %lu\n", AgeBlockDataArrayLen);
 
         Status = HopCountBlockDataParser.BundleHopLimitParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("\t\t Hop Count Block Data Parser Error 2!\n");
             return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR;
         }
         Status = HopCountBlockDataParser.BundleHopCountParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("\t\t Hop Count Block Data Parser Error 3!\n");
             return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR;
         }
-
-        printf("\t\t Hop Limit: %lu\n",
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit);
-        printf("\t\t Hop Count: %lu\n",
-            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
 
         /* Exit the hop count block data array */
         Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
@@ -251,23 +214,13 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
             return BPLIB_CBOR_DEC_HOP_BLOCK_EXIT_ARRAY_ERR;
         }
     }
-    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_CREB)
-    {
-        printf("\t CREB Block Data Parsing Skipped!\n");
-    }
-    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_CTEB)
-    {
-        printf("\t CTEB Block Data Parsing Skipped!\n");
-    }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
         bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
-        printf("\t Payload Block Data Length: %lu bytes\n",
-            bundle->blocks.PrimaryBlock.TotalAduLength);
     }
     else
     {
-        printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);
+        /* TODO: Should we return an error here? */
     }
 
     /* exit the byte-string */
@@ -284,7 +237,6 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
     }
-    printf("\t CRC Value: 0x%lX\n", CanonicalBlockHdr->CrcVal);
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
@@ -292,6 +244,57 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     {
         return BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR;
     }
+
+    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
+    printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
+    printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
+    printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
+    printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
+    printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
+    printf("\t Header Offset: %lu\n", CanonicalBlockHdr->HeaderOffset);
+    printf("\t Data Offset: %lu\n", CanonicalBlockHdr->DataOffset);
+    switch (CanonicalBlockHdr->BlockType)
+    {
+        case BPLib_BlockType_PrevNode:
+            printf("\t Prev Node Block Data: \n");
+            printf("\t\t Prev Node Block MetaData Length: %lu\n", sizeof(BPLib_PrevNodeBlockData_t));
+            printf("\t\t EID Forwarded (scheme.node.service): %lu.%lu.%lu\n",
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Scheme, 
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Node,
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Service);
+            break;
+        case BPLib_BlockType_Age:
+            printf("\t Age Block Data: \n");
+            printf("\t\t Age Block MetaData Length: %lu\n", sizeof(BPLib_AgeBlockData_t));
+            printf("\t\t Age (in milliseconds): %lu\n",
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.AgeBlockData.Age);
+            break;
+        case BPLib_BlockType_HopCount:
+            printf("\t Hop Count Block Data: \n");
+            printf("\t\t Hop Count MetaData Length: %lu\n", sizeof(BPLib_HopCountData_t));
+            printf("\t\t Hop Count Definite Array Length: %lu\n", HopCountBlockDataArrayLen);
+            printf("\t\t Hop Limit: %lu\n",
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit);
+            printf("\t\t Hop Count: %lu\n",
+                bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
+            break;
+        case BPLib_BlockType_CTEB:
+            printf("\t CTEB Block Data Parsing Skipped!\n");
+            break;
+        case BPLib_BlockType_CREB:
+            printf("\t CREB Block Data Parsing Skipped!\n");
+            break;
+        case BPLib_BlockType_Payload:
+            printf("\t Payload Block Data Length: %lu bytes\n",
+                bundle->blocks.PrimaryBlock.TotalAduLength);
+            break;
+        default:
+            printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);
+            break;
+    }
+    printf("\t CRC Value: 0x%lX\n", CanonicalBlockHdr->CrcVal);
+    #endif
+
 
     return BPLIB_SUCCESS;
 }

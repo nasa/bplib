@@ -135,7 +135,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
     }
 
-
+    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");
     printf("\t CRC Type: %lu\n", bundle->blocks.PrimaryBlock.CrcType);
     printf("\t Flags: %lu\n", bundle->blocks.PrimaryBlock.BundleProcFlags);
@@ -152,6 +152,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
                                                       bundle->blocks.PrimaryBlock.Timestamp.SequenceNumber);
     printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
+    #endif
 
 
     /* Exit the primary block array */

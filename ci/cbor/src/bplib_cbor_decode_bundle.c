@@ -36,6 +36,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         return BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR;
     }
 
+    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Candidate bundle received with size %lu: \n", CandBundleLen);
     for (size_t i = 0 ; i < CandBundleLen; i++)
     {
@@ -46,6 +47,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         }
     }
     printf("\n");
+    #endif
 
     /* Init QCBOR Decode Engine with the Candidate Bundle */
     UBufC.ptr = (const void*)((uint8_t*)CandBundle);
