@@ -34,13 +34,12 @@ void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
     BPLib_Status_t ReturnStatus;
     uint32_t ContId = 0;
     uint8_t InputBundleBuffer[30];
-    size_t InputBundleSize = sizeof(InputBundleBuffer);
     uint32_t Timeout = 0;
 
     ReturnStatus = BPLib_CLA_Ingress(NULL,
                                      ContId,
                                      InputBundleBuffer,
-                                     InputBundleSize,
+                                     sizeof(InputBundleBuffer),
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
@@ -56,13 +55,12 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
     BPLib_Instance_t InputInstance;
     uint32_t ContId = 0;
     uint8_t InputBundleBuffer[30];
-    size_t InputBundleSize = sizeof(InputBundleBuffer);
     uint32_t Timeout = 0;
 
     ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
                                      ContId,
                                      NULL,
-                                     InputBundleSize,
+                                     sizeof(InputBundleBuffer),
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
@@ -77,21 +75,23 @@ void Test_BPLib_CLA_Ingress_ControlMessageNominal(void)
     BPLib_Status_t ReturnStatus;
     BPLib_Instance_t InputInstance;
     uint32_t ContId = 0;
-    uint8_t InputBundleBuffer[30];
-    size_t InputBundleSize = sizeof(InputBundleBuffer);
+    BPLib_CLA_CtrlMsg_t InputControlMessage;
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), true);
+    /*
+    ** Set the input buffer to be interpretted as a control message
+    */
+    memset(&InputControlMessage, 0, sizeof(InputControlMessage));
+    strncpy(InputControlMessage.CtrlMsgTag, "BPNMSG", sizeof(InputControlMessage.CtrlMsgTag));
+    InputControlMessage.MsgTypes = SentIt;
 
     ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
                                      ContId,
-                                     InputBundleBuffer,
-                                     InputBundleSize,
+                                     &InputControlMessage,
+                                     sizeof(InputControlMessage),
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 1);
-    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 1);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
 }
 
@@ -102,20 +102,21 @@ void Test_BPLib_CLA_Ingress_NonControlMessageNominal(void)
     BPLib_Instance_t InputInstance;
     uint32_t ContId = 0;
     uint8_t InputBundleBuffer[30];
-    size_t InputBundleSize = sizeof(InputBundleBuffer);
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), false);
+    /*
+    ** Set the input buffer to be interpretted as a non-control message
+    */
+    memset(InputBundleBuffer, 0, sizeof(InputBundleBuffer));
+    strncpy(InputBundleBuffer, "NOT-MSG", sizeof(InputBundleBuffer));
 
     ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
                                      ContId,
                                      InputBundleBuffer,
-                                     InputBundleSize,
+                                     sizeof(InputBundleBuffer),
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 1);
-    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 1);
 }
 
