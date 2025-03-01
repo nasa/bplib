@@ -77,11 +77,11 @@ void Test_BPLib_BI_RecvFullBundleIn_CborDecodeError(void)
     size_t Size = 0;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), &AllocatedBundleMem);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
@@ -105,7 +105,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
