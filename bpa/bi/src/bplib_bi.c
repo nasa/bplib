@@ -34,10 +34,6 @@
 ** Function Definitions
 */
 
-int BPLib_BI_Init(void) {
-    return BPLIB_SUCCESS;
-}
-
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {

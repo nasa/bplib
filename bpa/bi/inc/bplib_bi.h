@@ -34,20 +34,6 @@
 */
 
 /**
- * \brief Bundle Interface initialization
- *
- *  \par Description
- *       BI initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_BI_Init(void);
-
-/**
  * \brief Function for Receiving Bundle from CLA
  *
  *  \par Description

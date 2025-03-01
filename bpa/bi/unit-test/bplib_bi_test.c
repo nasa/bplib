@@ -24,14 +24,6 @@
 
 #include "bplib_bi_test_utils.h"
 
-/*
-** Test function for
-** int BPLib_BI_Init()
-*/
-void Test_BPLib_BI_Init(void)
-{
-    UtAssert_INT32_EQ(BPLib_BI_Init(), BPLIB_SUCCESS);
-}
 
 void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 {
@@ -109,7 +101,6 @@ void Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError(void)
 
 void TestBplibBi_Register(void)
 {
-    UtTest_Add(Test_BPLib_BI_Init, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_Init");
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");

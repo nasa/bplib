@@ -29,20 +29,6 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_BI_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_BI_Init(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_BI_Init, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_BI_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_BI_Init, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_BI_RecvCtrlMsg()
  * ----------------------------------------------------
  */
