@@ -55,10 +55,66 @@ void Test_BPLib_BI_ValidateBundle_Nominal(void)
     UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(), BPLIB_SUCCESS);        
 }
 
+
+void Test_BPLib_BI_BlobCopyOut_InputBundleNullError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    // BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[2048];
+    size_t OutputSize;
+
+    ReturnStatus = BPLib_BI_BlobCopyOut(NULL,
+                                        OutputBuffer,
+                                        sizeof(OutputBuffer),
+                                        &OutputSize);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+
+void Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[2048];
+    size_t OutputSize;
+
+    ReturnStatus = BPLib_BI_BlobCopyOut(&InputBundle,
+                                        NULL,
+                                        sizeof(OutputBuffer),
+                                        &OutputSize);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+
+void Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[2048];
+    // size_t OutputSize;
+
+    ReturnStatus = BPLib_BI_BlobCopyOut(&InputBundle,
+                                        OutputBuffer,
+                                        sizeof(OutputBuffer),
+                                        NULL);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+/*
+** TODO: Finish BPLib_BI_BlobCopyOut unit tests
+*/
+
 void TestBplibBi_Register(void)
 {
     UtTest_Add(Test_BPLib_BI_Init, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_Init");
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");
+
+    UtTest_Add(Test_BPLib_BI_BlobCopyOut_InputBundleNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_InputBundleNullError");
+    UtTest_Add(Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError");
+    UtTest_Add(Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError");
 }
