@@ -24,17 +24,96 @@
 
 #include "bplib_bi_test_utils.h"
 
+#include "bplib_cbor.h"
 
-void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
+
+void Test_BPLib_BI_RecvFullBundleIn_NullInputErrors(void)
 {
     BPLib_Instance_t instance;
-    void* BundleIn = NULL;
+    char BundleIn[32];
     size_t Size = 0;
 
     // Test the NULL pointer checks.
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, &BundleIn, Size), BPLIB_NULL_PTR_ERROR);
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(&instance, BundleIn, Size), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, NULL, Size), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, BundleIn, Size), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(&instance, NULL, Size), BPLIB_NULL_PTR_ERROR);
+
+    // Make sure we didn't get past the null pointer checks
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 0);
+    UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 0);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
 }
+
+void Test_BPLib_BI_RecvFullBundleIn_MemAllocError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t Instance;
+    char BundleIn[32];
+    size_t Size = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), NULL);
+
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
+    UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 0);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+}
+
+
+void Test_BPLib_BI_RecvFullBundleIn_CborDecodeError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t Instance;
+    BPLib_Bundle_t AllocatedBundleMem;
+    char BundleIn[32];
+    size_t Size = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), &AllocatedBundleMem);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_ERROR);
+
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
+    UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
+    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+}
+
+
+void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t Instance;
+    BPLib_Bundle_t AllocatedBundleMem;
+    char BundleIn[32];
+    size_t Size = 0;
+
+    memset(&AllocatedBundleMem, 0, sizeof(AllocatedBundleMem));
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), &AllocatedBundleMem);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
+
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
+    UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+}
+
 
 void Test_BPLib_BI_RecvCtrlMsg_Nominal(void)
 {
@@ -101,7 +180,11 @@ void Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError(void)
 
 void TestBplibBi_Register(void)
 {
+    UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_NullInputErrors, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_NullInputErrors");
+    UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_MemAllocError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_MemAllocError");
+    UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_CborDecodeError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_CborDecodeError");
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
+
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");
 
