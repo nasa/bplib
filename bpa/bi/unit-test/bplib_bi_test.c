@@ -54,7 +54,7 @@ void Test_BPLib_BI_RecvFullBundleIn_MemAllocError(void)
     char BundleIn[32];
     size_t Size = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), NULL);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) NULL);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
 
@@ -76,7 +76,7 @@ void Test_BPLib_BI_RecvFullBundleIn_CborDecodeError(void)
     char BundleIn[32];
     size_t Size = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), &AllocatedBundleMem);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &AllocatedBundleMem);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
@@ -100,7 +100,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
     size_t Size = 0;
 
     memset(&AllocatedBundleMem, 0, sizeof(AllocatedBundleMem));
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), &AllocatedBundleMem);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &AllocatedBundleMem);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
