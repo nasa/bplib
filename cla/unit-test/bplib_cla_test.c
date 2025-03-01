@@ -98,27 +98,6 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
 //     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 // }
 
-// void Test_BPLib_CLA_ContactsTblValidateFunc_Nominal(void)
-// {
-//     BPLib_CLA_ContactsTable_t TestTblData;
-//     memset(&TestTblData, 0, sizeof(TestTblData));
-//     TestTblData.ContactSet[0].PortNum = 10;
-//     UtAssert_INT32_EQ((int32) BPLib_CLA_ContactsTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
-// }
-
-// void Test_BPLib_CLA_ContactsTblValidateFunc_Invalid(void)
-// {
-//     BPLib_CLA_ContactsTable_t TestTblData;
-//     memset(&TestTblData, 0, sizeof(TestTblData));
-
-//     /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
-//     TestTblData.ContactSet[0].PortNum = 0;
-
-//     UtAssert_INT32_EQ(BPLib_CLA_ContactsTblValidateFunc(&TestTblData), 
-//                                                 BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
-// }
-
-
 void Test_BPLib_CLA_Egress_NullInstanceInputError(void)
 {
     BPLib_Status_t ReturnStatus;
@@ -264,16 +243,59 @@ void Test_BPLib_CLA_Egress_Nominal(void)
 }
 
 
+void Test_BPLib_CLA_ContactsTblValidateFunc_Nominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    uint8_t ContactTableIndex;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
+    {
+        TestTblData.ContactSet[ContactTableIndex].PortNum = 10;
+    }
+
+    /* Run UUT and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid(void)
+{
+    BPLib_Status_t ReturnStatus;
+    uint8_t ContactTableIndex;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
+    {
+        TestTblData.ContactSet[ContactTableIndex].PortNum = 10;
+    }
+
+    /*
+    ** Inject an error in the first table entry
+    */
+    TestTblData.ContactSet[0].PortNum = 0;
+
+    /* Run UUT and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
 
 void TestBplibCla_Register(void)
 {
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInstPtrError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInstPtrError");
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInputBundleError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInputBundleError");
+
     // UtTest_Add(Test_BPLib_CLA_Ingress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_Nominal");
     // UtTest_Add(Test_BPLib_CLA_Ingress_MsgData, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_MsgData");
     // UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMsg, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMsg");
-    // UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Nominal");
-    // UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Invalid, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Invalid");
+
+    UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid");
+
     UtTest_Add(Test_BPLib_CLA_Egress_NullInstanceInputError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullInstanceInputError");
     UtTest_Add(Test_BPLib_CLA_Egress_NullBundleOutBufferError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullBundleOutBufferError");
     UtTest_Add(Test_BPLib_CLA_Egress_NullSizeBufferError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullSizeBufferError");
