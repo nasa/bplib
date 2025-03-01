@@ -28,15 +28,6 @@
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
 
-/*
-** Test function for
-** int BPLib_CLA_Init()
-*/
-// void Test_BPLib_CLA_Init(void)
-// {
-//     UtAssert_INT32_EQ(BPLib_CLA_Init(), BPLIB_SUCCESS);
-// }
-
 // void Test_BPLib_CLA_Ingress_Nominal(void)
 // {
 //     uint32_t ContId = 0;
@@ -245,7 +236,6 @@ void Test_BPLib_CLA_Egress_Nominal(void)
 
 void TestBplibCla_Register(void)
 {
-    // UtTest_Add(Test_BPLib_CLA_Init, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Init");
     // UtTest_Add(Test_BPLib_CLA_Ingress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_Nominal");
     // UtTest_Add(Test_BPLib_CLA_Ingress_MsgData, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_MsgData");
     // UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMsg, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMsg");

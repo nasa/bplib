@@ -33,10 +33,6 @@
 ** Function Definitions
 */
 
-BPLib_Status_t BPLib_CLA_Init(void) {
-    return BPLIB_SUCCESS;
-}
-
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
 BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
