@@ -79,7 +79,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &Bundle, Timeout))
     {
         /* Copy the bundle to the CLA buffer */
-        Status = BPLib_MEM_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
+        Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
             printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);

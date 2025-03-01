@@ -111,3 +111,40 @@ BPLib_Status_t BPLib_BI_ValidateBundle(void)
     
     return BPLIB_SUCCESS;
 }
+
+
+
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* bundle,
+                                    void* out_buffer,
+                                    size_t max_len,
+                                    size_t* out_size)
+{
+    BPLib_MEM_Block_t* curr_block;
+    size_t bytes_copied;
+
+    if ((bundle == NULL) || (out_buffer == NULL) || (out_size == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    curr_block = bundle->blob;
+    bytes_copied = 0;
+    while (curr_block != NULL)
+    {
+        if ((bytes_copied + curr_block->used_len) > max_len)
+        {
+            *out_size = 0;
+            return BPLIB_BUF_LEN_ERROR;
+        }
+
+        memcpy((void*)((uintptr_t)out_buffer + bytes_copied),
+            (void*)curr_block->user_data.raw_bytes,
+            curr_block->used_len);
+
+        bytes_copied += curr_block->used_len;
+        curr_block = curr_block->next;
+    }
+
+    *out_size = bytes_copied;
+    return BPLIB_SUCCESS;
+}

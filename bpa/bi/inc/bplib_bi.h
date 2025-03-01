@@ -96,4 +96,22 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* CtrlMsg);
  */
 BPLib_Status_t BPLib_BI_ValidateBundle(void);
 
+/**
+ * \brief Copies the blob data out of a bundle, re-encoding anything necessary
+ *
+ * This function copies the blob data from the specified bundle into the provided buffer.
+ * If the bundle has more blob data than max_len, this function returns BPLIB_BUF_LEN_ERROR
+ *
+ * \param[in] bundle Pointer to the bundle from which to copy the data.
+ * \param[out] out_buffer A buffer to store the copied data.
+ * \param[in] max_len The maximum number of bytes to copy.
+ * \param[out] out_size The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* bundle,
+                                    void* out_buffer,
+                                    size_t max_len,
+                                    size_t* out_size);
+
 #endif /* BPLIB_BI_H */
