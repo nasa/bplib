@@ -101,7 +101,7 @@ void Test_BPLib_CLA_Ingress_NonControlMessageNominal(void)
     BPLib_Status_t ReturnStatus;
     BPLib_Instance_t InputInstance;
     uint32_t ContId = 0;
-    uint8_t InputBundleBuffer[30];
+    char InputBundleBuffer[30];
     uint32_t Timeout = 0;
 
     /*
