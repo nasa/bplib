@@ -34,7 +34,6 @@ void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
     BPLib_Status_t ReturnStatus;
     uint32_t ContId = 0;
     uint8_t InputBundleBuffer[30];
-    uint8_t* Bundle = NULL;
     size_t InputBundleSize = sizeof(InputBundleBuffer);
     uint32_t Timeout = 0;
 
@@ -45,6 +44,9 @@ void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
+    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
+    UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
 }
 
 
@@ -54,7 +56,6 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
     BPLib_Instance_t InputInstance;
     uint32_t ContId = 0;
     uint8_t InputBundleBuffer[30];
-    uint8_t* Bundle = NULL;
     size_t InputBundleSize = sizeof(InputBundleBuffer);
     uint32_t Timeout = 0;
 
@@ -65,38 +66,58 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
                                      Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
+    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
+    UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
 }
 
 
-// void Test_BPLib_CLA_Ingress_Nominal(void)
-// {
-//     uint32_t ContId = 0;
-//     uint8_t Bundle[5]= {0x9F, 0x0, 0x0, 0x0, 0x0};
-//     size_t Size = 10;
-//     uint32_t Timeout = 0;
-    
-//     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
-// }
+void Test_BPLib_CLA_Ingress_ControlMessageNominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t InputInstance;
+    uint32_t ContId = 0;
+    uint8_t InputBundleBuffer[30];
+    size_t InputBundleSize = sizeof(InputBundleBuffer);
+    uint32_t Timeout = 0;
 
-// void Test_BPLib_CLA_Ingress_MsgData(void)
-// {
-//     uint32_t ContId = 0;
-//     char Bundle[8]= {"BPNMSG"};
-//     size_t Size = 10;
-//     uint32_t Timeout = 0;
-//     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
-// }
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), true);
 
-// void Test_BPLib_CLA_Ingress_NonControlMsg(void)
-// {
-//     uint32_t ContId = 0;
-//     uint8_t Bundle[5]= {1, 0, 0, 0, 0};
-//     size_t Size = 10;
-//     uint32_t Timeout = 0;
-//     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 0);
-//     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_ERROR);    
-//     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
-// }
+    ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
+                                     ContId,
+                                     InputBundleBuffer,
+                                     InputBundleSize,
+                                     Timeout);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 1);
+    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 1);
+    UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
+}
+
+
+void Test_BPLib_CLA_Ingress_NonControlMessageNominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t InputInstance;
+    uint32_t ContId = 0;
+    uint8_t InputBundleBuffer[30];
+    size_t InputBundleSize = sizeof(InputBundleBuffer);
+    uint32_t Timeout = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), false);
+
+    ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
+                                     ContId,
+                                     InputBundleBuffer,
+                                     InputBundleSize,
+                                     Timeout);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 1);
+    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
+    UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 1);
+}
 
 void Test_BPLib_CLA_Egress_NullInstanceInputError(void)
 {
@@ -289,9 +310,8 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInstPtrError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInstPtrError");
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInputBundleError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInputBundleError");
 
-    // UtTest_Add(Test_BPLib_CLA_Ingress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_Nominal");
-    // UtTest_Add(Test_BPLib_CLA_Ingress_MsgData, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_MsgData");
-    // UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMsg, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMsg");
+    UtTest_Add(Test_BPLib_CLA_Ingress_ControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_ControlMessageNominal");
+    UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMessageNominal");
 
     UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Nominal");
     UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid");
