@@ -241,3 +241,88 @@ BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, s
     *out_size = bytes_copied;
     return BPLIB_SUCCESS;
 }
+
+
+BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
+    uint64_t Offset,
+    uint64_t NumBytesToCopy,
+    void* OutputBuffer,
+    size_t OutputBufferSize)
+{
+    BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
+    BPLib_MEM_Block_t *CurrentBlock;
+    uint64_t NumBytesLeftToSkip;
+    uint64_t BytesLeftInThisBlock;
+    uint64_t BytesToCopyInThisBlock;
+    uint64_t RemainingBytesToCopy;
+    uint64_t TotalBytesCopied;
+    uintptr_t CurrentInputOffset;
+    uintptr_t CurrentOutputPointer;
+    uint64_t ExpectedMemBlockNumber;
+    uint64_t CurrentMemBlockNumber;
+
+    if ((Bundle == NULL) || (Bundle->blob == NULL) || (OutputBuffer == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* find the first blob that contains data after the offset */
+    CurrentBlock = Bundle->blob;
+    NumBytesLeftToSkip = Offset;
+    ExpectedMemBlockNumber = Offset / BPLIB_MEM_CHUNKSIZE;
+    for (CurrentMemBlockNumber = 0; CurrentMemBlockNumber < ExpectedMemBlockNumber; CurrentMemBlockNumber++)
+    {
+        NumBytesLeftToSkip -= BPLIB_MEM_CHUNKSIZE;
+        CurrentBlock = CurrentBlock->next;
+        if (CurrentBlock == NULL)
+        {
+            return BPLIB_ERROR;
+        }
+    }
+
+    /* Start copying from the first block */
+    CurrentOutputPointer = (uintptr_t) OutputBuffer;
+    CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[NumBytesLeftToSkip];
+    BytesLeftInThisBlock = BPLIB_MEM_CHUNKSIZE - NumBytesLeftToSkip;
+    if (NumBytesToCopy <= BytesLeftInThisBlock)
+    {
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, NumBytesToCopy);
+        TotalBytesCopied = NumBytesToCopy;
+    }
+    else
+    {
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesLeftInThisBlock);
+        TotalBytesCopied = BytesLeftInThisBlock;
+    }
+
+    /* if we need to copy more data, loop through each next block */
+    while ((TotalBytesCopied < NumBytesToCopy) && (CurrentBlock->next != NULL))
+    {
+        CurrentBlock = CurrentBlock->next;
+        CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[0];
+        CurrentOutputPointer = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+
+        RemainingBytesToCopy = NumBytesToCopy - TotalBytesCopied;
+        if (RemainingBytesToCopy >= BPLIB_MEM_CHUNKSIZE)
+        {
+            BytesToCopyInThisBlock = BPLIB_MEM_CHUNKSIZE;
+        }
+        else
+        {
+            BytesToCopyInThisBlock = RemainingBytesToCopy;
+        }
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesToCopyInThisBlock);
+        TotalBytesCopied += BytesToCopyInThisBlock;
+    }
+
+    if (TotalBytesCopied != NumBytesToCopy)
+    {
+        ReturnStatus = BPLIB_ERROR;
+    }
+    else
+    {
+        ReturnStatus = BPLIB_SUCCESS;
+    }
+
+    return ReturnStatus;
+}

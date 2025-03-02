@@ -87,6 +87,10 @@ typedef struct
     uint64_t                  FragmentOffset;
     uint64_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
+    /* Metadata */
+    bool                      RequiresEncode;
+    uint32_t                  OffsetIntoBlob;
+    uint32_t                  EncodedSize;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -113,6 +117,7 @@ typedef struct
     /* Metadata */
     uint64_t        HeaderOffset;
     uint64_t        DataOffset;
+    bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 
 /**

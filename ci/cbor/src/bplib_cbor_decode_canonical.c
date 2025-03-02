@@ -77,7 +77,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     size_t HopCountBlockDataArrayLen;
     QCBORError QStatus;
     uint64_t BlockType;
-    uint32_t CurrentTraversalOffset;
+    uint32_t HeaderStartOffset;
     UsefulBufC CanonBlockDataByteStrInfo;
 
     if ((ctx == NULL) || (bundle == NULL))
@@ -91,7 +91,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
-    CurrentTraversalOffset = QCBORDecode_Tell(ctx);
+    HeaderStartOffset = QCBORDecode_Tell(ctx);
 
     /* Enter the canonical block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &ArrayLen);
@@ -130,7 +130,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         }
     }
     CanonicalBlockHdr->BlockType = BlockType;
-    CanonicalBlockHdr->HeaderOffset = CurrentTraversalOffset;
+    CanonicalBlockHdr->HeaderOffset = HeaderStartOffset;
 
     /* Block Number */
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);

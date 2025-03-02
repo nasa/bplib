@@ -24,6 +24,8 @@ add_library(utobj_bplib_cbor OBJECT
     ../src/bplib_cbor_decode_canonical.c
     ../src/bplib_cbor_decode_primary.c
     ../src/bplib_cbor_decode_types.c
+    ../src/bplib_cbor_encode_primary.c
+    ../src/bplib_cbor_encode_payload.c
 )
 
 target_compile_definitions(utobj_bplib_cbor PRIVATE

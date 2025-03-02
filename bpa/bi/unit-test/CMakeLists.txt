@@ -21,6 +21,7 @@ target_link_libraries(bplib_bi_stubs PUBLIC ut_assert)
 # Create unit test object
 add_library(utobj_bplib_bi OBJECT
     ../src/bplib_bi.c
+    ../src/bplib_bi_internal.c
 )
 
 target_compile_definitions(utobj_bplib_bi PRIVATE

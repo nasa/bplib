@@ -185,4 +185,24 @@ void BPLib_MEM_BundleFree(BPLib_MEM_Pool_t* pool, BPLib_Bundle_t* bundle);
  */
 BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, size_t max_len, size_t* out_size);
 
+/**
+ * @brief Copies the blob data out of a bundle.
+ * 
+ * This function copies the blob data from the specified bundle into the provided buffer.
+ * If the bundle has more blob data than max_len, this function returns BPLIB_BUF_LEN_ERROR
+ * 
+ * @param[in] Bundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
+ * @param[in] Offset (uint64_t) Offset into the user data
+ * @param[in] NumBytesToCopy (uint64_t) Number of bytes to copy
+ * @param[out] OutputBuffer (void*) A buffer to store the copied data.
+ * @param[in] OutputBufferSize (size_t) The size of the output buffer (also, maximum number of bytes to copy).
+ * 
+ * @return Status of the operation.
+ */
+BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
+    uint64_t Offset,
+    uint64_t NumBytesToCopy,
+    void* OutputBuffer,
+    size_t OutputBufferSize);
+
 #endif /* BPLIB_MEM_H */

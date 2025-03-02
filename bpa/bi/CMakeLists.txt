@@ -8,6 +8,7 @@
 
 add_library(bplib_bi OBJECT
     src/bplib_bi.c
+    src/bplib_bi_internal.c
 )
 
 target_include_directories(bplib_bi PUBLIC
@@ -17,6 +18,7 @@ target_include_directories(bplib_bi PUBLIC
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

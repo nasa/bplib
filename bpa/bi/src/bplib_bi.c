@@ -22,6 +22,7 @@
 ** Include
 */
 #include "bplib_bi.h"
+#include "bplib_bi_internal.h"
 #include "bplib_cbor.h"
 #include "bplib_qm.h"
 #include "bplib_as.h"
@@ -109,38 +110,88 @@ BPLib_Status_t BPLib_BI_ValidateBundle(void)
 }
 
 
-
-BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* bundle,
-                                    void* out_buffer,
-                                    size_t max_len,
-                                    size_t* out_size)
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
+                                    void* OutputBuffer,
+                                    size_t OutputBufferSize,
+                                    size_t* NumBytesCopied)
 {
-    BPLib_MEM_Block_t* curr_block;
-    size_t bytes_copied;
+    BPLib_Status_t PrimaryBlockReturnStatus;
+    BPLib_Status_t ExtensionBlockReturnStatus = BPLIB_SUCCESS; // start with success, in case no ext blocks
+    BPLib_Status_t PayloadBlockReturnStatus;
+    size_t PrimaryBlockBytesCopied;
+    size_t ExtBlockBytesCopied;
+    size_t PayloadBytesCopied;
+    size_t TotalBytesCopied;
+    uint32_t NumberOfExtensionBlocks;
+    uint32_t CurrExtBlockIndex;
+    uintptr_t CurrentOutputBufferAddr;
+    size_t BytesLeftInOutputBuffer;
 
-    if ((bundle == NULL) || (out_buffer == NULL) || (out_size == NULL))
+    if ((StoredBundle == NULL) || (StoredBundle->blob == NULL) || (OutputBuffer == NULL) || (NumBytesCopied == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    curr_block = bundle->blob;
-    bytes_copied = 0;
-    while (curr_block != NULL)
+    PrimaryBlockReturnStatus = BPLib_BI_CopyOrEncodePrimary(StoredBundle,
+                                                            OutputBuffer,
+                                                            OutputBufferSize,
+                                                            &PrimaryBlockBytesCopied);
+    if (PrimaryBlockReturnStatus != BPLIB_SUCCESS)
     {
-        if ((bytes_copied + curr_block->used_len) > max_len)
+        NumBytesCopied = 0;
+        return PrimaryBlockReturnStatus;
+    }
+    else
+    {
+        /* start accumulating the total bytes copied */
+        TotalBytesCopied = PrimaryBlockBytesCopied;
+
+        /* Copy or encode the canonical blocks */
+        NumberOfExtensionBlocks = BPLib_BI_GetNumExtensionBlocks(StoredBundle);
+        for (CurrExtBlockIndex = 0; CurrExtBlockIndex < NumberOfExtensionBlocks; CurrExtBlockIndex++)
         {
-            *out_size = 0;
-            return BPLIB_BUF_LEN_ERROR;
+            CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+            BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
+
+            /* Encode extension block */
+            ExtensionBlockReturnStatus = BPLib_CBOR_EncodeExtensionBlock(StoredBundle,
+                                                             CurrExtBlockIndex,
+                                                             (void*)CurrentOutputBufferAddr,
+                                                             BytesLeftInOutputBuffer,
+                                                             &ExtBlockBytesCopied);
+            if (ExtensionBlockReturnStatus != BPLIB_SUCCESS)
+            {
+                break;
+            }
+            else
+            {
+                TotalBytesCopied += ExtBlockBytesCopied;
+            }
         }
 
-        memcpy((void*)((uintptr_t)out_buffer + bytes_copied),
-            (void*)curr_block->user_data.raw_bytes,
-            curr_block->used_len);
+        if (ExtensionBlockReturnStatus != BPLIB_SUCCESS)
+        {
+            return ExtensionBlockReturnStatus;
+        }
+        else
+        {
+            CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+            BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
 
-        bytes_copied += curr_block->used_len;
-        curr_block = curr_block->next;
+            PayloadBlockReturnStatus = BPLib_BI_CopyOrEncodePayload(StoredBundle,
+                                                                    (void*)CurrentOutputBufferAddr,
+                                                                    BytesLeftInOutputBuffer,
+                                                                    &PayloadBytesCopied);
+            if (PayloadBlockReturnStatus == BPLIB_SUCCESS)
+            {
+                TotalBytesCopied += PayloadBytesCopied;
+            }
+
+            /*
+            ** Inform the caller of the successful number of bytes copied
+            */
+            *NumBytesCopied = TotalBytesCopied;
+            return PayloadBlockReturnStatus;
+        }
     }
-
-    *out_size = bytes_copied;
-    return BPLIB_SUCCESS;
 }

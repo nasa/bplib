@@ -49,3 +49,74 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void *CandBundle, size_t CandBundle
 
     return UT_GenStub_GetReturnValue(BPLib_CBOR_DecodeBundle, BPLib_Status_t);
 }
+
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CBOR_EncodePrimary()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t *StoredBundle,
+    void *OutputBuffer,
+    size_t OutputBufferSize,
+    size_t *NumBytesCopied)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_EncodePrimary, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePrimary, BPLib_Bundle_t *, StoredBundle);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePrimary, void *, OutputBuffer);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePrimary, size_t, OutputBufferSize);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePrimary, size_t *, NumBytesCopied);
+
+    UT_GenStub_Execute(BPLib_CBOR_EncodePrimary, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CBOR_EncodePrimary, BPLib_Status_t);
+}
+
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CBOR_EncodeExtensionBlock()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t *StoredBundle,
+    uint32_t ExtensionBlockIndex,
+    void *OutputBuffer,
+    size_t OutputBufferSize,
+    size_t *NumBytesCopied)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_EncodeExtensionBlock, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CBOR_EncodeExtensionBlock, BPLib_Bundle_t *, StoredBundle);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodeExtensionBlock, uint32_t, ExtensionBlockIndex);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodeExtensionBlock, void *, OutputBuffer);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodeExtensionBlock, size_t, OutputBufferSize);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodeExtensionBlock, size_t *, NumBytesCopied);
+
+    UT_GenStub_Execute(BPLib_CBOR_EncodeExtensionBlock, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CBOR_EncodeExtensionBlock, BPLib_Status_t);
+}
+
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CBOR_EncodePayload()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t *StoredBundle,
+    void *OutputBuffer,
+    size_t OutputBufferSize,
+    size_t *NumBytesCopied)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_EncodePayload, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePayload, BPLib_Bundle_t *, StoredBundle);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePayload, void *, OutputBuffer);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePayload, size_t, OutputBufferSize);
+    UT_GenStub_AddParam(BPLib_CBOR_EncodePayload, size_t *, NumBytesCopied);
+
+    UT_GenStub_Execute(BPLib_CBOR_EncodePayload, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CBOR_EncodePayload, BPLib_Status_t);
+}
