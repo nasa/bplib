@@ -24,7 +24,7 @@ set(BPAPP_LINK_LIBRARIES bplib)
 
 add_executable(bpcat 
     bpcat.c
-    #${CMAKE_CURRENT_SOURCE_DIR}/src/
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bplib_stor_cache.c
 )
 
 # compile this app as c99 (but this does not impose the same requirement on other users)
@@ -37,4 +37,4 @@ target_compile_options(bpcat PRIVATE ${BPAPP_COMPILE_OPTIONS} "-g")
 target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
 
 # link with bplib
-target_link_libraries(bpcat ${BPAPP_LINK_LIBRARIES})
+target_link_libraries(bpcat ${BPAPP_LINK_LIBRARIES} -lsqlite3)

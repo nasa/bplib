@@ -239,6 +239,11 @@ void* cla_in_loop()
         return NULL;
     }
 
+    /* Create STOR */
+    if (BPLib_STOR_Init() != BPLIB_SUCCESS)
+    {
+        abort();
+    }
 
     while(true)
     {
