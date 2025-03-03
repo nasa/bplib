@@ -416,6 +416,148 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
 
 
 
+/*
+** BPLib_CBOR_EncodePrimary Tests
+*/
+
+void Test_BPLib_CBOR_EncodePrimary_NullInputErrors(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* all null */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(NULL, NULL, 0, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* StoredBundleIn NULL */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(NULL, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* OutputBuffer NULL */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, NULL, 0, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* NumBytesCopied NULL */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+
+void Test_BPLib_CBOR_EncodePrimary_Nominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+}
+
+
+/*
+** BPLib_CBOR_EncodeExtensionBlock Tests
+*/
+
+
+void Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* all null */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(NULL, 0, NULL, 0, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* StoredBundleIn NULL */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(NULL, 0, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* OutputBuffer NULL */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(&StoredBundleIn, 0, NULL, 0, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* NumBytesCopied NULL */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(&StoredBundleIn, 0, OutputBuffer, OutputBufferSize, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+void Test_BPLib_CBOR_EncodeExtensionBlock_Nominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(&StoredBundleIn, 0, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+}
+
+
+/*
+** BPLib_CBOR_EncodePayload Tests
+*/
+
+void Test_BPLib_CBOR_EncodePayload_NullInputErrors(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* all null */
+    ReturnStatus = BPLib_CBOR_EncodePayload(NULL, NULL, 0, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* StoredBundleIn NULL */
+    ReturnStatus = BPLib_CBOR_EncodePayload(NULL, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* OutputBuffer NULL */
+    ReturnStatus = BPLib_CBOR_EncodePayload(&StoredBundleIn, NULL, 0, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+
+    /* NumBytesCopied NULL */
+    ReturnStatus = BPLib_CBOR_EncodePayload(&StoredBundleIn, OutputBuffer, OutputBufferSize, NULL);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+
+void Test_BPLib_CBOR_EncodePayload_Nominal(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodePayload(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
+
+
 
 void TestBplibCbor_Register(void)
 {
@@ -426,4 +568,13 @@ void TestBplibCbor_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_CrcNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_CrcNone");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Crc32, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Crc32");
+
+    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_NullInputErrors");
+    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_Nominal");
+
+    UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors");
+    UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_Nominal");
+
+    UtTest_Add(Test_BPLib_CBOR_EncodePayload_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePayload_NullInputErrors");
+    UtTest_Add(Test_BPLib_CBOR_EncodePayload_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePayload_Nominal");
 }
