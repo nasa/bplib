@@ -553,7 +553,7 @@ void Test_BPLib_CBOR_EncodePayload_Nominal(void)
 
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePayload(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
 }
 
 
