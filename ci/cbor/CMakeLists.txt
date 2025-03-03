@@ -14,6 +14,7 @@ add_library(bplib_cbor OBJECT
     src/bplib_cbor_encode_primary.c
     src/bplib_cbor_encode_extension.c
     src/bplib_cbor_encode_payload.c
+    src/bplib_cbor_encode_types.c
 )
 
 target_include_directories(bplib_cbor PUBLIC
