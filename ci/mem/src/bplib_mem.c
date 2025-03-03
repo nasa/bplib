@@ -261,7 +261,11 @@ BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
     uint64_t ExpectedMemBlockNumber;
     uint64_t CurrentMemBlockNumber;
 
-    if ((Bundle == NULL) || (Bundle->blob == NULL) || (OutputBuffer == NULL))
+    if ((Bundle == NULL) || (OutputBuffer == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if (Bundle->blob == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
