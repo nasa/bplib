@@ -60,7 +60,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
     BPLib_QM_JobState_t NextJobState     = NO_NEXT_STATE;
-    uint32_t            BundlesScheduled = 0;
+    uint32_t            BundlesScanned   = 0;
     uint16_t            NumChans         = 0;
     uint16_t            NumConts         = 0;
     BPLib_Bundle_t     *QueuedBundle;
@@ -104,7 +104,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     }
 
     /* Pull bundles from cache queue and process them */
-    while (BundlesScheduled < MaxBundlesToScan && Status == BPLIB_SUCCESS)
+    while (BundlesScanned < MaxBundlesToScan && Status == BPLIB_SUCCESS)
     {
         QueuedBundle = NULL;
         if (BPLib_QM_WaitQueueTryPull(&(Inst->BundleCacheList), &QueuedBundle, 1))
@@ -126,7 +126,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                         if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
                             BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[AvailChans[i]].LocalServiceNumber)
                         {
-                            QueuedBundle->Meta.EgressID = i;
+                            QueuedBundle->Meta.EgressID = AvailChans[i];
                             NextJobState = CHANNEL_OUT_STOR_TO_CT;
 
                             break;
@@ -148,7 +148,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                             if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                 BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
                             {
-                                QueuedBundle->Meta.EgressID = i;
+                                QueuedBundle->Meta.EgressID = AvailConts[i];
                                 NextJobState = CONTACT_OUT_STOR_TO_CT;
 
                                 break;
@@ -196,7 +196,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
             break;
         }
 
-        BundlesScheduled++;
+        BundlesScanned++;
     }
 
     return Status;
