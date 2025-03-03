@@ -174,6 +174,24 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
     return Status;
 }
 
+BPLib_Status_t BPLib_CLA_ContactStart(uint16_t ContactId)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_CLA_ContactStop(uint16_t ContactId)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
 {
     BPLib_Status_t Status;

@@ -202,6 +202,27 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
 BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId);
 
 /**
+ * \brief     Pass Contact ID to start on to CLA proxy
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to start
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_ERROR: TODO
+ */
+BPLib_Status_t BPLib_CLA_ContactStart(uint16_t ContactId);
+
+/**
+ * \brief     Send any CRS and custody signals under construction, stop transferring bundles to and from CL,
+ *            request CL cancel transfers in progress, stop requesting BI for output queue bundles, and if
+ *            LTP, request LTP cancel each active session and notify BI of complete and incomplete bundle
+ *            transmissions
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to stop
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_ERROR: TODO
+ */
+BPLib_Status_t BPLib_CLA_ContactStop(uint16_t ContactId);
+
+/**
  * \brief     If the contact has been stopped, deconfigure the CLA via BI, CT, EBP, and CLA
  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to teardown
  * \return    Execution status
