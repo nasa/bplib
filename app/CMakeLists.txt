@@ -24,7 +24,6 @@ set(BPAPP_LINK_LIBRARIES bplib)
 
 add_executable(bpcat 
     bpcat.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/bplib_stor_cache.c
 )
 
 # compile this app as c99 (but this does not impose the same requirement on other users)

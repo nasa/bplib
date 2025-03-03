@@ -20,6 +20,7 @@
 
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
+#include "bplib_stor_cache.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@ static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     //return CONTACT_IN_CT_TO_STOR;
+    BPLib_STOR_StoreBundle(inst, bundle);
     return CONTACT_OUT_STOR_TO_CT;
 }
 

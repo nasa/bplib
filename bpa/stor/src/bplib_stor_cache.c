@@ -8,8 +8,7 @@
 /*******************************************************************************
 * Definitions and Types 
 */
-//#define BPLIB_STOR_BATCH_SIZE   1000
-#define BPLIB_STOR_BATCH_SIZE   1
+#define BPLIB_STOR_BATCH_SIZE 1000
 
 typedef struct BPLib_BundleCache
 {
@@ -53,14 +52,14 @@ static BPLib_BundleCache_t CacheInst;
 /*******************************************************************************
 * Static Functions
 */
-static BPLib_Status_t BPLib_STOR_StoreBatch()
+static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
 {
     int i, SQLStatus, CurrBundleID;
     BPLib_Bundle_t* CurrBundle;
     BPLib_MEM_Block_t* CurrMemBlock;
 
     /* Create a batch query */
-    SQLStatus = sqlite3_exec(CacheInst.db, "test.db;", 0, 0, 0);
+    SQLStatus = sqlite3_exec(CacheInst.db, "BEGIN;", 0, 0, 0);
     if (SQLStatus != SQLITE_OK)
     {
         printf("Failed to start transaction\n");
@@ -77,21 +76,16 @@ static BPLib_Status_t BPLib_STOR_StoreBatch()
         sqlite3_bind_int(MetadataStmt, 1, CurrBundle->blocks.PrimaryBlock.Timestamp.CreateTime +
             CurrBundle->blocks.PrimaryBlock.Lifetime);
         sqlite3_bind_int(MetadataStmt, 2, CurrBundle->blocks.PrimaryBlock.DestEID.Node);
-        if (SQLStatus != SQLITE_OK)
+        SQLStatus = sqlite3_step(MetadataStmt);
+        if (SQLStatus != SQLITE_DONE)
         {
             printf("Insert meta failed %d\n", i);
             // ROLLBACK
             return BPLIB_ERROR;
         }
-        SQLStatus = sqlite3_step(MetadataStmt);
-        if (SQLStatus != SQLITE_DONE)
-        {
-            printf("Insert into bundle_data failed\n");
-            return BPLIB_ERROR;
-        }
         CurrBundleID = sqlite3_last_insert_rowid(CacheInst.db);
 
-        /* Figure out how to store bblocks. */
+        /* Store bblocks. */
         sqlite3_reset(BlobStmt);
         sqlite3_bind_int(BlobStmt, 1, CurrBundleID);
         sqlite3_bind_blob(BlobStmt, 2, (const void*)&CurrBundle->blocks, sizeof(BPLib_BBlocks_t), SQLITE_STATIC);
@@ -128,24 +122,24 @@ static BPLib_Status_t BPLib_STOR_StoreBatch()
     }
 
     /* Free the bundle memory now that they've been stored. */
-    for (i = 0; i < CacheInst.CurrBatchSize; i++)
-    {
-        printf("YOU FORGOT TO FREE BUNDRE\n");
-        //BPLib_MEM_BundleFree(CacheInst.CurrBatch[i]);
-    }
-    return BPLIB_SUCCESS;
+    // for (i = 0; i < CacheInst.CurrBatchSize; i++)
+    // {
+    //     BPLib_MEM_BundleFree(&Inst->pool, CacheInst.CurrBatch[i]);
+    // }
 
+    // /printf("Batch\n");
+    return BPLIB_SUCCESS;
 }
 
 /*******************************************************************************
 * Exported Functions
 */
-BPLib_Status_t BPLib_STOR_Init()
+BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
 {
     int SQLStatus;
 
     /* Init SQLite3 Database */
-    SQLStatus = sqlite3_open(":memory:", &CacheInst.db);
+    SQLStatus = sqlite3_open("test.db", &CacheInst.db);
     if (SQLStatus != SQLITE_OK)
     {
         return BPLIB_ERROR;
@@ -180,23 +174,25 @@ BPLib_Status_t BPLib_STOR_Init()
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Bundle_t* bundle)
+BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;
 
+    /* Add to the next batch */
+    CacheInst.CurrBatch[CacheInst.CurrBatchSize++] = bundle;
+
     /* Note: There likely needs to be a mutex in this function.
-    ** Do not merge before investigating.
+    ** Do not merge this before investigating.
     */
     if (CacheInst.CurrBatchSize == BPLIB_STOR_BATCH_SIZE)
     {
-        Status = BPLib_STOR_StoreBatch();
+        Status = BPLib_STOR_StoreBatch(Inst);
+        CacheInst.CurrBatchSize = 0;
         if (Status != BPLIB_SUCCESS)
         {
             return Status;
         }
     }
 
-    /* Add to the next batch */
-    CacheInst.CurrBatch[CacheInst.CurrBatchSize++] = bundle;
     return Status;
 }
