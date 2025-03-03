@@ -145,11 +145,18 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
         return BPLIB_ERROR;
     }
 
-    /* Pragmas */
-    // "PRAGMA journal_mode=WAL;"
-    // "PRAGMA synchronous=OFF;"
-    // "PRAGMA temp_store=MEMORY;"
-    // "PRAGMA cache_size=10000;"
+    /* Pragmas 
+    ** These ones are also worth playing with
+    ** "PRAGMA synchronous=OFF;"
+    ** "PRAGMA temp_store=MEMORY;"
+    ** "PRAGMA cache_size=10000;"
+    ** "PRAGMA page_size ..."
+    */
+    SQLStatus = sqlite3_exec(CacheInst.db, "PRAGMA journal_mode=WAL;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_ERROR;
+    }
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(CacheInst.db, CreateTableSQL, 0, 0, NULL);
@@ -157,7 +164,7 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
         return BPLIB_ERROR;
     }
 
-    /* Init Insert statements: Doing to in Init() is an optimization to avoid
+    /* Init Insert statements: Doing so in Init() is an optimization to avoid
     ** doing in the BatchStore()
     */
     SQLStatus = sqlite3_prepare_v2(CacheInst.db, InsertMetadataSQL, -1, &MetadataStmt, 0);
