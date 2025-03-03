@@ -138,7 +138,7 @@ BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
                                                             &PrimaryBlockBytesCopied);
     if (PrimaryBlockReturnStatus != BPLIB_SUCCESS)
     {
-        NumBytesCopied = 0;
+        *NumBytesCopied = 0;
         return PrimaryBlockReturnStatus;
     }
     else

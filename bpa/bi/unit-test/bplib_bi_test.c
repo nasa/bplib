@@ -323,7 +323,7 @@ void Test_BPLib_BI_BlobCopyOut_Nominal(void)
                                         sizeof(OutputBuffer),
                                         &OutputSize);
 
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_USER_DATA_ERR);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
     UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
     UtAssert_STUB_COUNT(BPLib_CBOR_EncodePrimary, 0);
 }
