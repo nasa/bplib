@@ -446,7 +446,7 @@ void Test_BPLib_CBOR_EncodePrimary_NullInputErrors(void)
 }
 
 
-void Test_BPLib_CBOR_EncodePrimary_Nominal(void)
+void Test_BPLib_CBOR_EncodePrimary_NominalCrc16(void)
 {
     BPLib_Status_t ReturnStatus;
     BPLib_Bundle_t StoredBundleIn;
@@ -457,10 +457,139 @@ void Test_BPLib_CBOR_EncodePrimary_Nominal(void)
     /* Setup nominal inputs */
     memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
 
+    StoredBundleIn.blocks.PrimaryBlock.BundleProcFlags = 0;
+    StoredBundleIn.blocks.PrimaryBlock.CrcType = BPLib_CRC_Type_CRC16;
+
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Node = 200;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Service = 2;
+
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Node = 300;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Service = 3;
+
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Node = 400;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Service = 4;
+
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.CreateTime = 12;
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.SequenceNumber = 34;
+
+    StoredBundleIn.blocks.PrimaryBlock.Lifetime = 0;
+    StoredBundleIn.blocks.PrimaryBlock.FragmentOffset = 0;
+    StoredBundleIn.blocks.PrimaryBlock.TotalAduLength = 0;
+
+    StoredBundleIn.blocks.PrimaryBlock.CrcVal = 0xdead;
+
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(size_t, NumBytesCopied, 42); // todo: figure out right size
 }
+
+
+
+void Test_BPLib_CBOR_EncodePrimary_NominalCrc32(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+
+    StoredBundleIn.blocks.PrimaryBlock.BundleProcFlags = 0;
+    StoredBundleIn.blocks.PrimaryBlock.CrcType = BPLib_CRC_Type_CRC32C;
+
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Node = 200;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Service = 2;
+
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Node = 300;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Service = 3;
+
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Node = 400;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Service = 4;
+
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.CreateTime = 12;
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.SequenceNumber = 34;
+
+    StoredBundleIn.blocks.PrimaryBlock.Lifetime = 0;
+    StoredBundleIn.blocks.PrimaryBlock.FragmentOffset = 0;
+    StoredBundleIn.blocks.PrimaryBlock.TotalAduLength = 0;
+
+    StoredBundleIn.blocks.PrimaryBlock.CrcVal = 0xdeadbeef;
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(size_t, NumBytesCopied, 44); // todo: figure out right size
+}
+
+
+void Test_BPLib_CBOR_EncodePrimary_NominalCrcNone(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+
+    StoredBundleIn.blocks.PrimaryBlock.BundleProcFlags = 0;
+    StoredBundleIn.blocks.PrimaryBlock.CrcType = BPLib_CRC_Type_None;
+
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Node = 200;
+    StoredBundleIn.blocks.PrimaryBlock.DestEID.Service = 2;
+
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Node = 300;
+    StoredBundleIn.blocks.PrimaryBlock.SrcEID.Service = 3;
+
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Allocator = 0;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Node = 400;
+    StoredBundleIn.blocks.PrimaryBlock.ReportToEID.Service = 4;
+
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.CreateTime = 12;
+    StoredBundleIn.blocks.PrimaryBlock.Timestamp.SequenceNumber = 34;
+
+    StoredBundleIn.blocks.PrimaryBlock.Lifetime = 0;
+    StoredBundleIn.blocks.PrimaryBlock.FragmentOffset = 0;
+    StoredBundleIn.blocks.PrimaryBlock.TotalAduLength = 0;
+
+    StoredBundleIn.blocks.PrimaryBlock.CrcVal = 0;
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(size_t, NumBytesCopied, 40); // todo: figure out right size
+}
+
 
 
 /*
@@ -570,7 +699,9 @@ void TestBplibCbor_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Crc32, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Crc32");
 
     UtTest_Add(Test_BPLib_CBOR_EncodePrimary_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_NullInputErrors");
-    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_Nominal");
+    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_NominalCrc16, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_NominalCrc16");
+    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_NominalCrc32, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_NominalCrc32");
+    UtTest_Add(Test_BPLib_CBOR_EncodePrimary_NominalCrcNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePrimary_NominalCrcNone");
 
     UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_Nominal");

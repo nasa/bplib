@@ -239,6 +239,9 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
 
+#define BPLIB_CBOR_ENC_PRIMARY_FINISH_ERR              ((BPLib_Status_t) -180) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish error */
+
+
 
 #define BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_OUTPUT_ERR      ((BPLib_Status_t) -200) /* Encoded Prim Blk Size > Output Buffer Size */
 #define BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_USER_DATA_ERR   ((BPLib_Status_t) -201) /* Encoded Prim Blk Size > User Data Size */
