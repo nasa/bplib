@@ -120,7 +120,7 @@ BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
     BPLib_Status_t PayloadBlockReturnStatus;
     size_t PrimaryBlockBytesCopied;
     size_t ExtBlockBytesCopied;
-    size_t PayloadBytesCopied;
+    size_t PayloadBytesCopied = 0;
     size_t TotalBytesCopied;
     uint32_t NumberOfExtensionBlocks;
     uint32_t CurrExtBlockIndex;
