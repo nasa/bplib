@@ -25,24 +25,25 @@
 ** Include
 */
 
+#include "bplib.h"
 #include "bplib_api_types.h"
+#include "bplib_bblocks.h"
 
 /*
 ** Exported Functions
 */
 
 /**
- * \brief CBOR initialization
- *
- *  \par Description
- *       CBOR initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+ * \brief     Decode a bundle
+ * \details   Decode a bundle and fill in related bundle metadata
+ * \param[in] CandBundle (const void*) Candidate Bundle pointer
+ * \param[in] CandBundleLen (size_t) length of the provided Candidate Bundle
+ * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
-int BPLib_CBOR_Init(void);
+BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t *bundle);
+
 
 #endif /* BPLIB_CBOR_H */

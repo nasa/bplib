@@ -79,6 +79,13 @@ extern "C" {
 #define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
 
 
+/**
+ * \brief Maximum number of canonical blocks per bundle
+ *        this is one more than BPLIB_MAX_NUM_EXTENSION_BLOCKS
+ *        because it includes all extension blocks plus the payload block
+ */
+#define BPLIB_MAX_NUM_CANONICAL_BLOCKS       (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
+
 
 /**
  * \brief Temporary EID Node Number to Route bundle from Cache to a Channel

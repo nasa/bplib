@@ -143,4 +143,11 @@
 #define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
 
 
+/* ============ */
+/* BI event IDs */
+/* ============ */
+#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
+
+
+
 #endif /* BPLIB_EVENTIDS_H */

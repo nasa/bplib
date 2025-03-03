@@ -104,11 +104,15 @@ typedef union
  */
 typedef struct
 {
+    /* Header Data */
     uint64_t        BlockType;
     uint64_t        BlockNum;
-    uint64_t        CrcType;
     uint64_t        BundleProcFlags;
-    BPLib_CRC_Val_t CrcVal;    
+    uint64_t        CrcType;
+    BPLib_CRC_Val_t CrcVal;
+    /* Metadata */
+    uint64_t        HeaderOffset;
+    uint64_t        DataOffset;
 } BPLib_CanBlockHeader_t;
 
 /**
