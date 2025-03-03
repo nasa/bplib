@@ -1,14 +1,7 @@
 #include "bplib_cbor_internal.h"
 
-/**
- * \brief     Encodes a BPLib_EID_t type
- * \param[in] Context (QCBORDecodeContext*) QCBOR decode context instance pointer
- * \param[in] SourceData (BPLib_EID_t*) pointer to the field that needs to be encoded
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- */
-BPLib_Status_t BPLib_CBOR_EncodeEID(QCBORDecodeContext* Context, BPLib_EID_t* SourceData)
+
+BPLib_Status_t BPLib_CBOR_EncodeEID(QCBOREncodeContext* Context, BPLib_EID_t* SourceData)
 {
     BPLib_Status_t ReturnStatus;
 
@@ -56,16 +49,7 @@ BPLib_Status_t BPLib_CBOR_EncodeEID(QCBORDecodeContext* Context, BPLib_EID_t* So
 }
 
 
-
-/**
- * \brief     Encodes a BPLib_CreationTimeStamp_t
- * \param[in] Context (QCBORDecodeContext*) QCBOR decode context instance pointer
- * \param[in] CreateTimeStamp (BPLib_CreationTimeStamp_t*) pointer to the field that needs to be encoded
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- */
-BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBORDecodeContext* Context, BPLib_CreationTimeStamp_t* TimeStamp)
+BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, BPLib_CreationTimeStamp_t* TimeStamp)
 {
     BPLib_Status_t ReturnStatus;
 
@@ -98,16 +82,7 @@ BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBORDecodeContext* Context, B
 
 
 
-/**
- * \brief     Encodes a CRC value
- * \param[in] Context (QCBORDecodeContext*) QCBOR decode context instance pointer
- * \param[in] SourceData (uint64_t*) pointer to the field that needs to be encoded
- * \param[in] CrcType (uint64_t) specifies the expected CRC type (None, CRC16, or CRC32C)
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
- */
-BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBORDecodeContext* Context, uint64_t CrcValue, uint64_t CrcType)
+BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t CrcValue, uint64_t CrcType)
 {
     BPLib_Status_t ReturnStatus;
     UsefulBufC CrcInfo;
