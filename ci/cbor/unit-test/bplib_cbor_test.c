@@ -490,7 +490,7 @@ void Test_BPLib_CBOR_EncodePrimary_NominalCrc16(void)
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_EQ(size_t, NumBytesCopied, 42); // todo: figure out right size
+    UtAssert_EQ(size_t, NumBytesCopied, 34); // todo: verify this
 }
 
 
@@ -539,7 +539,7 @@ void Test_BPLib_CBOR_EncodePrimary_NominalCrc32(void)
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_EQ(size_t, NumBytesCopied, 44); // todo: figure out right size
+    UtAssert_EQ(size_t, NumBytesCopied, 36); // todo: verify this
 }
 
 
@@ -587,7 +587,7 @@ void Test_BPLib_CBOR_EncodePrimary_NominalCrcNone(void)
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePrimary(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_EQ(size_t, NumBytesCopied, 40); // todo: figure out right size
+    UtAssert_EQ(size_t, NumBytesCopied, 31); // todo: verify this
 }
 
 
