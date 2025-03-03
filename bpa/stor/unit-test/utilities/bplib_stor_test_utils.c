@@ -27,6 +27,7 @@
 #include "bplib_cla.h"
 #include "bplib_fwp.h"
 
+
 /*
 ** Global Data
 */
@@ -48,6 +49,7 @@ void BPLib_STOR_Test_Setup(void)
     BPLib_FWP_ConfigPtrs.ContactsTblPtr = &TestContTbl;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }
 
 void BPLib_STOR_Test_Teardown(void)

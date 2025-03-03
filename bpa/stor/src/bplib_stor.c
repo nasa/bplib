@@ -188,6 +188,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 /* we may want to remove this `else` case entirely in the future, but currently kept for debugging */
                 BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID, BPLib_EM_EventType_WARNING,
                     "BPLib_QM_ScanCache found null bundle in BundleCacheList.");
+
+                Status = BPLIB_NULL_PTR_ERROR;
             }
         }
         else
