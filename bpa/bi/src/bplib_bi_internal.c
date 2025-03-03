@@ -89,7 +89,7 @@ BPLib_Status_t BPLib_BI_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
     {
         if (StoredBundle->blocks.PrimaryBlock.TotalAduLength > OutputBufferSize)
         {
-            ReturnStatus = BPLIB_BUF_LEN_ERROR;
+            ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
         }
         else
         {

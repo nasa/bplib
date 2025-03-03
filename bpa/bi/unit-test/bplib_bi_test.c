@@ -381,7 +381,7 @@ void Test_BPLib_BI_BlobCopyOut_PayloadCopyLenError(void)
                                         sizeof(OutputBuffer),
                                         &OutputSize);
 
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR);
     UtAssert_EQ(size_t, OutputSize, InputBundle.blocks.PrimaryBlock.EncodedSize);
     UtAssert_STUB_COUNT(BPLib_CBOR_EncodePrimary, 0);
     UtAssert_STUB_COUNT(BPLib_CBOR_EncodePayload, 0);
