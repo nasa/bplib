@@ -86,12 +86,6 @@ typedef struct
 /* =========== */
 
 /**
- * \brief Static value that tracks the total number
- *        of contacts set up so far
- */
-extern uint16_t BPLib_CLA_NumContactsSetUp;
-
-/**
   * \brief Array of contact IDs and their associated states;
   *        used to track contact states
   */
@@ -102,7 +96,7 @@ extern BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[];
  */
 typedef struct
 {
-    uint32_t            ContactID;
+    uint32_t            ContactId;
     BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
     CLAType_t           CLAType;
      /**
