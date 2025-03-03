@@ -43,8 +43,8 @@
   */
 typedef struct
 {
-    uint16_t                 ContactId;
-    BPLib_CLA_ContactState_t ContactState;
+    uint16_t                    ContactId;
+    BPLib_CLA_ContactRunState_t ContactState;
 } BPLib_CLA_ContactIdState_t;
 
 /* This ID set is used to maintain a BundleID and SessionID map*/

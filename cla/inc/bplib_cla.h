@@ -73,7 +73,7 @@ typedef enum
     BPLIB_CLA_SETUP    = 1,
     BPLIB_CLA_RUNNING  = 2,
     BPLIB_CLA_STOPPED  = 3,
-} BPLib_CLA_ContactState_t;
+} BPLib_CLA_ContactRunState_t;
 
 /**
  * \brief Global Contacts Table
