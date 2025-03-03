@@ -106,9 +106,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
     NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
 
-    /* Set any necessary metadata */
-    NewBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
-
     /* TODO need additional changes to set CRC */
     /* TODO add extension blocks configs? Or is that EBP? */
 
