@@ -67,6 +67,20 @@ typedef struct
     uint8_t     MsgTypes;
 } BPLib_CLA_CtrlMsg_t;
 
+typedef enum
+{
+    BPLIB_CLA_TORNDOWN = 0, /* Default to torn down */
+    BPLIB_CLA_SETUP    = 1,
+    BPLIB_CLA_RUNNING  = 2,
+    BPLIB_CLA_STOPPED  = 3,
+} BPLib_CLA_ContactState_t;
+
+typedef struct
+{
+    uint16_t                 ContactId;
+    BPLib_CLA_ContactState_t ContactState;
+} BPLib_CLA_ContactIdState_t;
+
 /* =========== */
 /* Global Data */
 /* =========== */
@@ -76,6 +90,12 @@ typedef struct
  *        of contacts set up so far
  */
 extern uint16_t BPLib_CLA_NumContactsSetUp;
+
+/**
+  * \brief Array of contact IDs and their associated states;
+  *        used to track contact states
+  */
+extern BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[];
 
 /**
  * \brief Global Contacts Table
