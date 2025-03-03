@@ -27,7 +27,7 @@ BPLib_Status_t BPLib_BI_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
             /*
             ** the encoded primary block (our source) exceeds the output buffer size
             */
-            ReturnStatus = BPLIB_BUF_LEN_ERROR;
+            ReturnStatus = BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_OUTPUT_ERR;
         }
         else if (StoredBundle->blocks.PrimaryBlock.EncodedSize > StoredBundle->blob->used_len)
         {
@@ -40,7 +40,7 @@ BPLib_Status_t BPLib_BI_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
             ** our configured chunk size (`BPLIB_MEM_CHUNKSIZE`), we'd have to rework this logic
             ** to copy this out block-by-block.
             */
-            ReturnStatus = BPLIB_BUF_LEN_ERROR;
+            ReturnStatus = BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_USER_DATA_ERR;
         }
         else
         {
