@@ -23,7 +23,7 @@ target_link_libraries(bplib_mem_stubs PUBLIC ut_assert)
 add_library(utobj_bplib_mem OBJECT
     ../src/bplib_mem.c
     ../src/bplib_ben_allocator.c
-    #../src/bplib_mem.c
+    #../src/bplib_std_allocator.c
 )
 
 target_compile_definitions(utobj_bplib_mem PRIVATE
