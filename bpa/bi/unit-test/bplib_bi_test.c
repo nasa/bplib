@@ -170,6 +170,24 @@ void Test_BPLib_BI_BlobCopyOut_InputBundleNullError(void)
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
 }
 
+void Test_BPLib_BI_BlobCopyOut_InputBundleBlobNullError(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[2048];
+    size_t OutputSize;
+
+    memset(&InputBundle, 0, sizeof(InputBundle));
+    InputBundle.blob = NULL;
+
+    ReturnStatus = BPLib_BI_BlobCopyOut(&InputBundle,
+                                        OutputBuffer,
+                                        sizeof(OutputBuffer),
+                                        &OutputSize);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+}
+
 
 void Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError(void)
 {
@@ -345,6 +363,7 @@ void TestBplibBi_Register(void)
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");
 
     UtTest_Add(Test_BPLib_BI_BlobCopyOut_InputBundleNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_InputBundleNullError");
+    UtTest_Add(Test_BPLib_BI_BlobCopyOut_InputBundleBlobNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_InputBundleBlobNullError");
     UtTest_Add(Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_OutputBundleBufNullError");
     UtTest_Add(Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_OutputSizeBufNullError");
 
