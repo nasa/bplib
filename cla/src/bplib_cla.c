@@ -204,3 +204,20 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
 
     return Status;
 }
+
+BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint16_t ContactId)
+{
+    uint16_t ContactNum;
+    BPLib_CLA_ContactRunState_t ContactRunState;
+
+    for (ContactNum = 0; ContactNum < BPLIB_MAX_NUM_CONTACTS; ContactNum++)
+    {
+        if (BPLib_CLA_ContactIdStates[ContactNum].ContactId == ContactId)
+        {
+            ContactRunState = BPLib_CLA_ContactIdStates[ContactNum].ContactState;
+            break;
+        }
+    }
+
+    return ContactRunState;
+}

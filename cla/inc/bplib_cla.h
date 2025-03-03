@@ -71,7 +71,7 @@ typedef enum
 {
     BPLIB_CLA_TORNDOWN = 0, /* Default to torn down */
     BPLIB_CLA_SETUP    = 1,
-    BPLIB_CLA_RUNNING  = 2,
+    BPLIB_CLA_STARTED  = 2,
     BPLIB_CLA_STOPPED  = 3,
 } BPLib_CLA_ContactRunState_t;
 
@@ -170,14 +170,14 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
 
 /**
- * \brief Validate Contact Table configurations
+ * \brief Validate Contacts Table configurations
  *
  *  \par Description
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management.
- *         Every time a new Contact table is loaded, this function should be called to
+ *         Every time a new Contacts Table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
@@ -225,5 +225,13 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint16_t ContactId);
  * \retval    BPLIB_CLA_CONTACT_RUNNING: Contact has not been stopped
  */
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId);
+
+/**
+  * \brief     Get access to the run state of a particular contact
+  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table of whose run
+  *                                 state should be returned
+  * \return    Contact run state
+  */
+BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint16_t ContactId);
 
 #endif /* BPLIB_CLA_H */

@@ -240,6 +240,7 @@ typedef struct BPLib_IpnAddr
 
 #define BPLIB_CLA_CONTACTS_MAX_REACHED                 ((BPLib_Status_t) -179) /* Max number of contacts active */
 #define BPLIB_CLA_UNKNOWN_CONTACT                      ((BPLib_Status_t) -180) /* Contact ID not found in Contacts Table */
+#define BPLIB_CLA_INCORRECT_STATE                      ((BPLib_Status_t) -181) /* Contact is in the incorrect state to be modified */
 
 // TODO TIME Helpers
 

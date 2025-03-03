@@ -77,3 +77,45 @@ BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr)
         
     return Status;
 }
+
+BPLib_Status_t BPLib_CLA_SetContactRunState(uint16_t ContactId, BPLib_CLA_ContactRunState_t RunState)
+{
+    BPLib_Status_t Status;
+    BPLib_CLA_ContactIdState_t ContactStateInfo;
+    uint16_t ContactNum;
+    bool ContactFound;
+
+    Status       = BPLIB_SUCCESS;
+    ContactFound = false;
+
+    for (ContactNum = 0; ContactNum < BPLIB_MAX_NUM_CONTACTS; ContactNum++)
+    {
+        ContactStateInfo = BPLib_CLA_ContactIdStates[ContactNum];
+        if (ContactStateInfo.ContactId == ContactId)
+        {
+            ContactFound = true;
+            break; /* Leave the loop to maintain ContactStateInfo and ContactNum */
+        }
+    }
+
+    if (!ContactFound)
+    {
+        Status = BPLIB_CLA_UNKNOWN_CONTACT;
+    }
+    else
+    {
+        if (RunState == BPLIB_CLA_TORNDOWN && ContactStateInfo.ContactState == BPLIB_CLA_STARTED  ||
+            RunState == BPLIB_CLA_STOPPED  && ContactStateInfo.ContactState == BPLIB_CLA_TORNDOWN ||
+            RunState == BPLIB_CLA_STARTED  && ContactStateInfo.ContactState == BPLIB_CLA_TORNDOWN ||
+            RunState == BPLIB_CLA_SETUP    && ContactStateInfo.ContactState == BPLIB_CLA_STARTED)
+        {
+            Status = BPLIB_CLA_INCORRECT_STATE;
+        }
+        else
+        {
+            BPLib_CLA_ContactIdStates[ContactNum].ContactState = RunState;
+        }
+    }
+
+    return Status;
+}
