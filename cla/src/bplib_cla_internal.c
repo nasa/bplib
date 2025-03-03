@@ -24,14 +24,24 @@
  * Internal function definitions for CLA
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include <string.h>
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[BPLIB_MAX_NUM_CONTACTS];
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 bool BPLib_CLA_IsAControlMsg(const void *MsgPtr)
 {
@@ -67,4 +77,3 @@ BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr)
         
     return Status;
 }
-

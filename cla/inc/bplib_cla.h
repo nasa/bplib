@@ -75,22 +75,6 @@ typedef enum
     BPLIB_CLA_STOPPED  = 3,
 } BPLib_CLA_ContactState_t;
 
-typedef struct
-{
-    uint16_t                 ContactId;
-    BPLib_CLA_ContactState_t ContactState;
-} BPLib_CLA_ContactIdState_t;
-
-/* =========== */
-/* Global Data */
-/* =========== */
-
-/**
-  * \brief Array of contact IDs and their associated states;
-  *        used to track contact states
-  */
-extern BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[];
-
 /**
  * \brief Global Contacts Table
  */
@@ -105,14 +89,14 @@ typedef struct
       * .CLAddr = "127.0.0.1"
       * which makes it a string containing an IP address, not an EID.
       */
-    char                     CLAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t                  PortNum;
-    uint32_t                 DestLTPEngineID;
-    uint32_t                 SendBytePerCycle;
-    uint32_t                 ReceiveBytePerCycle;
-    uint32_t                 RetransmitTimeout;
-    uint32_t                 CSTimeTrigger;
-    uint32_t                 CSSizeTrigger;
+    char                CLAddr[BPLIB_MAX_EID_LENGTH];
+    int32_t             PortNum;
+    uint32_t            DestLTPEngineID;
+    uint32_t            SendBytePerCycle;
+    uint32_t            ReceiveBytePerCycle;
+    uint32_t            RetransmitTimeout;
+    uint32_t            CSTimeTrigger;
+    uint32_t            CSSizeTrigger;
 } BPLib_CLA_ContactsSet_t;
 
 struct BPLib_CLA_ContactsTable

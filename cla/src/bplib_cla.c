@@ -29,7 +29,6 @@
 /* =========== */
 
 uint16_t BPLib_CLA_NumContactsSetUp;
-BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[BPLIB_MAX_NUM_CONTACTS];
 
 /* ==================== */
 /* Function Definitions */

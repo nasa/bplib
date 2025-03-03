@@ -28,26 +28,45 @@
 #ifndef BPLIB_CLA_INTERNAL_H
 #define BPLIB_CLA_INTERNAL_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include "bplib_cla.h"
 
+/* ======== */
+/* Typedefs */
+/* ======== */
 
-/*
-** Global Data
-*/
+/**
+  * \brief Associates contact IDs from the Contacts Table with a run state
+  */
+typedef struct
+{
+    uint16_t                 ContactId;
+    BPLib_CLA_ContactState_t ContactState;
+} BPLib_CLA_ContactIdState_t;
+
 /* This ID set is used to maintain a BundleID and SessionID map*/
 typedef struct
 {
     uint32_t  BundleID;
     uint32_t  SessionID;
-}BPLib_CLA_IDSet_t;
+} BPLib_CLA_IDSet_t;
 
+/* =========== */
+/* Global Data */
+/* =========== */
 
-/*
-** Exported Functions
-*/
+/**
+  * \brief Array of contact IDs and their associated states;
+  *        used to track contact states
+  */
+extern BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[];
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /**
  * \brief Check the received bundle if it is a control message 
@@ -63,7 +82,6 @@ typedef struct
  *  \retval boolean true/false
  */
 bool BPLib_CLA_IsAControlMsg(const void *Bundle);
-
 
 /**
  * \brief Process received control messages from CLs
@@ -82,6 +100,4 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle);
  */
 BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr);
 
-
 #endif /* BPLIB_CLA_INTERNAL_H */
-
