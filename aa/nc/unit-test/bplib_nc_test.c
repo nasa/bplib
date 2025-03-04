@@ -1558,17 +1558,17 @@ void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
 
     /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
-    BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
-    BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
-    BPNode_Test_TABLEP_TableUpdate(2,  COMPRESSED_REPORTING);
-    BPNode_Test_TABLEP_TableUpdate(3,  CUSTODIAN_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(4,  CUSTODY_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(5,  MIB_CONFIG_PER_NODE);
-    BPNode_Test_TABLEP_TableUpdate(6,  MIB_CONFIG_PER_SRC);
-    BPNode_Test_TABLEP_TableUpdate(7,  REPORT_TO_EID_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(8,  SRC_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(9,  SRC_LATENCY_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(10, STORAGE);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
 }
 
 void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
@@ -1599,17 +1599,17 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
 
     /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
-    BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
-    BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
-    BPNode_Test_TABLEP_TableUpdate(2,  COMPRESSED_REPORTING);
-    BPNode_Test_TABLEP_TableUpdate(3,  CUSTODIAN_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(4,  CUSTODY_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(5,  MIB_CONFIG_PER_NODE);
-    BPNode_Test_TABLEP_TableUpdate(6,  MIB_CONFIG_PER_SRC);
-    BPNode_Test_TABLEP_TableUpdate(7,  REPORT_TO_EID_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(8,  SRC_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(9,  SRC_LATENCY_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(10, STORAGE);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
 }
 
 void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
@@ -1630,17 +1630,17 @@ void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
 
     /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
-    BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
-    BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
-    BPNode_Test_TABLEP_TableUpdate(2,  COMPRESSED_REPORTING);
-    BPNode_Test_TABLEP_TableUpdate(3,  CUSTODIAN_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(4,  CUSTODY_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(5,  MIB_CONFIG_PER_NODE);
-    BPNode_Test_TABLEP_TableUpdate(6,  MIB_CONFIG_PER_SRC);
-    BPNode_Test_TABLEP_TableUpdate(7,  REPORT_TO_EID_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(8,  SRC_AUTH_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(9,  SRC_LATENCY_POLICY);
-    BPNode_Test_TABLEP_TableUpdate(10, STORAGE);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
 }
 
 void TestBplibNc_Register(void)

@@ -70,18 +70,18 @@ typedef enum
   */
 typedef enum
 {
-    CHANNEL_CONFIG            =  0, /* Channel Configuration configuration */
-    CONTACTS                  =  1, /* Contacts configuration */
-    COMPRESSED_REPORTING      =  2, /* Compressed Reporting configuration */
-    CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy configuration */
-    CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy configuration */
-    MIB_CONFIG_PER_NODE       =  5, /* MIB Configuration per Node configuration */
-    MIB_CONFIG_PER_SRC        =  6, /* MIB Configuration per Source configuration */
-    REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy configuration */
-    SRC_AUTH_POLICY           =  8, /* Source Authorization Policy configuration */
-    SRC_LATENCY_POLICY        =  9, /* Source Latency Policy configuration */
-    STORAGE                   = 10, /* Storage configuration */
-    ADU_PROXY_CONFIG          = 11, /* FWP's ADU Proxy Configuration configuration; confined to BPNode */
+    BPLIB_CHANNEL                   =  0, /* Channel configuration */
+    BPLIB_CONTACTS                  =  1, /* Contacts configuration */
+    BPLIB_COMPRESSED_REPORTING      =  2, /* Compressed Reporting configuration */
+    BPLIB_CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy configuration */
+    BPLIB_CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy configuration */
+    BPLIB_MIB_PER_NODE              =  5, /* MIB per Node configuration */
+    BPLIB_MIB_PER_SRC               =  6, /* MIB per Source configuration */
+    BPLIB_REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy configuration */
+    BPLIB_SRC_AUTH_POLICY           =  8, /* Source Authorization Policy configuration */
+    BPLIB_SRC_LATENCY_POLICY        =  9, /* Source Latency Policy configuration */
+    BPLIB_STORAGE                   = 10, /* Storage configuration */
+    BPLIB_ADU_PROXY                 = 11, /* FWP's ADU Proxy configuration; confined to BPNode */
 } BPLib_NC_TableType_t;
 
 /* =========== */
