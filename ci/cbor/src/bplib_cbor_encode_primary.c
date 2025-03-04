@@ -7,9 +7,8 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    UsefulBuf InitStorage;
-    UsefulBufC FinishBuffer;
-    QCBORError QcborStatus;
+    size_t StartOffset;
+    size_t EndOffset;
 
     if (Context == NULL)
     {
@@ -29,14 +28,8 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
     }
     else
     {
-        /*
-        ** Initialize the encoder.
-        ** TODO: Move this up-and-out, to BPLib_BI_BlobCopyOut()?
-        **       Or perhaps this should go into an "encode bundle" cbor function
-        */
-        InitStorage.ptr = OutputBuffer;
-        InitStorage.len = OutputBufferSize;
-        QCBOREncode_Init(Context, InitStorage);
+        /* Grab the start offset, to be used to calculate the total encoded size */
+        StartOffset = QCBOREncode_Tell(Context);
 
         /*
         ** Open Array
@@ -71,23 +64,12 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
         QCBOREncode_CloseArray(Context);
 
         /*
-        ** Finish encoding, and check for errors
-        ** TODO: Move this up-and-out, to BPLib_BI_BlobCopyOut()?
-        **       Or perhaps this should go into an "encode bundle" cbor function
+        ** Calculate the total encoded size
         */
-        FinishBuffer.len = 0;
-        FinishBuffer.ptr = NULL;
-        QcborStatus = QCBOREncode_Finish(Context, &FinishBuffer);
-        if (QcborStatus != QCBOR_SUCCESS)
-        {
-            *NumBytesCopied = 0;
-            ReturnStatus = BPLIB_CBOR_ENC_PRIMARY_FINISH_ERR;
-        }
-        else
-        {
-            *NumBytesCopied = FinishBuffer.len;
-            ReturnStatus = BPLIB_SUCCESS;
-        }
+        EndOffset = QCBOREncode_Tell(Context);
+        *NumBytesCopied = EndOffset - StartOffset;
+
+        ReturnStatus = BPLIB_SUCCESS;
     }
 
     return ReturnStatus;

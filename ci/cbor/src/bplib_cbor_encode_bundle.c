@@ -108,7 +108,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
             /*
             ** Inform the caller of the successful number of bytes copied
             */
-            // *NumBytesCopied = TotalBytesCopied;
             ReturnStatus = PayloadBlockReturnStatus;
         }
     }
