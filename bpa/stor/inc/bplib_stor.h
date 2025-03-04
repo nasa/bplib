@@ -119,14 +119,26 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
  *
  * This function pulls from Bundle Cache and pushes them to the unsorted job queue
  *
- * @param[in] inst The instance containing the jobs to be sorted.
- * @param[in] max_num_bundles_to_scan The number of bundles to pull from storage
+ * @param[in] Inst The instance containing the jobs to be sorted.
+ * @param[in] MaxBundlesToScan The number of bundles to pull from storage
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Scanning cache was successful
  *  \retval BPLIB_NULL_PTR_ERROR Provided instance pointer was null/invalid
  */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bundles_to_scan);
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan);
 
+/**
+ * @brief Cache a bundle
+ *
+ * This function takes a bundle and puts it in Cache
+ *
+ * @param[in] Inst The instance with the queue context information
+ * @param[in] Bundle The bundle to cache
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Scanning cache was successful
+ */
+BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle);
 
 #endif /* BPLIB_STOR_H */
