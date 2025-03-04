@@ -40,22 +40,19 @@ extern "C" {
 /**
  * \brief Configuration array constraints
  */
-#define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queues */
-#define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
-#define BPLIB_MAX_NUM_LATENCY_POLICY_SETS   10  /* Maximum number of latency policy sets */
-#define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. */
-#define BPLIB_MAX_NUM_CRS                   10  /* Maximum number of Compressed Reporting CRS Entries */
-#define BPLIB_MAX_AUTH_SOURCE_EIDS          10  /* Maximum number of authorized source EID patterns */
-#define BPLIB_MAX_AUTH_CUSTODIAN_EIDS       10  /* Maximum number of authorized custodian EID patterns */
-#define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS  10  /* Maximum number of authorized custody source EID patterns */
-#define BPLIB_MAX_AUTH_REPORT_TO_EIDS       10  /* Maximum number of report-to EID patterns */
-#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES    10  /* Maximum number of entries in MIB PS Cfg table */
-#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS   10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
-#define BPLIB_MAX_NUM_STORE_EIDS            10  /* Maximum number of EID patterns per storage policy set */
-
-
-
-
+#define BPLIB_MAX_NUM_BUNDLE_QUEUES             16  /* Maximum number of queues */
+#define BPLIB_MAX_NUM_MIB_SETS                  16  /* Maximum number of MIB sets of counters associated with EID patterns in the source counters HK telemetry */
+#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB counter index */
+#define BPLIB_MAX_NUM_LATENCY_POLICY_SETS       10  /* Maximum number of latency policy sets */
+#define BPLIB_MAX_NUM_STORE_SET                 10  /* Maximum number of storage policy sets. */
+#define BPLIB_MAX_NUM_CRS                       10  /* Maximum number of Compressed Reporting CRS Entries */
+#define BPLIB_MAX_AUTH_SOURCE_EIDS              10  /* Maximum number of authorized source EID patterns */
+#define BPLIB_MAX_AUTH_CUSTODIAN_EIDS           10  /* Maximum number of authorized custodian EID patterns */
+#define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS      10  /* Maximum number of authorized custody source EID patterns */
+#define BPLIB_MAX_AUTH_REPORT_TO_EIDS           10  /* Maximum number of report-to EID patterns */
+#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES        10  /* Maximum number of entries in MIB PS Cfg table */
+#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS       10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
+#define BPLIB_MAX_NUM_STORE_EIDS                10  /* Maximum number of EID patterns per storage policy set */
 
 /** 
  * \brief Maximum number of contacts that can be running at once
@@ -76,11 +73,46 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_CHANNELS              2
 
-
 /** 
- * \brief Maximum number of canonical blocks per bundle
+ * \brief Maximum number of extension blocks per bundle.
  */
-#define BPLIB_MAX_NUM_CANONICAL_BLOCK       10
+#define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
+
+/**
+ * \brief Maximum number of canonical blocks per bundle
+ *        this is one more than BPLIB_MAX_NUM_EXTENSION_BLOCKS
+ *        because it includes all extension blocks plus the payload block
+ */
+#define BPLIB_MAX_NUM_CANONICAL_BLOCKS       (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
+
+/**
+ * \brief This is the EID scheme for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_SCHEME          BPLIB_EID_SCHEME_IPN
+
+/**
+ * \brief This is the EID IPN/SSP format for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT  BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
+
+/**
+ * \brief This is the EID allocator for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_ALLOCATOR       0
+
+/**
+ * \brief This is the EID node number for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_NODE_NUM        100
+
+/**
+ * \brief This is the EID service number for this instance of a DTN node. This is not
+ *        really used by BPLib, since local delivery sends bundles to other services on
+ *        this node, but is included just in case a BPNode implementation does end up
+ *        needing it.
+ */
+#define BPLIB_LOCAL_EID_SERVICE_NUM     0
+
 
 #ifdef __cplusplus
 } // extern "C"

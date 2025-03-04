@@ -41,6 +41,8 @@
 #include "bplib_fwp.h"
 #include "bpa_fwp_stubs.h"  /* For EVP callback stubs */
 
+#include "bplib_eid.h"
+
 /* ====== */
 /* Macros */
 /* ====== */

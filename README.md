@@ -6,10 +6,10 @@
 [4. Application Programming Interface](#4-application-programming-interface)  
 [5. Storage Service](#5-storage-service)  
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
+[Note #1 - Bundle Protocol Version 6](docs/bpv6_notes.md)  
+[Note #2 - Library Development Guidelines](docs/dev_notes.md)  
+[Note #3 - Configuration Parameter Trades](docs/parm_notes.md)  
+[Note #4 - Bundle Flow Analysis for Intermittent Communication](docs/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview
@@ -54,10 +54,21 @@ The versions used may change. The versions as of the last update of this documen
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
 
-2. Install tinycbor if it is not already installed.  
-See https://github.com/intel/tinycbor.git.
+2. Install QCBOR 1.5.1 if it is not already installed.
 
-- tinycbor version 0.6.0
+- navigate to a directory you want QCBOR to be cloned to (home directory used for this example)
+   - `cd ~/`
+- clone the QCBOR repo
+   - `git clone https://github.com/laurencelundblade/QCBOR.git`
+- navigate into the QCBOR repo
+   - `cd QCBOR`
+- switch to the correct version of QCBOR
+   - `git checkout v1.5.1`
+- build and install QCBOR
+   - `sudo make uninstall`
+   - `cmake -DBUILD_SHARED_LIBS=ON -S . -B build`
+   - `cmake --build build`
+   - `sudo make install`
 
 #### Build bplib with cFS
 3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
@@ -249,7 +260,7 @@ The application programming interface is documented in the header files, and the
 generated using the `doxygen` tool.
 
 The NASA CFE/CFS infrastructure has scripts to build the documentation, and this component works with
-that infrastructure.  In a CFE/CFS envirnomnent, build the "docs" target to generate this documentation.
+that infrastructure.  In a CFE/CFS environment, build the "docs" target to generate this documentation.
 
 ### 4.1 Functions
 

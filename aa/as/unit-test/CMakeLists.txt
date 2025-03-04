@@ -56,6 +56,7 @@ target_include_directories(coverage-bplib_as-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
 )
@@ -67,6 +68,7 @@ target_link_libraries(coverage-bplib_as-testrunner PUBLIC
     bplib_em_stubs
     bpa_fwp_stubs
     ut_osapi_stubs
+    bplib_eid_stubs
 )
 
 add_test(coverage-bplib_as-testrunner coverage-bplib_as-testrunner)

@@ -88,7 +88,7 @@ endif()
 list (APPEND BPLIB_COMPONENT_DIRS
   version cla aa/arp aa/as aa/fwp aa/nc bpa/bi bpa/ct
   bpa/ebp bpa/pdb bpa/pi bpa/stor
-  ci/cbor ci/em ci/mem ci/pl ci/qm ci/time ci/crc ci/eid
+  ci/cbor ci/em ci/mem ci/pl ci/qm ci/time ci/crc ci/eid ci/rbt
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
@@ -99,7 +99,7 @@ list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi
   bplib_stor bplib_cbor bplib_em bplib_mem bplib_pl bplib_time
-  bplib_crc bplib_version bplib_qm bplib_eid
+  bplib_crc bplib_version bplib_qm bplib_eid bplib_rbt
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
@@ -122,6 +122,9 @@ if (IS_CFS_ARCH_BUILD)
   # The CFE build system determines whether to create a shared or static object inside this routine
   add_cfe_app(bplib ${BPLIB_SRC})
 
+  # link with the requisite dependencies
+  target_link_libraries(bplib qcbor m)
+
 else()
 
   # Building as a standalone library
@@ -129,6 +132,9 @@ else()
   # The flavor of library (shared/static) being built here depends on the BUILD_SHARED_LIBS option
   # This directory may be built twice, setting this option differently to build both flavors
   add_library(bplib ${BPLIB_SRC})
+
+  # link with the requisite dependencies
+  target_link_libraries(bplib qcbor m)
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done

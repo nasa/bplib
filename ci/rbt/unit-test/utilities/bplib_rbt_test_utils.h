@@ -18,17 +18,32 @@
  *
  */
 
+#ifndef BPLIB_RBT_TEST_UTILS_H
+#define BPLIB_RBT_TEST_UTILS_H
+
 /*
 ** Include
 */
 
-#include "bplib_cbor.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
+#include "bplib_api_types.h"
+#include "bplib_rbt.h"
+
+/*
+** Macro Definitions
+*/
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_RBT_Test_Setup, BPLib_RBT_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-int BPLib_CBOR_Init(void) {
-    return BPLIB_SUCCESS;
-}
+void BPLib_RBT_Test_Setup(void);
+void BPLib_RBT_Test_Teardown(void);
+
+#endif /* BPLIB_RBT_TEST_UTILS_H */

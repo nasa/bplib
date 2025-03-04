@@ -27,11 +27,24 @@
 #include "bplib_stor.h"
 #include "utgenstub.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
 BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_CacheBundle()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CacheBundle, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_CacheBundle, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_STOR_CacheBundle, BPLib_Bundle_t *, Bundle);
+
+    UT_GenStub_Execute(BPLib_STOR_CacheBundle, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CacheBundle, BPLib_Status_t);
+}
 
 /*
  * ----------------------------------------------------
@@ -49,18 +62,33 @@ int BPLib_STOR_Init(void)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_ScanCache()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t *Inst, uint32_t MaxBundlesToScan)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_ScanCache, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_ScanCache, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_STOR_ScanCache, uint32_t, MaxBundlesToScan);
+
+    UT_GenStub_Execute(BPLib_STOR_ScanCache, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_ScanCache, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_StorageTblValidateFunc()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData) 
+BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 {
-  UT_GenStub_SetupReturnBuffer(BPLib_STOR_StorageTblValidateFunc,
-                               BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_StorageTblValidateFunc, BPLib_Status_t);
 
-  UT_GenStub_AddParam(BPLib_STOR_StorageTblValidateFunc, void *, TblData);
+    UT_GenStub_AddParam(BPLib_STOR_StorageTblValidateFunc, void *, TblData);
 
-  UT_GenStub_Execute(BPLib_STOR_StorageTblValidateFunc, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_StorageTblValidateFunc, Basic, NULL);
 
-  return UT_GenStub_GetReturnValue(BPLib_STOR_StorageTblValidateFunc,
-                                   BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_StorageTblValidateFunc, BPLib_Status_t);
 }

@@ -33,14 +33,16 @@ void Test_BPLib_BI_Init(void)
     UtAssert_INT32_EQ(BPLib_BI_Init(), BPLIB_SUCCESS);
 }
 
-/*
 void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 {
+    BPLib_Instance_t instance;
     void* BundleIn = NULL;
     size_t Size = 0;
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(BundleIn, Size), BPLIB_SUCCESS);
+
+    // Test the NULL pointer checks.
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, &BundleIn, Size), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(&instance, BundleIn, Size), BPLIB_NULL_PTR_ERROR);
 }
-*/
 
 void Test_BPLib_BI_RecvCtrlMsg_Nominal(void)
 {
@@ -56,7 +58,7 @@ void Test_BPLib_BI_ValidateBundle_Nominal(void)
 void TestBplibBi_Register(void)
 {
     UtTest_Add(Test_BPLib_BI_Init, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_Init");
-    //UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
+    UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");
 }

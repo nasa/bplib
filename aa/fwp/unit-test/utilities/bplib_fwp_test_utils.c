@@ -18,18 +18,48 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_fwp_test_utils.h"
 
-/*
-** Function Definitions
-*/
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_FWP_ProxyCallbacks_t TestCallbacks;
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 void BPLib_FWP_Test_Setup(void)
 {
+    memset((void*) &TestCallbacks,  0, sizeof(BPLib_FWP_ProxyCallbacks_t));
+
+    TestCallbacks.BPA_TIMEP_GetHostClockState         = BPA_TIMEP_GetHostClockState;
+    TestCallbacks.BPA_TIMEP_GetHostEpoch              = BPA_TIMEP_GetHostEpoch;
+    TestCallbacks.BPA_TIMEP_GetHostTime               = BPA_TIMEP_GetHostTime;
+    TestCallbacks.BPA_TIMEP_GetMonotonicTime          = BPA_TIMEP_GetMonotonicTime;
+    TestCallbacks.BPA_PERFLOGP_Entry                  = BPA_PERFLOGP_Entry;
+    TestCallbacks.BPA_PERFLOGP_Exit                   = BPA_PERFLOGP_Exit;
+    TestCallbacks.BPA_TABLEP_SingleTableUpdate        = BPA_TABLEP_SingleTableUpdate;
+    TestCallbacks.BPA_EVP_Init                        = BPA_EVP_Init;
+    TestCallbacks.BPA_EVP_SendEvent                   = BPA_EVP_SendEvent;
+    TestCallbacks.BPA_PERFLOGP_Entry                  = BPA_PERFLOGP_Entry;
+    TestCallbacks.BPA_PERFLOGP_Exit                   = BPA_PERFLOGP_Exit;
+    TestCallbacks.BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication;
+    TestCallbacks.BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication;
+    TestCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
+    TestCallbacks.BPA_ADUP_RemoveApplication          = BPA_ADUP_RemoveApplication;
+    TestCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
+    TestCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
+    TestCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
+    TestCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
+    TestCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
+    TestCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }

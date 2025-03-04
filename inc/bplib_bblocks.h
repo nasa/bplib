@@ -22,75 +22,130 @@
 #define BPLIB_BBLOCKS_H
 
 #include "bplib_api_types.h"
+#include "bplib_cfg.h"
+#include "bplib_eid.h"
+#include "bplib_crc.h"
+#include "bplib_time.h"
 
-#define BPLIB_MAX_EXT_BLOCKS 5 /**< Maximum number of decoded extension blocks that can be stored within Bundle metadata. */
+/*
+** Macros
+*/
+
+#define BPLIB_PRI_BLOCK_CRC_MASK 0xFF
+
+
+/*
+** Types
+*/
 
 /**
- * @struct EndpointIDSSP
- * @brief Represents the endpoint ID in the Bundle Protocol.
+ * @brief Previous Node Extension Block Data
  */
-typedef struct EndpointIDSSP {
-    uint64_t node_number;
-    uint64_t service_number;
-} EndpointIDSSP;
+typedef struct
+{
+    BPLib_EID_t PrevNodeId;
+} BPLib_PrevNodeBlockData_t;
 
 /**
- * @struct CreationTimeStamp
- * @brief Represents the creation timestamp of a bundle.
+ * @brief Age Block Extension Block Data
  */
-typedef struct CreationTimeStamp {
-    uint64_t create_time;
-    uint64_t sequence_number;
-} CreationTimeStamp;
+typedef struct
+{
+    uint64_t Age;
+} BPLib_AgeBlockData_t;
 
 /**
- * @struct PrimaryBlock_t
+ * @brief Hop Count Extension Block Data
+ */
+typedef struct
+{
+    uint64_t HopLimit;
+    uint64_t HopCount;
+} BPLib_HopCountData_t;
+
+/**
+ * @brief Creation timestamp of a bundle
+ */
+typedef struct 
+{
+    uint64_t CreateTime;
+    uint64_t SequenceNumber;
+} BPLib_CreationTimeStamp_t;
+
+/**
  * @brief Represents an RFC-9171 primary block in the bundle.
  */
-typedef struct PrimaryBlock {
-    uint8_t version;
-    uint8_t crc_type;
-    uint8_t empty[6];
-    uint64_t bundle_processing_control_flags;
-    EndpointIDSSP dest_eid;
-    EndpointIDSSP src_eid;
-    EndpointIDSSP report_eid;
-    CreationTimeStamp timestamp;
-    uint64_t lifetime;
-} PrimaryBlock_t;
+typedef struct 
+{
+    uint64_t                  CrcType;
+    uint64_t                  BundleProcFlags;
+    BPLib_EID_t               DestEID;
+    BPLib_EID_t               SrcEID;
+    BPLib_EID_t               ReportToEID;
+    BPLib_CreationTimeStamp_t Timestamp;
+    uint64_t                  Lifetime;
+    uint64_t                  FragmentOffset;
+    uint64_t                  TotalAduLength;
+    BPLib_CRC_Val_t           CrcVal;
+} BPLib_PrimaryBlock_t;
 
 /**
- * @struct ExtensionBlock_t
+ * @brief Union of all extension block data types
+ */
+typedef union 
+{
+    BPLib_HopCountData_t      HopCountData;
+    BPLib_AgeBlockData_t      AgeBlockData;
+    BPLib_PrevNodeBlockData_t PrevNodeBlockData;
+} BPLib_ExtBlockData_t;
+
+/**
+ * @brief Canonical block header data
+ */
+typedef struct
+{
+    /* Header Data */
+    uint64_t        BlockType;
+    uint64_t        BlockNum;
+    uint64_t        BundleProcFlags;
+    uint64_t        CrcType;
+    BPLib_CRC_Val_t CrcVal;
+    /* Metadata */
+    uint64_t        HeaderOffset;
+    uint64_t        DataOffset;
+} BPLib_CanBlockHeader_t;
+
+/**
  * @brief Represents an RFC-9171 extension block in the bundle.
  */
-typedef struct ExtensionBlock {
-    uint64_t crc_type;
-    uint64_t block_type;
-    uint64_t block_processing_flags;
-    uint64_t num_bytes;
-    uint64_t data;
-} ExtensionBlock_t;
-
-/**
- * @struct PayloadHeader_t
- * @brief Represents the header of the payload section in the bundle.
- */
-typedef struct PayloadHeader {
-    uint64_t crc_type;
-    uint64_t block_type;
-    uint64_t block_processing_flags;
-    uint64_t num_bytes;
-} PayloadHeader_t;
+typedef struct 
+{
+    BPLib_CanBlockHeader_t Header;
+    BPLib_ExtBlockData_t   BlockData;
+} BPLib_ExtensionBlock_t;
 
 /**
  * @struct BPLib_BBlocks_t
  * @brief Represents the bundle blocks, including the primary block, extension blocks, and payload header.
  */
-typedef struct BPLib_BBlocks
+typedef struct
 {
-    PrimaryBlock_t pri_blk;
-    ExtensionBlock_t ext_blks[BPLIB_MAX_EXT_BLOCKS];
-    PayloadHeader_t pay_hdr;
+    BPLib_PrimaryBlock_t   PrimaryBlock;
+    BPLib_ExtensionBlock_t ExtBlocks[BPLIB_MAX_NUM_EXTENSION_BLOCKS];
+    BPLib_CanBlockHeader_t PayloadHeader;
 } BPLib_BBlocks_t;
+
+/**
+ * @brief Represents the metadata needed for bundle processing
+ */
+typedef struct 
+{
+    uint16_t EgressID;  /**< For egressing bundles, ID of channel/contact to send to */
+
+    BPLib_TIME_MonotonicTime_t MonoTime; /**< Creation *monotonic* time, will use for DTN timestamp later */
+
+    /* Additional metadata will likely get added here */
+
+} BPLib_BundleMetaData_t;
 
 #endif /* BPLIB_BBLOCKS_H */

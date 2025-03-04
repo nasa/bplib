@@ -21,9 +21,9 @@
 #ifndef BPLIB_FWP_TEST_UTILS_H
 #define BPLIB_FWP_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
@@ -32,12 +32,21 @@
 #include "bplib_api_types.h"
 #include "bplib_fwp.h"
 
+#include "bpa_fwp_stubs.h"  /* For stub definitions of callbacks */
 
-/*
-** Function Definitions
-*/
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+extern BPLib_FWP_ProxyCallbacks_t TestCallbacks;
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 void BPLib_FWP_Test_Setup(void);
+
 void BPLib_FWP_Test_Teardown(void);
 
 void TestBplibFwp_Register(void);

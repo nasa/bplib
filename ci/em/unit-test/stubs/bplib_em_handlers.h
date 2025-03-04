@@ -36,7 +36,7 @@
 /* Macro Definitions */
 /* ================= */
 
-#define UT_MAX_SENDEVENT_DEPTH 5
+#define UT_MAX_SENDEVENT_DEPTH 80
 
 /* ================ */
 /* Type Definitions */

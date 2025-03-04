@@ -22,7 +22,11 @@
 ** Include
 */
 #include "bplib_bi.h"
+#include "bplib_cbor.h"
 #include "bplib_qm.h"
+#include "bplib_as.h"
+#include "bplib_eid.h"
+#include "bplib_bblocks.h"
 
 #include <stdio.h>
 
@@ -38,7 +42,8 @@ int BPLib_BI_Init(void) {
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_Bundle_t* bundle;
+    BPLib_Status_t DecodeStatus;
+    BPLib_Bundle_t* CandidateBundle;
 
     if ((inst == NULL) || (BundleIn == NULL))
     {
@@ -46,23 +51,40 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     }
 
     /* Create the bundle from the incoming blob */
-    bundle = BPLib_MEM_BundleAlloc(&inst->pool, BundleIn, Size);
-    if (bundle == NULL)
+    CandidateBundle = BPLib_MEM_BundleAlloc(&inst->pool, BundleIn, Size);
+    if (CandidateBundle == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
+    DecodeStatus = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
+    if (DecodeStatus != BPLIB_SUCCESS)
+    {
+        /* cease bundle processing and free the memory */
+        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
 
-    /* TODO: fully fill out primary block fields from decoded bundle */
-    bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID,
+            BPLib_EM_EventType_ERROR,
+            "Error decoding bundle, RC = %d", DecodeStatus);
+
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
+
+        return DecodeStatus;
+    }
 
     /* Validate the deserialized bundle (this does nothing right now) */
     Status = BPLib_BI_ValidateBundle();
 
-    printf("Ingressing packet of %lu bytes from CLA\n", (unsigned long)Size);
+    printf("Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.\n",
+        (unsigned long)Size,
+        CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
+        CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
+        CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
+        CandidateBundle->blocks.PrimaryBlock.SrcEID.Service
+    );
 
-    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 

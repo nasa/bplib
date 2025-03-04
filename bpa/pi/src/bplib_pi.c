@@ -30,7 +30,7 @@
 
 #include "bplib_pi.h"
 #include "bplib_mem.h"
-
+#include "bplib_fwp.h"
 #include <stdio.h>
 
 
@@ -68,7 +68,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
-    BPLib_Bundle_t    *NewBundle;
+    BPLib_Bundle_t *NewBundle;
 
     if ((Inst == NULL) || (AduPtr == NULL))
     {
@@ -82,19 +82,36 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO fully fill out primary block fields */
-    NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    /* Set primary block based on channel table configurations */
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID), 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].DestEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID), 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].ReportToEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
+    NewBundle->blocks.PrimaryBlock.SrcEID.Service = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].LocalServiceNumber;
 
-    /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
-    if (ChanId == 0)
-    {
-        NewBundle->blocks.pri_blk.dest_eid.service_number = 0x42;
-    }
+    NewBundle->blocks.PrimaryBlock.BundleProcFlags = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].BundleProcFlags;
+    NewBundle->blocks.PrimaryBlock.CrcType = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].CrcType;
+    NewBundle->blocks.PrimaryBlock.Lifetime = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].Lifetime;
+    
+    /* 
+    ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime
+    ** will be set to 0 and the MonoTime will be used for age block calculations and 
+    ** other time calculations later on
+    */
+    BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
+    NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+
+    /* TODO need additional changes to set CRC */
+    /* TODO add extension blocks configs? Or is that EBP? */
 
     printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
 
-    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, 
-                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
 
 /* Egress an ADU */

@@ -50,11 +50,22 @@ target_include_directories(coverage-bplib_stor-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_stor,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
+
 )
 
 target_link_libraries(coverage-bplib_stor-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_em_stubs
+    bplib_qm_stubs
+    bplib_eid_stubs
+    bplib_fwp_stubs
+    bplib_nc_stubs
 )
 
 add_test(coverage-bplib_stor-testrunner coverage-bplib_stor-testrunner)
