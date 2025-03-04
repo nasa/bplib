@@ -7,6 +7,8 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
+    size_t StartOffset;
+    size_t EndOffset;
 
     /*
     ** TODO
@@ -25,6 +27,34 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
     }
     else
     {
+        /*
+        ** Grab the start offset, to be used to calculate the total encoded size
+        */
+        StartOffset = QCBOREncode_Tell(Context);
+
+        /*
+        ** Open Array (TODO: is this the right API?)
+        ** Maybe this instead:
+        ** QCBOREncode_AddBytes(QCBOREncodeContext *pCtx, UsefulBufC Bytes);
+        ** or:
+        ** QCBOREncode_BstrWrap(QCBOREncodeContext *pCtx);
+        */
+        // QCBOREncode_OpenArray(Context);
+
+
+        /*
+        ** Close Array
+        ** Use this instead:
+        ** static void
+        ** QCBOREncode_CloseBstrWrap(QCBOREncodeContext *pCtx, UsefulBufC *pWrappedCBOR);
+        */
+        // QCBOREncode_CloseArray(Context);
+
+        /*
+        ** Calculate the total encoded size
+        */
+        EndOffset = QCBOREncode_Tell(Context);
+        *NumBytesCopied = EndOffset - StartOffset;
         ReturnStatus = BPLIB_SUCCESS;
     }
 
@@ -59,8 +89,12 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             /*
             ** copy adu data out of memory blocks
             */
+
             /*
             ** TODO: how do we keep QCBOR in the loop about this?
+            ** Consider using this:
+            **  void
+            **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
             */
             ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
