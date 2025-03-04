@@ -164,6 +164,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_ENTER_BYTE_STR_ERR;
     }
 
+    /*
+    ** TODO: should we grab the Data offset before entering the CBOR Byte String?
+    */
     /* Grab the current offset, to be kept in the canonical block's metadata */
     CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
 
@@ -231,12 +234,18 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_EXIT_BYTE_STR_ERR;
     }
 
+    /* Grab the current offset, to be kept in the canonical block's metadata */
+    CanonicalBlockHdr->EncodedCrcValOffset = QCBORDecode_Tell(ctx);
+
     /* CRC Value */
     Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
     }
+
+    /* Grab the current offset, to calculate the encoded CRC value's size */
+    CanonicalBlockHdr->EncodedCrcValSize = QCBORDecode_Tell(ctx) - CanonicalBlockHdr->EncodedCrcValOffset;
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);

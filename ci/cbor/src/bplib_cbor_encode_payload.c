@@ -10,9 +10,6 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
     size_t StartOffset;
     size_t EndOffset;
 
-    /*
-    ** TODO
-    */
     if (StoredBundle == NULL)
     {
         ReturnStatus = BPLIB_NULL_PTR_ERROR;
@@ -33,22 +30,40 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
         StartOffset = QCBOREncode_Tell(Context);
 
         /*
-        ** Open Array (TODO: is this the right API?)
+        ** Open Array
+        ** TODO: is this the right API?
         ** Maybe this instead:
         ** QCBOREncode_AddBytes(QCBOREncodeContext *pCtx, UsefulBufC Bytes);
         ** or:
         ** QCBOREncode_BstrWrap(QCBOREncodeContext *pCtx);
         */
-        // QCBOREncode_OpenArray(Context);
+        QCBOREncode_OpenArray(Context);
+
+        /*
+        ** Add our block header data
+        */
+        QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.BlockType);
+        QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.BlockNum);
+        QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.BundleProcFlags);
+        QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.CrcType);
 
 
         /*
+        ** Add the payload data
+        */
+        /* TODO */
+
+        /*
+        ** Add the CRC
+        */
+        /* TODO */
+
+        /*
         ** Close Array
-        ** Use this instead:
-        ** static void
+        ** TODO: Use this instead?
         ** QCBOREncode_CloseBstrWrap(QCBOREncodeContext *pCtx, UsefulBufC *pWrappedCBOR);
         */
-        // QCBOREncode_CloseArray(Context);
+        QCBOREncode_CloseArray(Context);
 
         /*
         ** Calculate the total encoded size
@@ -109,6 +124,9 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedData(QCBOREncodeContext* Context,
     {
         CurrentInfoToCopy.len = NumBytesToCopy;
         CurrentInfoToCopy.ptr = CurrentInputOffset;
+        /*
+        ** TODO: apparently this is not the right way to add encoded data into the buffer
+        */
         QCBOREncode_AddEncoded(Context, CurrentInfoToCopy);
         TotalBytesCopied = NumBytesToCopy;
     }
@@ -183,21 +201,9 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
         PayloadHeaderSize = StoredBundle->blocks.PayloadHeader.DataOffset;
                           - StoredBundle->blocks.PayloadHeader.HeaderOffset;
 
-        switch (StoredBundle->blocks.PayloadHeader.CrcType)
-        {
-            case BPLib_CRC_Type_CRC32C:
-                EncodedCrcValueSize = 4; /* TODO: do we need to add 1 here, for the cbor byte string wrapper? */
-                break;
-            case BPLib_CRC_Type_CRC16:
-                EncodedCrcValueSize = 2; /* TODO: do we need to add 1 here, for the cbor byte string wrapper? */
-                break;
-            default:
-                EncodedCrcValueSize = 0;
-        }
-
         TotalPayloadSize = PayloadHeaderSize
                          + StoredBundle->blocks.PrimaryBlock.TotalAduLength
-                         + EncodedCrcValueSize;
+                         + StoredBundle->blocks.PayloadHeader.EncodedCrcValSize;
 
         /*
         ** TODO: we can probably remove this length check,

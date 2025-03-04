@@ -117,6 +117,8 @@ typedef struct
     /* Metadata */
     uint64_t        HeaderOffset;
     uint64_t        DataOffset;
+    uint64_t        EncodedCrcValOffset;
+    uint64_t        EncodedCrcValSize;
     bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 
