@@ -125,6 +125,9 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(QCBOREncodeContext* Context,
             ** This assume the encoded primary block starts at the very beginning of the first blob.
             ** Is that correct, or do we have
             */
+            /*
+            ** TODO: how do we keep QCBOR in the loop about this?
+            */
             memcpy(OutputBuffer,
                 (void*)StoredBundle->blob->user_data.raw_bytes,
                 StoredBundle->blocks.PrimaryBlock.EncodedSize);

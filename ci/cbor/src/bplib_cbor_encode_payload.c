@@ -59,6 +59,9 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             /*
             ** copy adu data out of memory blocks
             */
+            /*
+            ** TODO: how do we keep QCBOR in the loop about this?
+            */
             ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
                                                        StoredBundle->blocks.PrimaryBlock.TotalAduLength,
