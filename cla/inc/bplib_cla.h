@@ -76,7 +76,7 @@ typedef enum
 } BPLib_CLA_ContactRunState_t;
 
 /**
- * \brief Global Contacts Table
+ * \brief Global Contacts Configuration
  */
 typedef struct
 {
@@ -170,14 +170,14 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
 
 /**
- * \brief Validate Contacts Table configurations
+ * \brief Validate Contacts Configuration
  *
  *  \par Description
- *       Validate configuration table parameters
+ *       Validate configuration parameters
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management.
- *         Every time a new Contacts Table is loaded, this function should be called to
+ *         Every time a new Contacts Configuration is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
@@ -188,12 +188,12 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
 BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
 
 /**
- * \brief     Find the requested contact ID in the Contacts Table and pass that information to the
+ * \brief     Find the requested contact ID in the Contacts Configuration and pass that information to the
  *            CLA proxy to configure the CLA with
- * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to setup
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration to setup
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Contact ID could not be found in the Contacts Table
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Contact ID could not be found in the Contacts Configuration
  * \retval    BPLIB_CLA_CONTACTS_MAX_REACHED: Setting up contact would exceed maximum simultaneous
  *                                            contacts allowed
  */
@@ -201,7 +201,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId);
 
 /**
  * \brief     Pass Contact ID to start, on to CLA proxy
- * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to start
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration to start
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_CLA_ERROR: TODO
@@ -210,7 +210,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint16_t ContactId);
 
 /**
  * \brief     Pass Contact ID to stop, on to CLA proxy
- * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to stop
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration to stop
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_CLA_ERROR: TODO
@@ -219,7 +219,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint16_t ContactId);
 
 /**
  * \brief     If the contact has been stopped, deconfigure the CLA via BI, CT, EBP, and CLA
- * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table to teardown
+ * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration to teardown
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_CLA_CONTACT_RUNNING: Contact has not been stopped
@@ -228,10 +228,22 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId);
 
 /**
   * \brief     Get access to the run state of a particular contact
-  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Table of whose run
+  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration of whose run
   *                                 state should be returned
   * \return    Contact run state
   */
 BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint16_t ContactId);
+
+/**
+  * \brief     Set the run state of the provided contact
+  * \param[in] ContactId (uint16_t) Contact ID from the Contacts Configuration whose run state is being requested to change
+  * \param[in] RunState  (BPLib_CLA_ContactRunState_t) Requested run state of the provided contact ID from the Contacts Configuration
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
+  * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in the Contacts Configuration
+  * \retval    BPLIB_CLA_INCORRECT_STATE: The intended run state for the contact with the provided contact ID was incompatible with the
+  *                                       current run state of the contact
+  */
+ BPLib_Status_t BPLib_CLA_SetContactRunState(uint16_t ContactId, BPLib_CLA_ContactRunState_t RunState);
 
 #endif /* BPLIB_CLA_H */
