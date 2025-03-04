@@ -106,14 +106,14 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_NC_TableUpdate()
+ * Generated stub function for BPLib_NC_ConfigUpdate()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_TableUpdate(void)
+BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_TableUpdate, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_ConfigUpdate, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_NC_TableUpdate, Basic, NULL);
+    UT_GenStub_Execute(BPLib_NC_ConfigUpdate, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_NC_TableUpdate, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_NC_ConfigUpdate, BPLib_Status_t);
 }

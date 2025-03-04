@@ -1548,7 +1548,7 @@ void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_SUCCESS);
 
     /* Run function under test */
-    Status = BPLib_NC_TableUpdate();
+    Status = BPLib_NC_ConfigUpdate();
 
     /* Show that the function returned success */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
@@ -1579,7 +1579,7 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
 
     /* Run function under test */
-    Status = BPLib_NC_TableUpdate();
+    Status = BPLib_NC_ConfigUpdate();
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_TBL_UPDATED);
 
@@ -1620,7 +1620,7 @@ void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
 
     /* Run function under test */
-    Status = BPLib_NC_TableUpdate();
+    Status = BPLib_NC_ConfigUpdate();
 
     /* Show that the function returned success */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);

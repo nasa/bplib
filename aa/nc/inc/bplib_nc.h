@@ -159,6 +159,6 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
   * \retval    BPLIB_TBL_UPDATED: Successful execution with configuration updates
   * \retval    BPLIB_ERROR: An error occured while attempting to refresh/update configurations
   */
-BPLib_Status_t BPLib_NC_TableUpdate(void);
+BPLib_Status_t BPLib_NC_ConfigUpdate(void);
 
 #endif // BPLIB_NC_H
