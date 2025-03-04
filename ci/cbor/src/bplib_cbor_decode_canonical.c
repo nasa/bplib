@@ -165,9 +165,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /*
-    ** TODO: should we grab the Data offset before entering the CBOR Byte String?
+    ** Grab the current offset, to be kept in the canonical block's metadata
+    ** this should be after we enter the byte string
     */
-    /* Grab the current offset, to be kept in the canonical block's metadata */
     CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
