@@ -164,6 +164,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
 {
     BPLib_Status_t ReturnStatus;
     uint64_t PayloadHeaderSize;
+    uint64_t EncodedCrcValueSize;
     uint64_t TotalPayloadSize;
 
     if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
@@ -177,12 +178,31 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
     else
     {
         /*
-        ** Calculate the total payload size (based on the header size + adu size)
+        ** Calculate the total payload size
         */
         PayloadHeaderSize = StoredBundle->blocks.PayloadHeader.DataOffset;
                           - StoredBundle->blocks.PayloadHeader.HeaderOffset;
-        TotalPayloadSize = PayloadHeaderSize + StoredBundle->blocks.PrimaryBlock.TotalAduLength;
 
+        switch (StoredBundle->blocks.PayloadHeader.CrcType)
+        {
+            case BPLib_CRC_Type_CRC32C:
+                EncodedCrcValueSize = 4; /* TODO: do we need to add 1 here, for the cbor byte string wrapper? */
+                break;
+            case BPLib_CRC_Type_CRC16:
+                EncodedCrcValueSize = 2; /* TODO: do we need to add 1 here, for the cbor byte string wrapper? */
+                break;
+            default:
+                EncodedCrcValueSize = 0;
+        }
+
+        TotalPayloadSize = PayloadHeaderSize
+                         + StoredBundle->blocks.PrimaryBlock.TotalAduLength
+                         + EncodedCrcValueSize;
+
+        /*
+        ** TODO: we can probably remove this length check,
+        ** because QCBOR won't copy past the original buffer length
+        */
         if (TotalPayloadSize > OutputBufferSize)
         {
             ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
