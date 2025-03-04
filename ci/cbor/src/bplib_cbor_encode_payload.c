@@ -183,13 +183,12 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
                           - StoredBundle->blocks.PayloadHeader.HeaderOffset;
         TotalPayloadSize = PayloadHeaderSize + StoredBundle->blocks.PrimaryBlock.TotalAduLength;
 
-        if (StoredBundle->blocks.PrimaryBlock.TotalAduLength > OutputBufferSize)
+        if (TotalPayloadSize > OutputBufferSize)
         {
             ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
         }
         else
         {
-
             /*
             ** copy adu data out of memory blocks
             */
