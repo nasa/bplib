@@ -82,7 +82,7 @@ typedef enum
     BPLIB_SRC_LATENCY_POLICY        =  9, /* Source Latency Policy configuration */
     BPLIB_STORAGE                   = 10, /* Storage configuration */
     BPLIB_ADU_PROXY                 = 11, /* FWP's ADU Proxy configuration; confined to BPNode */
-} BPLib_NC_TableType_t;
+} BPLib_NC_ConfigType_t;
 
 /* =========== */
 /* Global Data */
