@@ -4,18 +4,22 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
 /*******************************************************************************
 * Definitions and Types 
 */
-#define BPLIB_STOR_BATCH_SIZE 1000
+#define BPLIB_STOR_BATCH_SIZE 100
 
 typedef struct BPLib_BundleCache
 {
     sqlite3* db;
     BPLib_Bundle_t* CurrBatch[BPLIB_STOR_BATCH_SIZE];
     size_t CurrBatchSize;
+    pthread_mutex_t lock;
 } BPLib_BundleCache_t;
+
+static int BatchCnt = 0;
 
 /*******************************************************************************
 * SQL Query Definitions 
@@ -73,9 +77,10 @@ static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
 
         /* Store the bundle metadata */
         sqlite3_reset(MetadataStmt);
-        sqlite3_bind_int(MetadataStmt, 1, CurrBundle->blocks.PrimaryBlock.Timestamp.CreateTime +
+        sqlite3_bind_int(MetadataStmt, 1, (int64_t)CurrBundle->blocks.PrimaryBlock.Timestamp.CreateTime +
             CurrBundle->blocks.PrimaryBlock.Lifetime);
         sqlite3_bind_int(MetadataStmt, 2, CurrBundle->blocks.PrimaryBlock.DestEID.Node);
+
         SQLStatus = sqlite3_step(MetadataStmt);
         if (SQLStatus != SQLITE_DONE)
         {
@@ -121,13 +126,6 @@ static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
         return BPLIB_ERROR;
     }
 
-    /* Free the bundle memory now that they've been stored. */
-    // for (i = 0; i < CacheInst.CurrBatchSize; i++)
-    // {
-    //     BPLib_MEM_BundleFree(&Inst->pool, CacheInst.CurrBatch[i]);
-    // }
-
-    // /printf("Batch\n");
     return BPLIB_SUCCESS;
 }
 
@@ -137,6 +135,8 @@ static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
 BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
 {
     int SQLStatus;
+
+    pthread_mutex_init(&CacheInst.lock, NULL);
 
     /* Init SQLite3 Database */
     SQLStatus = sqlite3_open("test.db", &CacheInst.db);
@@ -157,6 +157,12 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
     {
         return BPLIB_ERROR;
     }
+    SQLStatus = sqlite3_exec(CacheInst.db, "PRAGMA foreign_keys=ON;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_ERROR;
+    }
+    /* Need to check that foreign keys are in fact enabled by compilation */
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(CacheInst.db, CreateTableSQL, 0, 0, NULL);
@@ -184,22 +190,34 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;
+    int i;
+
+    pthread_mutex_lock(&CacheInst.lock);
 
     /* Add to the next batch */
     CacheInst.CurrBatch[CacheInst.CurrBatchSize++] = bundle;
 
-    /* Note: There likely needs to be a mutex in this function.
-    ** Do not merge this before investigating.
-    */
     if (CacheInst.CurrBatchSize == BPLIB_STOR_BATCH_SIZE)
     {
         Status = BPLib_STOR_StoreBatch(Inst);
-        CacheInst.CurrBatchSize = 0;
         if (Status != BPLIB_SUCCESS)
         {
-            return Status;
+            printf("STORBatch Failed\n");
         }
+        else
+        {
+            for (i = 0; i < CacheInst.CurrBatchSize; i++)
+            {
+                BPLib_QM_AddUnsortedJob(Inst, CacheInst.CurrBatch[i], CONTACT_OUT_STOR_TO_CT, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+            }
+            CacheInst.CurrBatchSize = 0;
+        }
+        BatchCnt++;
+        printf("BatchCnt %d\n", BatchCnt);
     }
+
+    pthread_mutex_unlock(&CacheInst.lock);
+
 
     return Status;
 }

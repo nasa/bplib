@@ -46,6 +46,7 @@
 #include "bplib.h"
 
 #define NUM_GEN_WORKER 1
+#define MEM_ALLOC_BYTES 8000000
 
 static BPLib_Instance_t            BplibInst;
 static pthread_t cla_in_thr;
@@ -253,7 +254,10 @@ void* cla_in_loop()
             }
             else
             {
-                BPLib_CLA_Ingress(&BplibInst, 0, buffer, bytes_rx, 0);
+                if (BPLib_CLA_Ingress(&BplibInst, 0, buffer, bytes_rx, 0) != BPLIB_SUCCESS)
+                {
+                    printf("Ingress fail\n");
+                }
             }
         }
         else if (poll_rc < 0)
@@ -335,8 +339,8 @@ void BPCat_Main()
         return;
     }
 
-    InitStatus = BPLib_MEM_PoolInit(&BplibInst.pool, (void *)calloc(2000000, 1),
-        (size_t)2000000);
+    InitStatus = BPLib_MEM_PoolInit(&BplibInst.pool, (void *)calloc(MEM_ALLOC_BYTES, 1),
+        (size_t)MEM_ALLOC_BYTES);
     if (InitStatus != BPLIB_SUCCESS)
     {
         printf("Failed to initialize MEM\n");
@@ -362,4 +366,3 @@ void OS_Application_Startup()
     OS_API_Init();
     BPCat_Main();
 }
-
