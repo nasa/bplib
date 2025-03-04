@@ -164,7 +164,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
 {
     BPLib_Status_t ReturnStatus;
     uint64_t PayloadHeaderSize;
-    uint64_t PayloadSize;
+    uint64_t TotalPayloadSize;
 
     if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
     {
@@ -176,18 +176,19 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
     }
     else
     {
+        /*
+        ** Calculate the total payload size (based on the header size + adu size)
+        */
+        PayloadHeaderSize = StoredBundle->blocks.PayloadHeader.DataOffset;
+                          - StoredBundle->blocks.PayloadHeader.HeaderOffset;
+        TotalPayloadSize = PayloadHeaderSize + StoredBundle->blocks.PrimaryBlock.TotalAduLength;
+
         if (StoredBundle->blocks.PrimaryBlock.TotalAduLength > OutputBufferSize)
         {
             ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
         }
         else
         {
-            /*
-            ** Calculate the total payload size (based on the header size + adu size)
-            */
-            PayloadHeaderSize = StoredBundle->blocks.PayloadHeader.DataOffset;
-                              - StoredBundle->blocks.PayloadHeader.HeaderOffset;
-            PayloadSize = PayloadHeaderSize + StoredBundle->blocks.PrimaryBlock.TotalAduLength;
 
             /*
             ** copy adu data out of memory blocks
@@ -195,11 +196,11 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             ReturnStatus = BPLib_CBOR_CopyOutEncodedPayload(Context,
                                                        StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
-                                                       PayloadSize);
+                                                       TotalPayloadSize);
 
             if (ReturnStatus == BPLIB_SUCCESS)
             {
-                *NumBytesCopied = PayloadSize;
+                *NumBytesCopied = TotalPayloadSize;
             }
         }
     }
