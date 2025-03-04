@@ -180,7 +180,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 /* Cache a bundle if it cannot currently be routed */
                 else
                 {
-                    BPLib_STOR_CacheBundle(Inst, QueuedBundle);
+                    Status = BPLib_STOR_CacheBundle(Inst, QueuedBundle);
                 }
             }
             else
