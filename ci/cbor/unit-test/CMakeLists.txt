@@ -24,6 +24,7 @@ add_library(utobj_bplib_cbor OBJECT
     ../src/bplib_cbor_decode_canonical.c
     ../src/bplib_cbor_decode_primary.c
     ../src/bplib_cbor_decode_types.c
+    ../src/bplib_cbor_encode_bundle.c
     ../src/bplib_cbor_encode_primary.c
     ../src/bplib_cbor_encode_extension.c
     ../src/bplib_cbor_encode_payload.c
@@ -49,6 +50,7 @@ target_include_directories(utobj_bplib_cbor PRIVATE
 add_executable(coverage-bplib_cbor-testrunner
     utilities/bplib_cbor_test_utils.c
     bplib_cbor_test.c
+    bplib_cbor_encode_bundle_test.c
     $<TARGET_OBJECTS:utobj_bplib_cbor>
 )
 
@@ -63,6 +65,7 @@ target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
     qcbor
     m
     bplib_em_stubs
+    bplib_mem_stubs
     ut_coverage_link
     ut_assert
 )

@@ -8,7 +8,6 @@
 
 add_library(bplib_bi OBJECT
     src/bplib_bi.c
-    src/bplib_bi_internal.c
 )
 
 target_include_directories(bplib_bi PUBLIC

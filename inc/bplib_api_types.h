@@ -240,6 +240,7 @@ typedef struct BPLib_IpnAddr
 
 
 #define BPLIB_CBOR_ENC_PRIMARY_FINISH_ERR              ((BPLib_Status_t) -180) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish error */
+#define BPLIB_CBOR_ENC_BUNDLE_FINISH_ERR               ((BPLib_Status_t) -181) /* BPLib_CBOR_EncodeBundle: QCBOREncode_Finish error */
 
 
 

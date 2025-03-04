@@ -11,6 +11,7 @@ add_library(bplib_cbor OBJECT
     src/bplib_cbor_decode_types.c
     src/bplib_cbor_decode_primary.c
     src/bplib_cbor_decode_canonical.c
+    src/bplib_cbor_encode_bundle.c
     src/bplib_cbor_encode_primary.c
     src/bplib_cbor_encode_extension.c
     src/bplib_cbor_encode_payload.c
@@ -22,6 +23,7 @@ target_include_directories(bplib_cbor PUBLIC
     ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

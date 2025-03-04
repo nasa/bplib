@@ -47,48 +47,16 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
 
 
 /**
- * \brief Encodes the primary block data into the output buffer
+ * \brief Encodes the stored bundle, putting the output in the provided buffer
  *
- * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
- * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
- * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
- * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
- *
- * \return Status of the operation.
- */
-BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
-    void* OutputBuffer,
-    size_t OutputBufferSize,
-    size_t* NumBytesCopied);
-
-/**
- * \brief Encodes the specified extension block data into the output buffer
- *
- * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
- * \param[in] ExtensionBlockIndex (uint32_t) Pointer to the bundle from which to copy the data.
- * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
- * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
- * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the stored source bundle info
+ * \param[out] OutputBuffer (void*) An output buffer to store the encoded bundle.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes to output.
+ * \param[out] NumBytesCopied The actual number of bytes copied.
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
-        uint32_t ExtensionBlockIndex,
-        void* OutputBuffer,
-        size_t OutputBufferSize,
-        size_t* NumBytesCopied);
-
-/**
- * \brief Encodes the payload into the output buffer
- *
- * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
- * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
- * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
- * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
- *
- * \return Status of the operation.
- */
-BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     void* OutputBuffer,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);

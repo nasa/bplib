@@ -41,5 +41,6 @@ void BPLib_CBOR_Test_Setup(void);
 void BPLib_CBOR_Test_Teardown(void);
 
 void TestBplibCbor_Register(void);
+void TestBplibCborEncode_Register(void);
 
 #endif /* BPLIB_CBOR_TEST_UTILS_H */
