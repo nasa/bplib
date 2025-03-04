@@ -62,18 +62,10 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
 }
 
 
-/*
-** TODO:
-** - Get rid of OutputBuffer argument
-** - Get rid of OutputBufferSize argument
-** - Get rid of CurrentOutputPointer variable
-*/
 BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     BPLib_Bundle_t* Bundle,
     uint64_t Offset,
-    uint64_t NumBytesToCopy,
-    void* OutputBuffer,
-    size_t OutputBufferSize)
+    uint64_t NumBytesToCopy)
 {
     BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
     BPLib_MEM_Block_t *CurrentBlock;
@@ -83,12 +75,11 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     uint64_t RemainingBytesToCopy;
     uint64_t TotalBytesCopied;
     uintptr_t CurrentInputOffset;
-    uintptr_t CurrentOutputPointer;
     uint64_t ExpectedMemBlockNumber;
     uint64_t CurrentMemBlockNumber;
     UsefulBufC CurrentInfoToCopy;
 
-    if ((Bundle == NULL) || (OutputBuffer == NULL))
+    if (Bundle == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
@@ -112,7 +103,6 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     }
 
     /* Start copying from the first block */
-    CurrentOutputPointer = (uintptr_t) OutputBuffer;
     CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[NumBytesLeftToSkip];
     BytesLeftInThisBlock = BPLIB_MEM_CHUNKSIZE - NumBytesLeftToSkip;
     if (NumBytesToCopy <= BytesLeftInThisBlock)
@@ -135,7 +125,6 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     {
         CurrentBlock = CurrentBlock->next;
         CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[0];
-        CurrentOutputPointer = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
 
         RemainingBytesToCopy = NumBytesToCopy - TotalBytesCopied;
         if (RemainingBytesToCopy >= BPLIB_MEM_CHUNKSIZE)
@@ -197,9 +186,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             ReturnStatus = BPLib_CBOR_CopyOutEncodedPayload(Context,
                                                        StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
-                                                       StoredBundle->blocks.PrimaryBlock.TotalAduLength,
-                                                       OutputBuffer,
-                                                       OutputBufferSize);
+                                                       StoredBundle->blocks.PrimaryBlock.TotalAduLength);
 
             if (ReturnStatus == BPLIB_SUCCESS)
             {

@@ -237,17 +237,13 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
  * \param[in] Bundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
  * \param[in] Offset (uint64_t) Offset into the user data
  * \param[in] NumBytesToCopy (uint64_t) Number of bytes to copy
- * \param[out] OutputBuffer (void*) A buffer to store the copied data.
- * \param[in] OutputBufferSize (size_t) The size of the output buffer (also, maximum number of bytes to copy).
  *
  * \return Status of the operation.
  */
 BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     BPLib_Bundle_t* Bundle,
     uint64_t Offset,
-    uint64_t NumBytesToCopy,
-    void* OutputBuffer,
-    size_t OutputBufferSize);
+    uint64_t NumBytesToCopy);
 
 /**
  * \brief Copies the Primary Block out of a stored bundle,
