@@ -7,8 +7,11 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
+    BPLib_Status_t PayloadDataCopyStatus;
     size_t StartOffset;
     size_t EndOffset;
+    size_t PayloadDataBytesCopied;
+    UsefulBuf OutputSubBuffer;
 
     if (StoredBundle == NULL)
     {
@@ -30,12 +33,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
         StartOffset = QCBOREncode_Tell(Context);
 
         /*
-        ** Open Array
-        ** TODO: is this the right API?
-        ** Maybe this instead:
-        ** QCBOREncode_AddBytes(QCBOREncodeContext *pCtx, UsefulBufC Bytes);
-        ** or:
-        ** QCBOREncode_BstrWrap(QCBOREncodeContext *pCtx);
+        ** Open Canonical/Payload Block Array
         */
         QCBOREncode_OpenArray(Context);
 
@@ -47,21 +45,36 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
         QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.BundleProcFlags);
         QCBOREncode_AddUInt64(Context, StoredBundle->blocks.PayloadHeader.CrcType);
 
-
         /*
-        ** Add the payload data
+        ** Add the ADU data
         */
-        /* TODO */
+        QCBOREncode_OpenBytes(Context, &OutputSubBuffer);
+
+        PayloadDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+            StoredBundle->blocks.PayloadHeader.DataOffset,
+            StoredBundle->blocks.PrimaryBlock.TotalAduLength,
+            OutputSubBuffer.ptr,
+            OutputSubBuffer.len);
+
+        if (PayloadDataCopyStatus == BPLIB_SUCCESS)
+        {
+            PayloadDataBytesCopied = StoredBundle->blocks.PrimaryBlock.TotalAduLength;
+        }
+        else
+        {
+            PayloadDataBytesCopied = 0;
+        }
+
+        QCBOREncode_CloseBytes(Context, PayloadDataBytesCopied);
 
         /*
         ** Add the CRC
         */
-        /* TODO */
+        /* TODO: calculate the CRC first */
+        (void) BPLib_CBOR_EncodeCrcValue(Context, 0, StoredBundle->blocks.PayloadHeader.CrcType);
 
         /*
         ** Close Array
-        ** TODO: Use this instead?
-        ** QCBOREncode_CloseBstrWrap(QCBOREncodeContext *pCtx, UsefulBufC *pWrappedCBOR);
         */
         QCBOREncode_CloseArray(Context);
 
@@ -181,9 +194,10 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
                                               size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    uint64_t PayloadHeaderSize;
-    uint64_t EncodedCrcValueSize;
     uint64_t TotalPayloadSize;
+    UsefulBuf OutputSubBuffer;
+    size_t PayloadDataBytesCopied;
+    BPLib_Status_t PayloadDataCopyStatus;
 
     if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
     {
@@ -198,36 +212,52 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
         /*
         ** Calculate the total payload size
         */
-        PayloadHeaderSize = StoredBundle->blocks.PayloadHeader.DataOffset;
-                          - StoredBundle->blocks.PayloadHeader.HeaderOffset;
-
-        TotalPayloadSize = PayloadHeaderSize
-                         + StoredBundle->blocks.PrimaryBlock.TotalAduLength
+        TotalPayloadSize = StoredBundle->blocks.PayloadHeader.EncodedCrcValOffset
+                         - StoredBundle->blocks.PayloadHeader.HeaderOffset
                          + StoredBundle->blocks.PayloadHeader.EncodedCrcValSize;
 
         /*
-        ** TODO: we can probably remove this length check,
-        ** because QCBOR won't copy past the original buffer length
+        ** Open a byte array
         */
+        QCBOREncode_OpenBytes(Context, &OutputSubBuffer);
+
+        /*
+        ** Copy in the whole payload (header, data, and crc value)
+        */
+        PayloadDataBytesCopied = 0;
         if (TotalPayloadSize > OutputBufferSize)
+        {
+            ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
+        }
+        else if (TotalPayloadSize > OutputSubBuffer.len)
         {
             ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
         }
         else
         {
-            /*
-            ** copy adu data out of memory blocks
-            */
-            ReturnStatus = BPLib_CBOR_CopyOutEncodedData(Context,
-                                                       StoredBundle,
-                                                       StoredBundle->blocks.PayloadHeader.HeaderOffset,
-                                                       TotalPayloadSize);
+            PayloadDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+                StoredBundle->blocks.PayloadHeader.HeaderOffset,
+                TotalPayloadSize,
+                OutputSubBuffer.ptr,
+                OutputSubBuffer.len);
 
-            if (ReturnStatus == BPLIB_SUCCESS)
+            if (PayloadDataCopyStatus == BPLIB_SUCCESS)
             {
+                PayloadDataBytesCopied = TotalPayloadSize;
                 *NumBytesCopied = TotalPayloadSize;
+                ReturnStatus = BPLIB_SUCCESS;
+            }
+            else
+            {
+                *NumBytesCopied = 0;
+                ReturnStatus = PayloadDataCopyStatus;
             }
         }
+
+        /*
+        ** Close the byte array, telling CBOR how much data we just copied in
+        */
+        QCBOREncode_CloseBytes(Context, PayloadDataBytesCopied);
     }
     return ReturnStatus;
 }
