@@ -1585,7 +1585,7 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
 
     /* Verify that every configuration update event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
-    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel Configuration configuration");
+    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel configuration");
     BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts configuration");
     BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting configuration");
     BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy configuration");

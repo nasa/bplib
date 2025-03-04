@@ -66,7 +66,7 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     }
     else
     {
-        /* Initialize configurations (AKA tables) */
+        /* Initialize configurations */
         BPLib_NC_ConfigPtrs.ChanConfigPtr      = ConfigPtrs->ChanConfigPtr;
         BPLib_NC_ConfigPtrs.ContactsConfigPtr  = ConfigPtrs->ContactsConfigPtr;
         BPLib_NC_ConfigPtrs.CrsConfigPtr       = ConfigPtrs->CrsConfigPtr;
@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     return Status;
 }
 
-/* Validate MIB Config PN table data */
+/* Validate MIB Config PN configuration data */
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
@@ -102,7 +102,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
-/* Validate MIB Config PS table data */
+/* Validate MIB Config PS configuration data */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
@@ -136,7 +136,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     Status = BPLIB_SUCCESS;
 
-    /* Update Channel Configurations table with TABLEP */
+    /* Update Channel Configurations configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CHANNEL,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ChanConfigPtr);
 
@@ -152,14 +152,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Channel Configuration table");
+                                "Failed to update Channel configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Channel Configuration table");
+                                "Updated Channel configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -167,7 +167,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Contacts table with TABLEP */
+    /* Update Contacts configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CONTACTS,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ContactsConfigPtr);
 
@@ -183,14 +183,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Contacts table");
+                                "Failed to update Contacts configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Contacts table");
+                                "Updated Contacts configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -198,7 +198,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Compressed Reporting table with TABLEP */
+    /* Update Compressed Reporting configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_COMPRESSED_REPORTING,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CrsConfigPtr);
 
@@ -213,14 +213,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Compressed Reporting table");
+                                "Failed to update Compressed Reporting configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Compressed Reporting table");
+                                "Updated Compressed Reporting configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -228,7 +228,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Custodian Authorization Table with TABLEP */
+    /* Update Custodian Authorization configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CUSTODIAN_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CustodianConfigPtr);
 
@@ -244,14 +244,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Custodian Authorization Policy table");
+                                "Failed to update Custodian Authorization Policy configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Custodian Authorization Policy table");
+                                "Updated Custodian Authorization Policy configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -259,7 +259,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Custody Authorization table with TABLEP */
+    /* Update Custody Authorization configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CUSTODY_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CustodyConfigPtr);
 
@@ -275,14 +275,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Custody Authorization Policy table");
+                                "Failed to update Custody Authorization Policy configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Custody Authorization Policy table");
+                                "Updated Custody Authorization Policy configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -290,7 +290,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update MIB Configuration per Node table with TABLEP */
+    /* Update MIB Configuration per Node configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE,
                                                                         (void**) &BPLib_NC_ConfigPtrs.MibPnConfigPtr);
 
@@ -306,14 +306,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update MIB Configuration per Node table");
+                                "Failed to update MIB Configuration per Node configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated MIB Configuration per Node table");
+                                "Updated MIB Configuration per Node configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -321,7 +321,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update MIB Configuration per Source table with TABLEP */
+    /* Update MIB Configuration per Source configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_SRC,
                                                                         (void**) &BPLib_NC_ConfigPtrs.MibPsConfigPtr);
 
@@ -337,14 +337,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update MIB Configuration per Source table");
+                                "Failed to update MIB Configuration per Source configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated MIB Configuration per Source table");
+                                "Updated MIB Configuration per Source configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -352,7 +352,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Report-to-EID Authorization Policy table with TABLEP */
+    /* Update Report-to-EID Authorization Policy configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_REPORT_TO_EID_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ReportConfigPtr);
 
@@ -368,14 +368,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Report-to-EID Authorization Policy table");
+                                "Failed to update Report-to-EID Authorization Policy configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Report-to-EID Authorization Policy table");
+                                "Updated Report-to-EID Authorization Policy configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -383,7 +383,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Source Authorization Policy table with TABLEP */
+    /* Update Source Authorization Policy configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_SRC_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.AuthConfigPtr);
 
@@ -399,14 +399,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Source Authorization Policy table");
+                                "Failed to update Source Authorization Policy configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Source Authorization Policy table");
+                                "Updated Source Authorization Policy configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -414,7 +414,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Source Latency Policy table with TABLEP */
+    /* Update Source Latency Policy configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_SRC_LATENCY_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.LatConfigPtr);
 
@@ -430,14 +430,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Source Latency Policy table");
+                                "Failed to update Source Latency Policy configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Source Latency Policy table");
+                                "Updated Source Latency Policy configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
@@ -445,7 +445,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
         Status = BPLIB_ERROR;
     }
 
-    /* Update Storage table with TABLEP */
+    /* Update Storage configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_STORAGE,
                                                                         (void**) &BPLib_NC_ConfigPtrs.StorConfigPtr);
 
@@ -461,14 +461,14 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Failed to update Storage table");
+                                "Failed to update Storage configuration");
         }
         else
         */
         {
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
-                                "Updated Storage table");
+                                "Updated Storage configuration");
         }
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
