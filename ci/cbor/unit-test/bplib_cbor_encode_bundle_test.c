@@ -217,6 +217,81 @@ void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
 }
 
 
+void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[1024];
+    size_t OutputSize = 0xdeadbeef;
+    BPLib_MEM_Block_t FirstBlock;
+
+    memset(&InputBundle, 0, sizeof(InputBundle));
+    memset(&FirstBlock, 0, sizeof(FirstBlock));
+    InputBundle.blob = &FirstBlock;
+
+    /* copy valid bundle into our block */
+    memcpy(&InputBundle.blob->user_data.raw_bytes,
+        primary_and_payload_with_aa_x_20,
+        sizeof(primary_and_payload_with_aa_x_20));
+    InputBundle.blob->used_len = sizeof(primary_and_payload_with_aa_x_20);
+
+    /* Header Info */
+    InputBundle.blocks.PrimaryBlock.BundleProcFlags = 0;
+    InputBundle.blocks.PrimaryBlock.CrcType = BPLib_CRC_Type_CRC16;
+    /* Dest EID */
+    InputBundle.blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    InputBundle.blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    InputBundle.blocks.PrimaryBlock.DestEID.Allocator = 0;
+    InputBundle.blocks.PrimaryBlock.DestEID.Node = 200;
+    InputBundle.blocks.PrimaryBlock.DestEID.Service = 2;
+    /* Src EID */
+    InputBundle.blocks.PrimaryBlock.SrcEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    InputBundle.blocks.PrimaryBlock.SrcEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    InputBundle.blocks.PrimaryBlock.SrcEID.Allocator = 0;
+    InputBundle.blocks.PrimaryBlock.SrcEID.Node = 300;
+    InputBundle.blocks.PrimaryBlock.SrcEID.Service = 3;
+    /* Report-To EID */
+    InputBundle.blocks.PrimaryBlock.ReportToEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    InputBundle.blocks.PrimaryBlock.ReportToEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    InputBundle.blocks.PrimaryBlock.ReportToEID.Allocator = 0;
+    InputBundle.blocks.PrimaryBlock.ReportToEID.Node = 400;
+    InputBundle.blocks.PrimaryBlock.ReportToEID.Service = 4;
+    /* Other Header Info */
+    InputBundle.blocks.PrimaryBlock.Timestamp.CreateTime = 12;
+    InputBundle.blocks.PrimaryBlock.Timestamp.SequenceNumber = 34;
+    InputBundle.blocks.PrimaryBlock.Lifetime = 0;
+    InputBundle.blocks.PrimaryBlock.FragmentOffset = 0;
+    InputBundle.blocks.PrimaryBlock.TotalAduLength = 0;
+    InputBundle.blocks.PrimaryBlock.CrcVal = 0xdead;
+    /* Primary Metadata */
+    InputBundle.blocks.PrimaryBlock.RequiresEncode = true;
+    InputBundle.blocks.PrimaryBlock.OffsetIntoBlob = 0;
+    InputBundle.blocks.PrimaryBlock.EncodedSize = 42; // primary should be this size
+    /* Calculate ADU Size (based on expected primary block size) */
+    InputBundle.blocks.PrimaryBlock.TotalAduLength = sizeof(primary_and_payload_with_aa_x_20)
+                                                   - InputBundle.blocks.PrimaryBlock.EncodedSize;
+    /* Payload Metadata */
+    InputBundle.blocks.PayloadHeader.RequiresEncode = false;
+    InputBundle.blocks.PayloadHeader.HeaderOffset = InputBundle.blocks.PrimaryBlock.EncodedSize;
+    InputBundle.blocks.PayloadHeader.DataOffset = 0; // not sure if this will be used, so we'll clear it for now
+
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_CopyOutFromOffset), BPLIB_SUCCESS);
+
+    ReturnStatus = BPLib_CBOR_EncodeBundle(&InputBundle,
+                                        OutputBuffer,
+                                        sizeof(OutputBuffer),
+                                        &OutputSize);
+
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
+    // TODO: Update OutputSize verification
+    // UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
+    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 1);
+}
+
+
+
+
 void Test_BPLib_CBOR_EncodeBundle_Nominal(void)
 {
     BPLib_Status_t ReturnStatus;
@@ -274,5 +349,6 @@ void TestBplibCborEncode_Register(void)
 
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError");
 
+    UtTest_Add(Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload");
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_Nominal");
 }
