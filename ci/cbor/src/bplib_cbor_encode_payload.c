@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
 }
 
 
-BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
+BPLib_Status_t BPLib_CBOR_CopyOutEncodedData(QCBOREncodeContext* Context,
     BPLib_Bundle_t* Bundle,
     uint64_t Offset,
     uint64_t NumBytesToCopy)
@@ -212,7 +212,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             /*
             ** copy adu data out of memory blocks
             */
-            ReturnStatus = BPLib_CBOR_CopyOutEncodedPayload(Context,
+            ReturnStatus = BPLib_CBOR_CopyOutEncodedData(Context,
                                                        StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
                                                        TotalPayloadSize);

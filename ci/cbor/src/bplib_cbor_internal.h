@@ -231,7 +231,7 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
     size_t* NumBytesCopied);
 
 /**
- * \brief Copies the pre-encoded payload data out of a bundle, block by block.
+ * \brief Copies the pre-encoded data out of a bundle, block by block.
  *
  * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] Bundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
@@ -240,7 +240,7 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
+BPLib_Status_t BPLib_CBOR_CopyOutEncodedData(QCBOREncodeContext* Context,
     BPLib_Bundle_t* Bundle,
     uint64_t Offset,
     uint64_t NumBytesToCopy);
