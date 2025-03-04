@@ -150,17 +150,17 @@ void BPLib_NC_Test_Setup(void)
 
     memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
 
-    TestConfigPtrs.AuthTblPtr      = &TestAuthTbl;
-    TestConfigPtrs.ChanTblPtr      = &TestChanTbl;
-    TestConfigPtrs.ContactsTblPtr  = &TestContactsTbl;
-    TestConfigPtrs.CrsTblPtr       = &TestCrsTbl;
-    TestConfigPtrs.CustodianTblPtr = &TestCustodianTbl;
-    TestConfigPtrs.CustodyTblPtr   = &TestCustodyTbl;
-    TestConfigPtrs.LatTblPtr       = &TestLatencyTbl;
-    TestConfigPtrs.MibPnTblPtr     = &TestMibPnTbl;
-    TestConfigPtrs.MibPsTblPtr     = &TestMibPsTbl;
-    TestConfigPtrs.ReportTblPtr    = &TestReportTbl;
-    TestConfigPtrs.StorTblPtr      = &TestStorTbl;
+    TestConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
+    TestConfigPtrs.ChanConfigPtr      = &TestChanTbl;
+    TestConfigPtrs.ContactsConfigPtr  = &TestContactsTbl;
+    TestConfigPtrs.CrsConfigPtr       = &TestCrsTbl;
+    TestConfigPtrs.CustodianConfigPtr = &TestCustodianTbl;
+    TestConfigPtrs.CustodyConfigPtr   = &TestCustodyTbl;
+    TestConfigPtrs.LatConfigPtr       = &TestLatencyTbl;
+    TestConfigPtrs.MibPnConfigPtr     = &TestMibPnTbl;
+    TestConfigPtrs.MibPsConfigPtr     = &TestMibPsTbl;
+    TestConfigPtrs.ReportConfigPtr    = &TestReportTbl;
+    TestConfigPtrs.StorConfigPtr      = &TestStorTbl;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent),     UT_Handler_BPLib_EM_SendEvent,     NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment),     UT_Handler_BPLib_AS_Increment,     NULL);

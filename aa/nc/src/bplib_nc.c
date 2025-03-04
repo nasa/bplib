@@ -49,35 +49,35 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Capture configuration pointers in the global configuration struct */
-    if (ConfigPtrs                  == NULL ||
-        ConfigPtrs->ChanTblPtr      == NULL ||
-        ConfigPtrs->ContactsTblPtr  == NULL ||
-        ConfigPtrs->CrsTblPtr       == NULL ||
-        ConfigPtrs->CustodianTblPtr == NULL ||
-        ConfigPtrs->CustodyTblPtr   == NULL ||
-        ConfigPtrs->MibPnTblPtr     == NULL ||
-        ConfigPtrs->MibPsTblPtr     == NULL ||
-        ConfigPtrs->ReportTblPtr    == NULL ||
-        ConfigPtrs->AuthTblPtr      == NULL ||
-        ConfigPtrs->LatTblPtr       == NULL ||
-        ConfigPtrs->StorTblPtr      == NULL)
+    if (ConfigPtrs                     == NULL ||
+        ConfigPtrs->ChanConfigPtr      == NULL ||
+        ConfigPtrs->ContactsConfigPtr  == NULL ||
+        ConfigPtrs->CrsConfigPtr       == NULL ||
+        ConfigPtrs->CustodianConfigPtr == NULL ||
+        ConfigPtrs->CustodyConfigPtr   == NULL ||
+        ConfigPtrs->MibPnConfigPtr     == NULL ||
+        ConfigPtrs->MibPsConfigPtr     == NULL ||
+        ConfigPtrs->ReportConfigPtr    == NULL ||
+        ConfigPtrs->AuthConfigPtr      == NULL ||
+        ConfigPtrs->LatConfigPtr       == NULL ||
+        ConfigPtrs->StorConfigPtr      == NULL)
     {
         Status = BPLIB_NC_INIT_CONFIG_PTRS_ERROR;
     }
     else
     {
         /* Initialize configurations (AKA tables) */
-        BPLib_NC_ConfigPtrs.ChanTblPtr      = ConfigPtrs->ChanTblPtr;
-        BPLib_NC_ConfigPtrs.ContactsTblPtr  = ConfigPtrs->ContactsTblPtr;
-        BPLib_NC_ConfigPtrs.CrsTblPtr       = ConfigPtrs->CrsTblPtr;
-        BPLib_NC_ConfigPtrs.CustodianTblPtr = ConfigPtrs->CustodianTblPtr;
-        BPLib_NC_ConfigPtrs.CustodyTblPtr   = ConfigPtrs->CustodyTblPtr;
-        BPLib_NC_ConfigPtrs.MibPnTblPtr     = ConfigPtrs->MibPnTblPtr;
-        BPLib_NC_ConfigPtrs.MibPsTblPtr     = ConfigPtrs->MibPsTblPtr;
-        BPLib_NC_ConfigPtrs.ReportTblPtr    = ConfigPtrs->ReportTblPtr;
-        BPLib_NC_ConfigPtrs.AuthTblPtr      = ConfigPtrs->AuthTblPtr;
-        BPLib_NC_ConfigPtrs.LatTblPtr       = ConfigPtrs->LatTblPtr;
-        BPLib_NC_ConfigPtrs.StorTblPtr      = ConfigPtrs->StorTblPtr;
+        BPLib_NC_ConfigPtrs.ChanConfigPtr      = ConfigPtrs->ChanConfigPtr;
+        BPLib_NC_ConfigPtrs.ContactsConfigPtr  = ConfigPtrs->ContactsConfigPtr;
+        BPLib_NC_ConfigPtrs.CrsConfigPtr       = ConfigPtrs->CrsConfigPtr;
+        BPLib_NC_ConfigPtrs.CustodianConfigPtr = ConfigPtrs->CustodianConfigPtr;
+        BPLib_NC_ConfigPtrs.CustodyConfigPtr   = ConfigPtrs->CustodyConfigPtr;
+        BPLib_NC_ConfigPtrs.MibPnConfigPtr     = ConfigPtrs->MibPnConfigPtr;
+        BPLib_NC_ConfigPtrs.MibPsConfigPtr     = ConfigPtrs->MibPsConfigPtr;
+        BPLib_NC_ConfigPtrs.ReportConfigPtr    = ConfigPtrs->ReportConfigPtr;
+        BPLib_NC_ConfigPtrs.AuthConfigPtr      = ConfigPtrs->AuthConfigPtr;
+        BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
+        BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
 
         /* Initialize AS */
         Status = BPLib_AS_Init();
@@ -138,7 +138,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Channel Configurations table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CHANNEL,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.ChanTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.ChanConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -169,7 +169,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Contacts table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CONTACTS,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.ContactsTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.ContactsConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -200,7 +200,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Compressed Reporting table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_COMPRESSED_REPORTING,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.CrsTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.CrsConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -230,7 +230,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Custodian Authorization Table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CUSTODIAN_AUTH_POLICY,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.CustodianTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.CustodianConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -261,7 +261,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Custody Authorization table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CUSTODY_AUTH_POLICY,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.CustodyTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.CustodyConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -292,7 +292,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update MIB Configuration per Node table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.MibPnTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.MibPnConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -323,7 +323,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update MIB Configuration per Source table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_SRC,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.MibPsTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.MibPsConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -354,7 +354,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Report-to-EID Authorization Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_REPORT_TO_EID_AUTH_POLICY,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.ReportTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.ReportConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -385,7 +385,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Source Authorization Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_SRC_AUTH_POLICY,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.AuthTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.AuthConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -416,7 +416,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Source Latency Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_SRC_LATENCY_POLICY,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.LatTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.LatConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
@@ -447,7 +447,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     /* Update Storage table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_STORAGE,
-                                                                        (void**) &BPLib_NC_ConfigPtrs.StorTblPtr);
+                                                                        (void**) &BPLib_NC_ConfigPtrs.StorConfigPtr);
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
