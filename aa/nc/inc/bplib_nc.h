@@ -66,22 +66,22 @@ typedef enum
 } BPLib_NC_ApplicationState_t;
 
 /**
-  * \brief Indicator for type of table
+  * \brief Indicator for type of configuration
   */
 typedef enum
 {
-    CHANNEL_CONFIG            =  0, /* Channel Configuration table */
-    CONTACTS                  =  1, /* Contacts table */
-    COMPRESSED_REPORTING      =  2, /* Compressed Reporting table */
-    CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy table */
-    CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy table */
-    MIB_CONFIG_PER_NODE       =  5, /* MIB Configuration per Node table */
-    MIB_CONFIG_PER_SRC        =  6, /* MIB Configuration per Source table */
-    REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy table */
-    SRC_AUTH_POLICY           =  8, /* Source Authorization Policy table */
-    SRC_LATENCY_POLICY        =  9, /* Source Latency Policy table */
-    STORAGE                   = 10, /* Storage table */
-    ADU_PROXY_CONFIG          = 11, /* FWP's ADU Proxy Configuration table; confined to BPNode */
+    CHANNEL_CONFIG            =  0, /* Channel Configuration configuration */
+    CONTACTS                  =  1, /* Contacts configuration */
+    COMPRESSED_REPORTING      =  2, /* Compressed Reporting configuration */
+    CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy configuration */
+    CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy configuration */
+    MIB_CONFIG_PER_NODE       =  5, /* MIB Configuration per Node configuration */
+    MIB_CONFIG_PER_SRC        =  6, /* MIB Configuration per Source configuration */
+    REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy configuration */
+    SRC_AUTH_POLICY           =  8, /* Source Authorization Policy configuration */
+    SRC_LATENCY_POLICY        =  9, /* Source Latency Policy configuration */
+    STORAGE                   = 10, /* Storage configuration */
+    ADU_PROXY_CONFIG          = 11, /* FWP's ADU Proxy Configuration configuration; confined to BPNode */
 } BPLib_NC_TableType_t;
 
 /* =========== */
@@ -100,7 +100,7 @@ extern BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
   * \param[in] ConfigPtrs (BPLib_NC_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Initialization was successful
-  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
+  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration is NULL
   */
 BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs);
 
@@ -148,16 +148,16 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State);
 BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
 
 /**
-  * \brief     Pass updated table configurations to corresponding modules
-  * \details   Uses FWP to update the BPLib table pointers, then pass those updated pointer tables to the
-  *            module that controls that table
-  * \note      As of right now, the API calls to modules that will update tables are commented out, since
+  * \brief     Pass updated configurations to corresponding modules
+  * \details   Uses FWP to update the BPLib configuration pointers, then pass those updated pointer
+  *            configurations to the module that controls that configuration
+  * \note      As of right now, the API calls to modules that will update configurations are commented out, since
   *            some of those functions are not implemented yet
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Successful execution without updates to tables
-  * \retval    BPLIB_TBL_UPDATED: Successful execution with table updates
-  * \retval    BPLIB_ERROR: An error occured while attempting to refresh/update tables
+  * \retval    BPLIB_SUCCESS: Successful execution without updates to configurations
+  * \retval    BPLIB_TBL_UPDATED: Successful execution with configuration updates
+  * \retval    BPLIB_ERROR: An error occured while attempting to refresh/update configurations
   */
 BPLib_Status_t BPLib_NC_TableUpdate(void);
 

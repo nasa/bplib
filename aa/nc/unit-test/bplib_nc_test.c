@@ -1238,7 +1238,7 @@ void Test_BPLib_NC_SetMibItem_Error(void)
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 2);
 
-    // Table update failure return code test
+    // configuration update failure return code test
     Payload.ExampleParameter = 22;
     BPLib_NC_SetMibItem(Payload);
 
@@ -1274,7 +1274,7 @@ void Test_BPLib_NC_AddStorageAllocation_Error(void)
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
-    // Table update error
+    // configuration update error
     Payload.ExampleParameter = 23;
     BPLib_NC_AddStorageAllocation(Payload);
 
@@ -1544,7 +1544,7 @@ void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
 {
     BPLib_Status_t Status;
 
-    /* Force table updates to report only success */
+    /* Force configuration updates to report only success */
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_SUCCESS);
 
     /* Run function under test */
@@ -1553,10 +1553,10 @@ void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
     /* Show that the function returned success */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 
-    /* Show that 0 table update events were issued */
+    /* Show that 0 configuration update events were issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 
-    /* Show that an attempt to update all tables was made */
+    /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
     BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
     BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
@@ -1575,7 +1575,7 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
 {
     BPLib_Status_t Status;
 
-    /* Force table updates to report only success */
+    /* Force configuration updates to report only success */
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
 
     /* Run function under test */
@@ -1583,21 +1583,21 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_TBL_UPDATED);
 
-    /* Verify that every table update event was issued */
+    /* Verify that every configuration update event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
-    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel Configuration table");
-    BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts table");
-    BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting table");
-    BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy table");
-    BPLib_NC_Test_Verify_Event(4,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custody Authorization Policy table");
-    BPLib_NC_Test_Verify_Event(5,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Node table");
-    BPLib_NC_Test_Verify_Event(6,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Source table");
-    BPLib_NC_Test_Verify_Event(7,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Report-to-EID Authorization Policy table");
-    BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy table");
-    BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy table");
-    BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage table");
+    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel Configuration configuration");
+    BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts configuration");
+    BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting configuration");
+    BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(4,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custody Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(5,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Node configuration");
+    BPLib_NC_Test_Verify_Event(6,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Source configuration");
+    BPLib_NC_Test_Verify_Event(7,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Report-to-EID Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy configuration");
+    BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage configuration");
 
-    /* Show that an attempt to update all tables was made */
+    /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
     BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
     BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
@@ -1616,7 +1616,7 @@ void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
 {
     BPLib_Status_t Status;
 
-    /* Force table updates to report only success */
+    /* Force configuration updates to report only success */
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
 
     /* Run function under test */
@@ -1625,10 +1625,10 @@ void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
     /* Show that the function returned success */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 
-    /* Show that 0 table update events were issued */
+    /* Show that 0 configuration update events were issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 
-    /* Show that an attempt to update all tables was made */
+    /* Show that an attempt to update all configurations was made */
     UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
     BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
     BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);

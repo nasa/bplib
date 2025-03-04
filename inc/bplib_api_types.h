@@ -95,12 +95,12 @@ typedef struct BPLib_IpnAddr
  * @{
  */
 /* General Return Codes */
-#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Table has been updated */
+#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Configuration has been updated */
 #define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
 #define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
 #define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
 #define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Table validation error code */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Configuration validation error code */
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
 #define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
