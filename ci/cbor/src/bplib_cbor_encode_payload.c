@@ -62,6 +62,116 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
 }
 
 
+BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
+    BPLib_Bundle_t* Bundle,
+    uint64_t Offset,
+    uint64_t NumBytesToCopy,
+    void* OutputBuffer,
+    size_t OutputBufferSize)
+{
+    BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
+    BPLib_MEM_Block_t *CurrentBlock;
+    uint64_t NumBytesLeftToSkip;
+    uint64_t BytesLeftInThisBlock;
+    uint64_t BytesToCopyInThisBlock;
+    uint64_t RemainingBytesToCopy;
+    uint64_t TotalBytesCopied;
+    uintptr_t CurrentInputOffset;
+    uintptr_t CurrentOutputPointer;
+    uint64_t ExpectedMemBlockNumber;
+    uint64_t CurrentMemBlockNumber;
+
+    if ((Bundle == NULL) || (OutputBuffer == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if (Bundle->blob == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* find the first blob that contains data after the offset */
+    CurrentBlock = Bundle->blob;
+    NumBytesLeftToSkip = Offset;
+    ExpectedMemBlockNumber = Offset / BPLIB_MEM_CHUNKSIZE;
+    for (CurrentMemBlockNumber = 0; CurrentMemBlockNumber < ExpectedMemBlockNumber; CurrentMemBlockNumber++)
+    {
+        NumBytesLeftToSkip -= BPLIB_MEM_CHUNKSIZE;
+        CurrentBlock = CurrentBlock->next;
+        if (CurrentBlock == NULL)
+        {
+            return BPLIB_ERROR;
+        }
+    }
+
+    /* Start copying from the first block */
+    CurrentOutputPointer = (uintptr_t) OutputBuffer;
+    CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[NumBytesLeftToSkip];
+    BytesLeftInThisBlock = BPLIB_MEM_CHUNKSIZE - NumBytesLeftToSkip;
+    if (NumBytesToCopy <= BytesLeftInThisBlock)
+    {
+        /*
+        ** TODO: how do we keep QCBOR in the loop about this?
+        ** Consider using this:
+        **  void
+        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
+        */
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, NumBytesToCopy);
+        TotalBytesCopied = NumBytesToCopy;
+    }
+    else
+    {
+        /*
+        ** TODO: how do we keep QCBOR in the loop about this?
+        ** Consider using this:
+        **  void
+        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
+        */
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesLeftInThisBlock);
+        TotalBytesCopied = BytesLeftInThisBlock;
+    }
+
+    /* if we need to copy more data, loop through each next block */
+    while ((TotalBytesCopied < NumBytesToCopy) && (CurrentBlock->next != NULL))
+    {
+        CurrentBlock = CurrentBlock->next;
+        CurrentInputOffset = (uintptr_t) &CurrentBlock->user_data.raw_bytes[0];
+        CurrentOutputPointer = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+
+        RemainingBytesToCopy = NumBytesToCopy - TotalBytesCopied;
+        if (RemainingBytesToCopy >= BPLIB_MEM_CHUNKSIZE)
+        {
+            BytesToCopyInThisBlock = BPLIB_MEM_CHUNKSIZE;
+        }
+        else
+        {
+            BytesToCopyInThisBlock = RemainingBytesToCopy;
+        }
+
+        /*
+        ** TODO: how do we keep QCBOR in the loop about this?
+        ** Consider using this:
+        **  void
+        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
+        */
+        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesToCopyInThisBlock);
+        TotalBytesCopied += BytesToCopyInThisBlock;
+    }
+
+    if (TotalBytesCopied != NumBytesToCopy)
+    {
+        ReturnStatus = BPLIB_ERROR;
+    }
+    else
+    {
+        ReturnStatus = BPLIB_SUCCESS;
+    }
+
+    return ReturnStatus;
+}
+
+
+
 BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
                                               BPLib_Bundle_t* StoredBundle,
                                               void* OutputBuffer,
@@ -96,7 +206,8 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
             **  void
             **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
             */
-            ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+            ReturnStatus = BPLib_CBOR_CopyOutEncodedPayload(Context,
+                                                       StoredBundle,
                                                        StoredBundle->blocks.PayloadHeader.HeaderOffset,
                                                        StoredBundle->blocks.PrimaryBlock.TotalAduLength,
                                                        OutputBuffer,
