@@ -62,6 +62,12 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
 }
 
 
+/*
+** TODO:
+** - Get rid of OutputBuffer argument
+** - Get rid of OutputBufferSize argument
+** - Get rid of CurrentOutputPointer variable
+*/
 BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     BPLib_Bundle_t* Bundle,
     uint64_t Offset,
@@ -80,6 +86,7 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     uintptr_t CurrentOutputPointer;
     uint64_t ExpectedMemBlockNumber;
     uint64_t CurrentMemBlockNumber;
+    UsefulBufC CurrentInfoToCopy;
 
     if ((Bundle == NULL) || (OutputBuffer == NULL))
     {
@@ -110,24 +117,16 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
     BytesLeftInThisBlock = BPLIB_MEM_CHUNKSIZE - NumBytesLeftToSkip;
     if (NumBytesToCopy <= BytesLeftInThisBlock)
     {
-        /*
-        ** TODO: how do we keep QCBOR in the loop about this?
-        ** Consider using this:
-        **  void
-        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
-        */
-        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, NumBytesToCopy);
+        CurrentInfoToCopy.len = NumBytesToCopy;
+        CurrentInfoToCopy.ptr = CurrentInputOffset;
+        QCBOREncode_AddEncoded(Context, CurrentInfoToCopy);
         TotalBytesCopied = NumBytesToCopy;
     }
     else
     {
-        /*
-        ** TODO: how do we keep QCBOR in the loop about this?
-        ** Consider using this:
-        **  void
-        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
-        */
-        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesLeftInThisBlock);
+        CurrentInfoToCopy.len = BytesLeftInThisBlock;
+        CurrentInfoToCopy.ptr = CurrentInputOffset;
+        QCBOREncode_AddEncoded(Context, CurrentInfoToCopy);
         TotalBytesCopied = BytesLeftInThisBlock;
     }
 
@@ -148,13 +147,9 @@ BPLib_Status_t BPLib_CBOR_CopyOutEncodedPayload(QCBOREncodeContext* Context,
             BytesToCopyInThisBlock = RemainingBytesToCopy;
         }
 
-        /*
-        ** TODO: how do we keep QCBOR in the loop about this?
-        ** Consider using this:
-        **  void
-        **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
-        */
-        memcpy((void*)CurrentOutputPointer, (void*)CurrentInputOffset, BytesToCopyInThisBlock);
+        CurrentInfoToCopy.len = BytesToCopyInThisBlock;
+        CurrentInfoToCopy.ptr = CurrentInputOffset;
+        QCBOREncode_AddEncoded(Context, CurrentInfoToCopy);
         TotalBytesCopied += BytesToCopyInThisBlock;
     }
 
@@ -198,13 +193,6 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
         {
             /*
             ** copy adu data out of memory blocks
-            */
-
-            /*
-            ** TODO: how do we keep QCBOR in the loop about this?
-            ** Consider using this:
-            **  void
-            **  QCBOREncode_AddEncoded(QCBOREncodeContext *pCtx, UsefulBufC Encoded);
             */
             ReturnStatus = BPLib_CBOR_CopyOutEncodedPayload(Context,
                                                        StoredBundle,
