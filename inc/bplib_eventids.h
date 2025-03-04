@@ -146,4 +146,11 @@
 #define BPLIB_NC_TBL_UPDATE_INF_EID                     (604u)
 #define BPLIB_NC_TBL_UPDATE_ERR_EID                     (605u)
 
+/* ============ */
+/* BI event IDs */
+/* ============ */
+#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
+
+
+
 #endif /* BPLIB_EVENTIDS_H */
