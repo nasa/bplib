@@ -128,8 +128,6 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
 {
     BPLib_Status_t ReturnStatus;
     uint64_t TotalPayloadSize;
-    // UsefulBuf OutputSubBuffer;
-    // size_t PayloadDataBytesCopied;
     BPLib_Status_t PayloadDataCopyStatus;
 
     if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
@@ -149,24 +147,12 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
                          + 1;
 
         /*
-        ** Open a byte array
-        */
-        // QCBOREncode_OpenBytes(Context, &OutputSubBuffer);
-
-        /*
         ** Copy in the whole payload (header, data, and crc value)
         */
-        // PayloadDataBytesCopied = 0;
         if (TotalPayloadSize > OutputBufferSize)
         {
             ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
         }
-        #if 0
-        else if (TotalPayloadSize > OutputSubBuffer.len)
-        {
-            ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
-        }
-        #endif
         else
         {
             PayloadDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
@@ -177,7 +163,6 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
 
             if (PayloadDataCopyStatus == BPLIB_SUCCESS)
             {
-                // PayloadDataBytesCopied = TotalPayloadSize;
                 *NumBytesCopied = TotalPayloadSize;
                 ReturnStatus = BPLIB_SUCCESS;
             }
@@ -187,11 +172,6 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
                 ReturnStatus = PayloadDataCopyStatus;
             }
         }
-
-        /*
-        ** Close the byte array, telling CBOR how much data we just copied in
-        */
-        // QCBOREncode_CloseBytes(Context, PayloadDataBytesCopied);
     }
     return ReturnStatus;
 }
