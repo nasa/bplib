@@ -810,33 +810,26 @@ void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 
 void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - Identify contact
-    Status = BPLib_CLA_ContactStart();
+    Status = BPLib_CLA_ContactStart(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_START_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact start directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-start directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_START_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact start directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-start directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
