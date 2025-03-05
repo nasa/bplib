@@ -62,7 +62,8 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         Callbacks->BPA_TLMP_SendPerSourceMibCounterPkt   == NULL ||
         Callbacks->BPA_TLMP_SendChannelContactPkt        == NULL ||
         Callbacks->BPA_TLMP_SendStoragePkt               == NULL ||
-        Callbacks->BPA_CLAP_ContactSetup                 == NULL)
+        Callbacks->BPA_CLAP_ContactSetup                 == NULL ||
+        Callbacks->BPA_CLAP_ContactStart                 == NULL)
     {
         Status = BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -101,6 +102,7 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
 
         /* Initialize CLA Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup = Callbacks->BPA_CLAP_ContactSetup;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart = Callbacks->BPA_CLAP_ContactStart;
 
         /* Initialize other proxies' callbacks TODO */
     }
