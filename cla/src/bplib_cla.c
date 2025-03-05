@@ -24,12 +24,6 @@
 
 #include "bplib_cla.h"
 
-/* =========== */
-/* Global Data */
-/* =========== */
-
-uint16_t BPLib_CLA_NumContactsSetUp;
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -145,7 +139,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
         }
         else
         {
-            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_ALREADY_SETUP_DBG_EID,
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
                                 "Contact with ID %d is already set up",
                                 ContactId);
@@ -163,7 +157,35 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     return Status;
 }
 
-BPLib_Status_t BPLib_CLA_ContactStart(uint16_t ContactId)
+BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
+{
+    BPLib_Status_t Status;
+    BPLib_CLA_ContactRunState_t RunState;
+
+    // ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
+    RunState = BPLib_CLA_GetContactRunState(ContactId);
+
+    if (RunState != BPLIB_CLA_TORNDOWN)
+    { /* Contact must be set up before running */
+        Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
+
+        if (Status == BPLIB_SUCCESS)
+        {
+            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
+        }
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "Contact with ID %d needs to be setup first",
+                            ContactId);
+    }
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
 {
     BPLib_Status_t Status;
 
@@ -172,16 +194,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint16_t ContactId)
     return Status;
 }
 
-BPLib_Status_t BPLib_CLA_ContactStop(uint16_t ContactId)
-{
-    BPLib_Status_t Status;
-
-    Status = BPLIB_SUCCESS;
-
-    return Status;
-}
-
-BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
+BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
 {
     BPLib_Status_t Status;
 
