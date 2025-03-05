@@ -40,7 +40,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     /*
     ** Open Array
     */
-    QCBOREncode_OpenArray(&Context);
+    QCBOREncode_OpenArrayIndefiniteLength(&Context);
 
 
     /*
@@ -115,7 +115,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     /*
     ** Close Array
     */
-    QCBOREncode_CloseArray(&Context);
+    QCBOREncode_CloseArrayIndefiniteLength(&Context);
 
 
     /*
