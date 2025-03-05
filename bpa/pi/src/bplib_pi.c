@@ -84,19 +84,19 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
     /* Set primary block based on channel table configurations */
     BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID), 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].DestEID);
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
     BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID), 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].ReportToEID);
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].ReportToEID);
     BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
     NewBundle->blocks.PrimaryBlock.SrcEID.Service = 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].LocalServiceNumber;
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
 
     NewBundle->blocks.PrimaryBlock.BundleProcFlags = 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].BundleProcFlags;
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].BundleProcFlags;
     NewBundle->blocks.PrimaryBlock.CrcType = 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].CrcType;
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CrcType;
     NewBundle->blocks.PrimaryBlock.Lifetime = 
-                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].Lifetime;
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].Lifetime;
     
     /* 
     ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime

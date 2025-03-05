@@ -30,7 +30,7 @@
 #include "bplib_as.h"
 #include "bplib_eid.h"
 #include "bplib_qm.h"
-
+#include "bplib_nc.h"
 
 /*
 ** Type Definitions
