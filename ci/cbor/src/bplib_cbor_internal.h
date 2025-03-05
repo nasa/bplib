@@ -224,8 +224,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
-    BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
     void* OutputBuffer,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);
@@ -245,8 +244,7 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(QCBOREncodeContext* Context,
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(QCBOREncodeContext* Context,
-    BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
     void* OutputBuffer,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);
@@ -274,8 +272,7 @@ uint32_t BPLib_CBOR_GetNumExtensionBlocks(BPLib_Bundle_t* StoredBundle);
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(QCBOREncodeContext* Context,
-    BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     uint32_t ExtensionBlockIndex,
     void* OutputBuffer,
     size_t OutputBufferSize,
@@ -292,8 +289,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(QCBOREncodeContext* Context,
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
-    BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
     void* OutputBuffer,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);
@@ -314,8 +310,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(QCBOREncodeContext* Context,
  *
  * \return Status of the operation.
  */
-BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(QCBOREncodeContext* Context,
-    BPLib_Bundle_t* StoredBundle,
+BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
     void* OutputBuffer,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);

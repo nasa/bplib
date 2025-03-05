@@ -52,7 +52,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Grab the current offset, to be kept in the primary block's metadata */
     /* TODO: we may not need this info */
-    bundle->blocks.PrimaryBlock.HeaderOffsetStart = QCBORDecode_Tell(ctx);
+    bundle->blocks.PrimaryBlock.BlockOffsetStart = QCBORDecode_Tell(ctx);
 
     /* First, enter into the primary block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Grab the current offset, to be kept in the primary block's metadata */
-    bundle->blocks.PrimaryBlock.DataOffsetStart = QCBORDecode_Tell(ctx);
+    // bundle->blocks.PrimaryBlock.DataOffsetStart = QCBORDecode_Tell(ctx);
 
     /* Version */
     Status = PrimaryBlockParser.VersionParser(ctx, &Version);
@@ -142,6 +142,27 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
     }
 
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    // bundle->blocks.PrimaryBlock.DataOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+
+    /* Exit the primary block array */
+    Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
+    }
+
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+
+    /* TODO: this data may no longer be necessary */
+    // bundle->blocks.PrimaryBlock.EncodedSize = bundle->blocks.PrimaryBlock.BlockOffsetEnd
+    //                                         - bundle->blocks.PrimaryBlock.BlockOffsetStart;
+
+    /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
+    bundle->blocks.PrimaryBlock.RequiresEncode = false;
+
+
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");
     printf("\t CRC Type: %lu\n", bundle->blocks.PrimaryBlock.CrcType);
@@ -159,27 +180,16 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
                                                       bundle->blocks.PrimaryBlock.Timestamp.SequenceNumber);
     printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
+    printf("\t Requires Encode: %u\n", bundle->blocks.PrimaryBlock.RequiresEncode);
+    printf("\t Block Offset Start: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
+    // printf("\t Data Offset Start: %u\n", bundle->blocks.PrimaryBlock.DataOffsetStart);
+    // printf("\t Data Offset End: %u\n", bundle->blocks.PrimaryBlock.DataOffsetEnd);
+    printf("\t Block Offset End: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    // printf("\t Data Size: %u\n",
+    //     bundle->blocks.PrimaryBlock.DataOffsetEnd - bundle->blocks.PrimaryBlock.DataOffsetStart + 1);
+    printf("\t Block Size: %u\n",
+        bundle->blocks.PrimaryBlock.BlockOffsetEnd - bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     #endif
-
-    /* Grab the current offset, to be kept in the primary block's metadata */
-    bundle->blocks.PrimaryBlock.DataOffsetEnd = QCBORDecode_Tell(ctx);
-
-    /* Exit the primary block array */
-    Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
-    if (Status != BPLIB_SUCCESS)
-    {
-        return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
-    }
-
-    /* Grab the current offset, to be kept in the primary block's metadata */
-    bundle->blocks.PrimaryBlock.HeaderOffsetEnd = QCBORDecode_Tell(ctx);
-
-    /* TODO: this data may no longer be necessary */
-    bundle->blocks.PrimaryBlock.EncodedSize = bundle->blocks.PrimaryBlock.HeaderOffsetEnd
-                                            - bundle->blocks.PrimaryBlock.HeaderOffsetStart;
-
-    /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
-    bundle->blocks.PrimaryBlock.RequiresEncode = false;
 
     return BPLIB_SUCCESS;
 }

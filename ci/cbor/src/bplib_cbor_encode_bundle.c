@@ -6,10 +6,10 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    QCBOREncodeContext Context;
-    UsefulBuf InitStorage;
-    UsefulBufC FinishBuffer;
-    QCBORError QcborStatus;
+    // QCBOREncodeContext Context;
+    // UsefulBuf InitStorage;
+    // UsefulBufC FinishBuffer;
+    // QCBORError QcborStatus;
 
     /* TODO: these variables need to be scrubbed for usage (since I moved this from BI) */
     BPLib_Status_t PrimaryBlockReturnStatus;
@@ -33,34 +33,41 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     /*
     ** Initialize the encoder.
     */
-    InitStorage.ptr = OutputBuffer;
-    InitStorage.len = OutputBufferSize;
-    QCBOREncode_Init(&Context, InitStorage);
+    // InitStorage.ptr = OutputBuffer;
+    // InitStorage.len = OutputBufferSize;
+    // QCBOREncode_Init(&Context, InitStorage);
+    CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer);
+    *(uint8_t*)CurrentOutputBufferAddr = 0x9F;
+    TotalBytesCopied = 1;
+    CurrentOutputBufferAddr++;
+    BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
 
     /*
     ** Open Array
     */
-    QCBOREncode_OpenArrayIndefiniteLength(&Context);
+    // QCBOREncode_OpenArrayIndefiniteLength(&Context);
 
 
     /*
     ** Begin encode
     */
-    PrimaryBlockReturnStatus = BPLib_CBOR_CopyOrEncodePrimary(&Context,
-                                                              StoredBundle,
-                                                              OutputBuffer,
-                                                              OutputBufferSize,
+    PrimaryBlockReturnStatus = BPLib_CBOR_CopyOrEncodePrimary(StoredBundle,
+                                                              (void*)CurrentOutputBufferAddr,
+                                                              BytesLeftInOutputBuffer,
                                                               &PrimaryBlockBytesCopied);
 
     if (PrimaryBlockReturnStatus != BPLIB_SUCCESS)
     {
-        *NumBytesCopied = 0;
+        // *(uint8_t*)CurrentOutputBufferAddr = 0xFF;
+        // CurrentOutputBufferAddr++;
+        // TotalBytesCopied++;
+        // *NumBytesCopied = TotalBytesCopied;
         ReturnStatus = PrimaryBlockReturnStatus;
     }
     else
     {
         /* start accumulating the total bytes copied */
-        TotalBytesCopied = PrimaryBlockBytesCopied;
+        TotalBytesCopied += PrimaryBlockBytesCopied;
 
         /* Copy or encode the canonical blocks */
         NumberOfExtensionBlocks = BPLib_CBOR_GetNumExtensionBlocks(StoredBundle);
@@ -70,8 +77,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
             BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
 
             /* Encode extension block */
-            ExtensionBlockReturnStatus = BPLib_CBOR_EncodeExtensionBlock(&Context,
-                                                                         StoredBundle,
+            ExtensionBlockReturnStatus = BPLib_CBOR_EncodeExtensionBlock(StoredBundle,
                                                                          CurrExtBlockIndex,
                                                                          (void*)CurrentOutputBufferAddr,
                                                                          BytesLeftInOutputBuffer,
@@ -95,8 +101,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
             CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
             BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
 
-            PayloadBlockReturnStatus = BPLib_CBOR_CopyOrEncodePayload(&Context,
-                                                                      StoredBundle,
+            PayloadBlockReturnStatus = BPLib_CBOR_CopyOrEncodePayload(StoredBundle,
                                                                       (void*)CurrentOutputBufferAddr,
                                                                       BytesLeftInOutputBuffer,
                                                                       &PayloadBytesCopied);
@@ -115,21 +120,26 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     /*
     ** Close Array
     */
-    QCBOREncode_CloseArrayIndefiniteLength(&Context);
+    // QCBOREncode_CloseArrayIndefiniteLength(&Context);
 
+    CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+    *(uint8_t*)CurrentOutputBufferAddr = 0xFF;
+    CurrentOutputBufferAddr++;
+    TotalBytesCopied++;
 
     /*
     ** Finish encoding, and check for errors
     */
-    FinishBuffer.len = 0;
-    FinishBuffer.ptr = NULL;
-    QcborStatus = QCBOREncode_Finish(&Context, &FinishBuffer);
+    // FinishBuffer.len = 0;
+    // FinishBuffer.ptr = NULL;
+    // QcborStatus = QCBOREncode_Finish(&Context, &FinishBuffer);
 
     /*
     ** Its possible for us to have a combination of errors here
     ** If there was a previous error along with a QCBOR error, preserve and return the original error
     ** If there were no other errors and we hit a QCBOR error, report the QCBOR error
     */
+    /*
     if ((QcborStatus != QCBOR_SUCCESS) && (ReturnStatus != BPLIB_SUCCESS))
     {
         *NumBytesCopied = 0;
@@ -143,12 +153,14 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     {
         *NumBytesCopied = FinishBuffer.len;
     }
+    */
+   *NumBytesCopied = TotalBytesCopied;
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
-    printf("Output encoded bundle generated with size %lu: \n", FinishBuffer.len);
-    for (size_t i = 0 ; i < FinishBuffer.len; i++)
+    printf("Output encoded bundle generated with size %lu: \n", *NumBytesCopied);
+    for (size_t i = 0 ; i < *NumBytesCopied; i++)
     {
-        printf("0x%02x, ", ((uint8_t*)FinishBuffer.ptr)[i]);
+        printf("0x%02x, ", ((uint8_t*)OutputBuffer)[i]);
         if (((i+1) % 8) == 0)
         {
             printf("\n");

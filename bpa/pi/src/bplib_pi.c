@@ -84,7 +84,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
     /* TODO fully fill out primary block fields */
     NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
-    NewBundle->blocks.PrimaryBlock.EncodedSize = 0;
+    // NewBundle->blocks.PrimaryBlock.EncodedSize = 0;
 
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)

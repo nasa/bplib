@@ -89,11 +89,11 @@ typedef struct
     BPLib_CRC_Val_t           CrcVal;
     /* Metadata */
     bool                      RequiresEncode;
-    uint32_t                  HeaderOffsetStart;
-    uint32_t                  DataOffsetStart;
-    uint32_t                  DataOffsetEnd;
-    uint32_t                  HeaderOffsetEnd;
-    uint32_t                  EncodedSize;
+    uint32_t                  BlockOffsetStart;
+    // uint32_t                  DataOffsetStart; // TODO: are these necessary?
+    // uint32_t                  DataOffsetEnd; // TODO: are these necessary?
+    uint32_t                  BlockOffsetEnd;
+    // uint32_t                  EncodedSize;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -118,10 +118,12 @@ typedef struct
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;
     /* Metadata */
-    uint64_t        HeaderOffset;
-    uint64_t        DataOffset;
-    uint64_t        EncodedCrcValOffset;
-    uint64_t        EncodedCrcValSize;
+    uint64_t        BlockOffsetStart; // Used when skipping re-encoding
+    uint64_t        DataOffsetStart; // Used for ADU Delivery
+    uint64_t        DataOffsetSize; // Used for ADU Delivery
+    uint64_t        BlockOffsetEnd; // Used when skipping re-encoding
+    // uint64_t        EncodedCrcValOffset; // TODO: can we remove this field ?
+    // uint64_t        EncodedCrcValSize; // TODO: can we remove this field ?
     bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 

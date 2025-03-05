@@ -130,7 +130,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         }
     }
     CanonicalBlockHdr->BlockType = BlockType;
-    CanonicalBlockHdr->HeaderOffset = HeaderStartOffset;
+    CanonicalBlockHdr->BlockOffsetStart = HeaderStartOffset;
 
     /* Block Number */
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);
@@ -167,8 +167,10 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     /*
     ** Grab the current offset, to be kept in the canonical block's metadata
     ** this should be after we enter the byte string
+    ** This will be used for ADU delivery
     */
-    CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
+    CanonicalBlockHdr->DataOffsetStart = QCBORDecode_Tell(ctx);
+    CanonicalBlockHdr->DataOffsetSize = CanonBlockDataByteStrInfo.len;
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
@@ -219,7 +221,15 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
-        bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
+        // bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
+        /*
+        ** Open Array
+        */
+        // QCBORDecode_EnterArray(&ctx, &OuterArr);
+        /*
+        ** Close Array
+        */
+        // QCBORDecode_ExitArray(&ctx);
     }
     else
     {
@@ -235,7 +245,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
-    CanonicalBlockHdr->EncodedCrcValOffset = QCBORDecode_Tell(ctx);
+    // CanonicalBlockHdr->EncodedCrcValOffset = QCBORDecode_Tell(ctx);
 
     /* CRC Value */
     Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
@@ -245,7 +255,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Grab the current offset, to calculate the encoded CRC value's size */
-    CanonicalBlockHdr->EncodedCrcValSize = QCBORDecode_Tell(ctx) - CanonicalBlockHdr->EncodedCrcValOffset;
+    /* TODO: is this still needed? */
+    // CanonicalBlockHdr->EncodedCrcValSize = QCBORDecode_Tell(ctx) - CanonicalBlockHdr->EncodedCrcValOffset;
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
@@ -254,14 +265,20 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR;
     }
 
+    /* Grab the end-of-block offset (subtract one?) */
+    CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
     printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
     printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
     printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
-    printf("\t Header Offset: %lu\n", CanonicalBlockHdr->HeaderOffset);
-    printf("\t Data Offset: %lu\n", CanonicalBlockHdr->DataOffset);
+    printf("\t Block Offset Start: %lu\n", CanonicalBlockHdr->BlockOffsetStart);
+    printf("\t Data Offset Start: %lu\n", CanonicalBlockHdr->DataOffsetStart);
+    printf("\t Data Offset Size: %lu\n", CanonicalBlockHdr->DataOffsetSize);
+    printf("\t Block Offset End: %lu\n", CanonicalBlockHdr->BlockOffsetEnd);
+    printf("\t Block Size: %lu\n", CanonicalBlockHdr->BlockOffsetEnd - CanonicalBlockHdr->BlockOffsetStart + 1);
     switch (CanonicalBlockHdr->BlockType)
     {
         case BPLib_BlockType_PrevNode:
@@ -294,8 +311,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
             printf("\t CREB Block Data Parsing Skipped!\n");
             break;
         case BPLib_BlockType_Payload:
-            printf("\t Payload Block Data Length: %lu bytes\n",
-                bundle->blocks.PrimaryBlock.TotalAduLength);
+            printf("\t Payload Data Length: %lu bytes\n",
+                CanonicalBlockHdr->DataOffsetSize);
             break;
         default:
             printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);
