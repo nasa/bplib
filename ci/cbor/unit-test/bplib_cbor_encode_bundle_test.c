@@ -306,7 +306,7 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload(void)
     ** 1. during primary block data copy
     ** 2. during payload block data copy
     */
-    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 2);
+    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 0);
 }
 
 
@@ -350,7 +350,14 @@ void Test_BPLib_CBOR_EncodeBundle_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
     // TODO: Update OutputSize verification
     // UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
-    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 1);
+
+
+    /*
+    ** BPLib_MEM_CopyOutFromOffset should be called twice:
+    ** 1. during primary block data copy
+    ** 2. during payload block data copy
+    */
+    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 2);
 }
 
 
