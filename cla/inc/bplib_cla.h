@@ -80,7 +80,6 @@ typedef enum
  */
 typedef struct
 {
-    uint32_t            ContactId;
     BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
     CLAType_t           CLAType;
      /**
