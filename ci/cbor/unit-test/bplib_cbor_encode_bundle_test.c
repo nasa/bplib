@@ -211,7 +211,7 @@ void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
                                         &OutputSize);
 
     // Comment out until I can investigate the failure
-    // UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR);
 
     // TODO: Update OutputSize verification
     // UtAssert_EQ(size_t, OutputSize, InputBundle.blocks.PrimaryBlock.EncodedSize);
@@ -296,7 +296,7 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload(void)
                                         &OutputSize);
 
     // Comment out until I can investigate the failure
-    // UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
 
     // TODO: Update OutputSize verification
     // UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
