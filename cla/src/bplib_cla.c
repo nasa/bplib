@@ -123,12 +123,14 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
     BPLib_Status_t Status;
     BPLib_CLA_ContactsSet_t ContactInfo;
+    BPLib_CLA_ContactRunState_t RunState;
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
+        RunState    = BPLib_CLA_GetContactRunState(ContactId);
 
-        if (BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN)
+        if (RunState == BPLIB_CLA_TORNDOWN)
         { /* Contact has been not been setup if the state is anything other than torn down */
             Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo, ContactId);
 
