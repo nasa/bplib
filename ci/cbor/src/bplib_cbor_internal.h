@@ -31,7 +31,7 @@
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
 
-#define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (0)
+#define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (1)
 #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
 #include <stdio.h>
 #endif

@@ -144,6 +144,20 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
         *NumBytesCopied = FinishBuffer.len;
     }
 
+    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
+    printf("Output encoded bundle generated with size %lu: \n", FinishBuffer.len);
+    for (size_t i = 0 ; i < FinishBuffer.len; i++)
+    {
+        printf("0x%02x, ", ((uint8_t*)FinishBuffer.ptr)[i]);
+        if (((i+1) % 8) == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n");
+    #endif
+
+
     return ReturnStatus;
 }
 
