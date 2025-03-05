@@ -133,7 +133,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t ContactId;
+    uint32_t ContactId;
 } BPLib_ContactSetup_Payload_t;
 
 typedef struct

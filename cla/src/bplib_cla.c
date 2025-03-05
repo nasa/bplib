@@ -66,7 +66,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const v
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut, 
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut,
                                 size_t *Size, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
         {
             printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
         }
-    
+
         /* Free the bundle blocks */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
@@ -116,7 +116,7 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
-BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
+BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 {
     /*
     1) Checks if path is available for assignment
@@ -191,12 +191,12 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
     return Status;
 }
 
-BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint16_t ContactId)
+BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint32_t ContactId)
 {
     return BPLib_CLA_ContactRunStates[ContactId];
 }
 
-BPLib_Status_t BPLib_CLA_SetContactRunState(uint16_t ContactId, BPLib_CLA_ContactRunState_t RunState)
+BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState)
 {
     BPLib_Status_t Status;
 
