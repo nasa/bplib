@@ -153,7 +153,7 @@
 /* CLA event IDs */
 /* ============= */
 
-#define BPLIB_CLA_UNKNOWN_CONTACT_DBG_EID       (651u)
+#define BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID  (651u)
 #define BPLIB_CLA_CONTACT_ALREADY_SETUP_DBG_EID (652u)
 
 #endif /* BPLIB_EVENTIDS_H */

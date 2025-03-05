@@ -239,10 +239,9 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR   ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
 #define BPLIB_CLA_CONTACTS_MAX_REACHED                  ((BPLib_Status_t) -179) /* Max number of contacts active */
-#define BPLIB_CLA_UNKNOWN_CONTACT                       ((BPLib_Status_t) -180) /* Contact ID not found in Contacts Table */
-#define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -181) /* Contact is in the incorrect state to be modified */
-#define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -182) /* PSP IO driver API call failed */
-#define BPLIB_CLA_INIT_SEM_ERROR                        ((BPLib_Status_t) -183) /* Error occured with initializing sempahore */
+#define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -180) /* Contact is in the incorrect state to be modified */
+#define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -181) /* PSP IO driver API call failed */
+#define BPLIB_CLA_INIT_SEM_ERROR                        ((BPLib_Status_t) -182) /* Error occured with initializing sempahore */
 
 // TODO TIME Helpers
 
