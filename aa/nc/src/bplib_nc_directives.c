@@ -788,9 +788,7 @@ void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    /* TODO: Verify that table was validated via cFS table upload */
-
-   Status = BPLib_CLA_ContactSetup(Payload.ContactId);
+    Status = BPLib_CLA_ContactSetup(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
     {
