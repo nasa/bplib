@@ -265,7 +265,10 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload(void)
     InputBundle.blocks.PrimaryBlock.CrcVal = 0xdead;
     /* Primary Metadata */
     InputBundle.blocks.PrimaryBlock.RequiresEncode = true;
-    InputBundle.blocks.PrimaryBlock.OffsetIntoBlob = 0;
+    InputBundle.blocks.PrimaryBlock.HeaderOffsetStart = 0;
+    InputBundle.blocks.PrimaryBlock.DataOffsetStart = 0;
+    InputBundle.blocks.PrimaryBlock.DataOffsetEnd = 0;
+    InputBundle.blocks.PrimaryBlock.HeaderOffsetEnd = 0;
     InputBundle.blocks.PrimaryBlock.EncodedSize = 42; // primary should be this size
     /* Calculate ADU Size (based on expected primary block size) */
     InputBundle.blocks.PrimaryBlock.TotalAduLength = sizeof(primary_and_payload_with_aa_x_20)

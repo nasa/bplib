@@ -38,8 +38,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
-    uint32_t PrimaryBlockStartOffset;
-    uint32_t PrimaryBlockEndOffset;
 
     if ((ctx == NULL) || (bundle == NULL))
     {
@@ -53,8 +51,8 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     uint64_t Version;
 
     /* Grab the current offset, to be kept in the primary block's metadata */
-    PrimaryBlockStartOffset = QCBORDecode_Tell(ctx);
-    bundle->blocks.PrimaryBlock.OffsetIntoBlob = PrimaryBlockStartOffset;
+    /* TODO: we may not need this info */
+    bundle->blocks.PrimaryBlock.HeaderOffsetStart = QCBORDecode_Tell(ctx);
 
     /* First, enter into the primary block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
@@ -62,6 +60,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     {
         return BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR;
     }
+
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    bundle->blocks.PrimaryBlock.DataOffsetStart = QCBORDecode_Tell(ctx);
 
     /* Version */
     Status = PrimaryBlockParser.VersionParser(ctx, &Version);
@@ -160,6 +161,8 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
     #endif
 
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    bundle->blocks.PrimaryBlock.DataOffsetEnd = QCBORDecode_Tell(ctx);
 
     /* Exit the primary block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
@@ -169,21 +172,11 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Grab the current offset, to be kept in the primary block's metadata */
-    PrimaryBlockEndOffset = QCBORDecode_Tell(ctx);
-    if (PrimaryBlockStartOffset >= PrimaryBlockEndOffset)
-    {
-        /*
-        ** TODO:
-        **  - do we need this `if` block to sanity check the output offsets from QCBOR, or
-        **    can we trust QCBOR?
-        **  - make this error code unique if we keep it.
-        */
-        return BPLIB_ERROR;
-    }
-    else
-    {
-        bundle->blocks.PrimaryBlock.EncodedSize = PrimaryBlockEndOffset - PrimaryBlockStartOffset;
-    }
+    bundle->blocks.PrimaryBlock.HeaderOffsetEnd = QCBORDecode_Tell(ctx);
+
+    /* TODO: this data may no longer be necessary */
+    bundle->blocks.PrimaryBlock.EncodedSize = bundle->blocks.PrimaryBlock.HeaderOffsetEnd
+                                            - bundle->blocks.PrimaryBlock.HeaderOffsetStart;
 
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;

@@ -84,6 +84,11 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(QCBOREncodeContext* Context,
                                               size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
+    UsefulBuf OutputSubBuffer;
+    size_t PrimaryDataSize;
+    size_t PrimaryDataBytesCopied;
+    BPLib_Status_t PrimaryDataCopyStatus;
+
     if (StoredBundle->blocks.PrimaryBlock.RequiresEncode)
     {
         ReturnStatus = BPLib_CBOR_EncodePrimary(Context,
@@ -97,6 +102,9 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(QCBOREncodeContext* Context,
         /*
         ** Check for input errors before copying the pre-encoded Primary Block to the output buffer
         ** This is important because BPLib_BI_BlobCopyOut doesn't do more than null ptr checks
+        */
+        /*
+        ** TODO: I think we can remove these length checks, and get rid of the `EncodedSize` field
         */
         if (StoredBundle->blocks.PrimaryBlock.EncodedSize > OutputBufferSize)
         {
@@ -120,20 +128,37 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(QCBOREncodeContext* Context,
         }
         else
         {
+
             /*
-            ** TODO:
-            ** This assume the encoded primary block starts at the very beginning of the first blob.
-            ** Is that correct, or do we have
+            ** Open a byte array
             */
+            QCBOREncode_OpenBytes(Context, &OutputSubBuffer);
+
+            PrimaryDataSize = StoredBundle->blocks.PrimaryBlock.DataOffsetEnd
+                            - StoredBundle->blocks.PrimaryBlock.DataOffsetStart;
+
+            PrimaryDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+                StoredBundle->blocks.PrimaryBlock.DataOffsetStart,
+                PrimaryDataSize,
+                OutputSubBuffer.ptr,
+                OutputSubBuffer.len);
+    
+            if (PrimaryDataCopyStatus == BPLIB_SUCCESS)
+            {
+                PrimaryDataBytesCopied = PrimaryDataSize;
+            }
+            else
+            {
+                PrimaryDataBytesCopied = 0;
+            }
+
             /*
-            ** TODO: how do we keep QCBOR in the loop about this?
+            ** Close the byte array, telling CBOR how much data we just copied in
             */
-            memcpy(OutputBuffer,
-                (void*)StoredBundle->blob->user_data.raw_bytes,
-                StoredBundle->blocks.PrimaryBlock.EncodedSize);
+            QCBOREncode_CloseBytes(Context, PrimaryDataBytesCopied);
 
             /* don't forget to set our outputs! */
-            *NumBytesCopied = StoredBundle->blocks.PrimaryBlock.EncodedSize;
+            *NumBytesCopied = PrimaryDataBytesCopied;
             ReturnStatus = BPLIB_SUCCESS;
         }
     }

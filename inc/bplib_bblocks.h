@@ -89,7 +89,10 @@ typedef struct
     BPLib_CRC_Val_t           CrcVal;
     /* Metadata */
     bool                      RequiresEncode;
-    uint32_t                  OffsetIntoBlob;
+    uint32_t                  HeaderOffsetStart;
+    uint32_t                  DataOffsetStart;
+    uint32_t                  DataOffsetEnd;
+    uint32_t                  HeaderOffsetEnd;
     uint32_t                  EncodedSize;
 } BPLib_PrimaryBlock_t;
 
