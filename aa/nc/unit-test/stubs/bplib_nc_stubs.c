@@ -27,6 +27,12 @@
 #include "bplib_nc.h"
 #include "utgenstub.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_NC_GetAppState()
