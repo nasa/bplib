@@ -80,7 +80,7 @@ typedef struct
     BPLib_Status_t (*BPA_ADUP_RemoveApplication)(uint8_t ChanId);
 
     /* CLA Proxy function callbacks */
-    BPLib_Status_t (*BPA_CLAP_ContactSetup)(BPLib_CLA_ContactsSet_t ContactInfo);
+    BPLib_Status_t (*BPA_CLAP_ContactSetup)(BPLib_CLA_ContactsSet_t ContactInfo, uint16_t ContactId);
 
     /* Add other proxies' function callbacks here: TODO */
 

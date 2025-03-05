@@ -125,6 +125,8 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
     4) Registers CLA with Storage given the table configuration (Path ID, EID map)
     */
 
+    /* TODO: Verify that table was validated via cFS table upload */
+
     BPLib_Status_t Status;
     BPLib_CLA_ContactsSet_t ContactInfo;
 
@@ -134,7 +136,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
 
         if (BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN)
         { /* Contact has been not been setup if the state is anything other than torn down */
-            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo);
+            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo, ContactId);
 
             if (Status == BPLIB_SUCCESS)
             {
