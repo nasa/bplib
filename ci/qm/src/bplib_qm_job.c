@@ -50,7 +50,7 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
+    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_NO_WAIT);
 
     return NO_NEXT_STATE;
 }
@@ -90,7 +90,7 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
         Bundle->blocks.PrimaryBlock.DestEID.Node,
         Bundle->blocks.PrimaryBlock.DestEID.Service);
 
-    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
+    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
     if (QueuePushReturnStatus == false)
     {
         printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");

@@ -164,7 +164,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 if (QueuedBundle->Meta.EgressID != BPLIB_UNKNOWN_ROUTE_ID)
                 {
                     Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
-                                                    QM_PRI_NORMAL, QM_WAIT_FOREVER);
+                                                    QM_PRI_NORMAL, QM_NO_WAIT);
                     if (Status != BPLIB_SUCCESS)
                     {
                         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
