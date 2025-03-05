@@ -24,6 +24,7 @@
 
 #include "bplib_pi_test_utils.h"
 #include "bplib_fwp.h"
+#include "bplib_nc.h"
 
 /*
 ** Global Data
