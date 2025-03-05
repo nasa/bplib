@@ -38,15 +38,6 @@
 /* Typedefs */
 /* ======== */
 
-/**
-  * \brief Associates contact IDs from the Contacts Table with a run state
-  */
-typedef struct
-{
-    uint16_t                    ContactId;
-    BPLib_CLA_ContactRunState_t ContactState;
-} BPLib_CLA_ContactIdState_t;
-
 /* This ID set is used to maintain a BundleID and SessionID map*/
 typedef struct
 {
@@ -59,10 +50,11 @@ typedef struct
 /* =========== */
 
 /**
-  * \brief Array of contact IDs and their associated states;
-  *        used to track contact states
+  * \brief Array use to track the run states of all active contacts. The run states
+  *        are associated with the contact ID via the index into the array.
+  *        Ex: BPLib_CLA_ContactRunStates[0] is the contact run state for contact ID 0
   */
-extern BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[];
+extern BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[];
 
 /* =================== */
 /* Function Prototypes */

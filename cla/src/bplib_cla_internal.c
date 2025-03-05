@@ -37,7 +37,7 @@
 /* Global Data */
 /* =========== */
 
-BPLib_CLA_ContactIdState_t BPLib_CLA_ContactIdStates[BPLIB_MAX_NUM_CONTACTS];
+BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
 
 /* ==================== */
 /* Function Definitions */

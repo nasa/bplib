@@ -127,22 +127,18 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
 
     BPLib_Status_t Status;
     BPLib_CLA_ContactsSet_t ContactInfo;
-    bool ContactFound;
-
-    ContactFound = false;
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
 
-        if (BPLib_CLA_ContactIdStates[ContactId].ContactState == BPLIB_CLA_TORNDOWN)
+        if (BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN)
         { /* Contact has been not been setup if the state is anything other than torn down */
             Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo);
 
             if (Status == BPLIB_SUCCESS)
             {
-                BPLib_CLA_ContactIdStates[ContactId].ContactId    = ContactId;
-                BPLib_CLA_ContactIdStates[ContactId].ContactState = BPLIB_CLA_SETUP;
+                Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP);
             }
         }
         else
@@ -195,58 +191,25 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint16_t ContactId)
 
 BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint16_t ContactId)
 {
-    uint16_t ContactNum;
-    BPLib_CLA_ContactRunState_t ContactRunState;
-
-    for (ContactNum = 0; ContactNum < BPLIB_MAX_NUM_CONTACTS; ContactNum++)
-    {
-        if (BPLib_CLA_ContactIdStates[ContactNum].ContactId == ContactId)
-        {
-            ContactRunState = BPLib_CLA_ContactIdStates[ContactNum].ContactState;
-            break;
-        }
-    }
-
-    return ContactRunState;
+    return BPLib_CLA_ContactRunStates[ContactId];
 }
 
 BPLib_Status_t BPLib_CLA_SetContactRunState(uint16_t ContactId, BPLib_CLA_ContactRunState_t RunState)
 {
     BPLib_Status_t Status;
-    BPLib_CLA_ContactIdState_t ContactStateInfo;
-    uint16_t ContactNum;
-    bool ContactFound;
 
-    Status       = BPLIB_SUCCESS;
-    ContactFound = false;
+    Status = BPLIB_SUCCESS;
 
-    for (ContactNum = 0; ContactNum < BPLIB_MAX_NUM_CONTACTS; ContactNum++)
+    if (RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED  ||
+        RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
+        RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
+        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED)
     {
-        ContactStateInfo = BPLib_CLA_ContactIdStates[ContactNum];
-        if (ContactStateInfo.ContactId == ContactId)
-        {
-            ContactFound = true;
-            break; /* Leave the loop to maintain ContactStateInfo and ContactNum */
-        }
-    }
-
-    if (!ContactFound)
-    {
-        Status = BPLIB_CLA_UNKNOWN_CONTACT;
+        Status = BPLIB_CLA_INCORRECT_STATE;
     }
     else
     {
-        if (RunState == BPLIB_CLA_TORNDOWN && ContactStateInfo.ContactState == BPLIB_CLA_STARTED  ||
-            RunState == BPLIB_CLA_STOPPED  && ContactStateInfo.ContactState == BPLIB_CLA_TORNDOWN ||
-            RunState == BPLIB_CLA_STARTED  && ContactStateInfo.ContactState == BPLIB_CLA_TORNDOWN ||
-            RunState == BPLIB_CLA_SETUP    && ContactStateInfo.ContactState == BPLIB_CLA_STARTED)
-        {
-            Status = BPLIB_CLA_INCORRECT_STATE;
-        }
-        else
-        {
-            BPLib_CLA_ContactIdStates[ContactNum].ContactState = RunState;
-        }
+        BPLib_CLA_ContactRunStates[ContactId] = RunState;
     }
 
     return Status;
