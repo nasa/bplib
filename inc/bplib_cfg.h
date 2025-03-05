@@ -78,7 +78,6 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
 
-
 /**
  * \brief Maximum number of canonical blocks per bundle
  *        this is one more than BPLIB_MAX_NUM_EXTENSION_BLOCKS
@@ -86,52 +85,33 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_CANONICAL_BLOCKS       (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
 
+/**
+ * \brief This is the EID scheme for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_SCHEME          BPLIB_EID_SCHEME_IPN
 
 /**
- * \brief Temporary EID Node Number to Route bundle from Cache to a Channel
- *        This must not equal BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES
+ * \brief This is the EID IPN/SSP format for this instance of a DTN node
  */
-#define BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES 100
+#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT  BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
 
 /**
- * \brief Temporary EID Service Number to Route bundle from PI to a Channel 0
- *        Other Service Numbers will be routed to Channel 1
- *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES
+ * \brief This is the EID allocator for this instance of a DTN node
  */
-#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES 42
+#define BPLIB_LOCAL_EID_ALLOCATOR       0
 
 /**
- * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
- *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
+ * \brief This is the EID node number for this instance of a DTN node
  */
-#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES 53
-
+#define BPLIB_LOCAL_EID_NODE_NUM        100
 
 /**
- * \brief Temporary EID Node Number to Route bundle from Cache to a Contact
- *        This must not equal BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES
+ * \brief This is the EID service number for this instance of a DTN node. This is not
+ *        really used by BPLib, since local delivery sends bundles to other services on
+ *        this node, but is included just in case a BPNode implementation does end up
+ *        needing it.
  */
-#define BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES 200
-
-/**
- * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
- *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
- */
-#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES 64
-
-/**
- * \brief This is the expected size of a raw cFS app no-op command
- *        This will be removed when we can decode the primary block to get the Dest EID
- */
-#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0 8
-
-/**
- * \brief This is the expected size of a bundle with a cFS app no-op command payload (8 bytes)
- *        This will be removed when we can decode the primary block to get the Dest EID
- */
-#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1 61
-
-
+#define BPLIB_LOCAL_EID_SERVICE_NUM     0
 
 
 #ifdef __cplusplus

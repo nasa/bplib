@@ -18,36 +18,24 @@
  *
  */
 
-#ifndef BPLIB_STOR_TEST_UTILS_H
-#define BPLIB_STOR_TEST_UTILS_H
+#ifndef BPLIB_QM_HANDLERS_H
+#define BPLIB_QM_HANDLERS_H
 
 /*
-** Include
+** Include 
 */
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib_api_types.h"
-#include "bplib_stor.h"
-#include "bplib_em_handlers.h"
-#include "bplib_qm_handlers.h"
-
-/*
-** Global Data
-*/
-
-extern BPLib_Instance_t BplibInst;
+#include "bplib_qm.h"
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_STOR_Test_Setup(void);
-void BPLib_STOR_Test_Teardown(void);
+void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
-void TestBplibStor_Register(void);
-
-#endif /* BPLIB_STOR_TEST_UTILS_H */
+#endif /* BPLIB_QM_HANDLERS_H */

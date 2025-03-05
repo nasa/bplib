@@ -29,6 +29,8 @@ extern "C" {
 ** Include Files
 */
 
+#include "bplib_cfg.h"
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -90,6 +92,11 @@ typedef struct BPLib_IpnAddr
 */
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
+
+/**
+ * \brief Job egress ID to use before a bundle's route is known 
+*/
+#define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
 
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
