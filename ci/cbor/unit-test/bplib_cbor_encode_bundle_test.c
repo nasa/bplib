@@ -345,11 +345,10 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryAndPayload(void)
     // UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
 
     /*
-    ** BPLib_MEM_CopyOutFromOffset should be called twice:
-    ** 1. during primary block data copy
-    ** 2. during payload block data copy
+    ** BPLib_MEM_CopyOutFromOffset should be called once:
+    ** 1. during payload data copy
     */
-    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 2);
+    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 1);
 }
 
 
