@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         ** Additional Info: number of bytes in the string
         **  - If number of bytes in the string is less than 24:
         **      - the next 5 bits describe the length
-        **  - If number of bytes in the string is 25 to 0xFF
+        **  - If number of bytes in the string is 24 to 0xFF
         **      - the next 5 bits should be set to 24
         **      - the next 1 byte should describe the length
         **  - If number of bytes in the string is 0x100 to 0xFFFF
