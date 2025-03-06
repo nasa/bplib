@@ -30,6 +30,7 @@
 
 #include "bplib_pi.h"
 #include "bplib_mem.h"
+#include "bplib_fwp.h"
 
 #include <stdio.h>
 
@@ -69,6 +70,10 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
                                                             void *AduPtr, size_t AduSize)
 {
     BPLib_Bundle_t    *NewBundle;
+    uint16_t CanonBlockIndex;
+    uint16_t NextExtensionBlockIndex;
+    BPLib_PI_CanBlkConfig_t* CurrCanonConfigSrc;
+    BPLib_CanBlockHeader_t* CurrCanonConfigDest;
 
     if ((Inst == NULL) || (AduPtr == NULL))
     {
@@ -82,9 +87,49 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO fully fill out primary block fields */
+    /* Fill out primary block fields */
     NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
-    // NewBundle->blocks.PrimaryBlock.EncodedSize = 0;
+
+    /* Fill out the canonical block configs */
+    if ((BPLib_FWP_ConfigPtrs.ChanTblPtr != NULL) && (ChanId < BPLIB_MAX_NUM_CHANNELS))
+    {
+        NextExtensionBlockIndex = 0;
+        for (CanonBlockIndex = 0; CanonBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonBlockIndex++)
+        {
+            /* Set the source (table) config pointer */
+            CurrCanonConfigSrc = &BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].CanBlkConfig[CanonBlockIndex];
+
+            /* Set the destination (bundle metadata) config pointer */
+            if (CurrCanonConfigSrc->BlockType == BPLib_BlockType_Payload)
+            {
+                CurrCanonConfigDest = &NewBundle->blocks.PayloadHeader;
+            }
+            else
+            {
+                /* quick array index sanity check (this could happen if the src config didn't have a payload config) */
+                if (NextExtensionBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
+                {
+                    break;
+                }
+                else
+                {
+                    CurrCanonConfigDest = &NewBundle->blocks.ExtBlocks[NextExtensionBlockIndex].Header;
+                    NextExtensionBlockIndex++;
+                }
+            }
+
+            /* Copy the configs from source to destination */
+            CurrCanonConfigDest->BlockType = CurrCanonConfigSrc->BlockType;
+            CurrCanonConfigDest->CrcType = CurrCanonConfigSrc->CrcType;
+            CurrCanonConfigDest->BlockNum = CurrCanonConfigSrc->BlockNum;
+            CurrCanonConfigDest->BlockProcFlags = CurrCanonConfigSrc->BlockProcFlags;
+        }
+    }
+
+    /* Fill out the rest of the payload block fields */
+    NewBundle->blocks.PayloadHeader.RequiresEncode = true;
+    NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
+    NewBundle->blocks.PayloadHeader.DataOffsetSize = AduSize;
 
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)

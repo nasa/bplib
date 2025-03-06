@@ -111,7 +111,7 @@ typedef struct
     /* Header Data */
     uint64_t        BlockType;
     uint64_t        BlockNum;
-    uint64_t        BundleProcFlags;
+    uint64_t        BlockProcFlags;
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;
     /* Metadata */

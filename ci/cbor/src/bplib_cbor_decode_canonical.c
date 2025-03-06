@@ -140,7 +140,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Flags */
-    Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BundleProcFlags);
+    Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BlockProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
@@ -267,7 +267,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
     printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
     printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
-    printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
+    printf("\t Flags: %lu\n", CanonicalBlockHdr->BlockProcFlags);
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
     printf("\t Block Offset Start: %lu\n", CanonicalBlockHdr->BlockOffsetStart);
     printf("\t Data Offset Start: %lu\n", CanonicalBlockHdr->DataOffsetStart);

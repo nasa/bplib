@@ -87,7 +87,7 @@ typedef struct
     uint32_t                LocalServiceNumber;
     uint32_t                MaxBundlePayloadSize;
     BPLib_PI_PriBlkConfig_t PriBlkConfig;
-    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1];
+    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_CANONICAL_BLOCKS];
 } BPLib_PI_Config_t;
 
 /**

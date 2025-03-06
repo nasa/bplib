@@ -61,7 +61,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         */
         QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PayloadHeader.BlockType);
         QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PayloadHeader.BlockNum);
-        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PayloadHeader.BundleProcFlags);
+        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PayloadHeader.BlockProcFlags);
         QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PayloadHeader.CrcType);
 
         /*
