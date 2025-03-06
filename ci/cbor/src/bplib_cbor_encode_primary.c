@@ -6,8 +6,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    // size_t StartOffset;
-    // size_t EndOffset;
     QCBOREncodeContext Context;
     UsefulBuf InitStorage;
     UsefulBufC FinishBuffer;
@@ -35,9 +33,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         InitStorage.ptr = OutputBuffer;
         InitStorage.len = OutputBufferSize;
         QCBOREncode_Init(&Context, InitStorage);
-
-        /* Grab the start offset, to be used to calculate the total encoded size */
-        // StartOffset = QCBOREncode_Tell(&Context);
 
         /*
         ** Open Array
@@ -72,11 +67,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         QCBOREncode_CloseArray(&Context);
 
         /*
-        ** Calculate the total encoded size
-        */
-        // EndOffset = QCBOREncode_Tell(&Context);
-
-        /*
         ** Finish encoding, and check for errors
         */
         FinishBuffer.len = 0;
@@ -90,7 +80,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         {
             *NumBytesCopied = FinishBuffer.len;
         }
-        // *NumBytesCopied = EndOffset - StartOffset;
 
         ReturnStatus = BPLIB_SUCCESS;
     }
@@ -106,9 +95,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
                                               size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    // UsefulBuf OutputSubBuffer;
     size_t PrimaryBlockSize;
-    // size_t PrimaryDataBytesCopied;
     BPLib_Status_t PrimaryBlockCopyStatus;
 
     if (StoredBundle->blocks.PrimaryBlock.RequiresEncode)
@@ -120,12 +107,9 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
     }
     else
     {
-
         /*
-        ** Open a byte array
+        ** Calculate the pre-encoded primary block size
         */
-        // QCBOREncode_OpenBytes(Context, &OutputSubBuffer);
-
         PrimaryBlockSize = StoredBundle->blocks.PrimaryBlock.BlockOffsetEnd
                         - StoredBundle->blocks.PrimaryBlock.BlockOffsetStart
                         + 1;
@@ -151,25 +135,14 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
     
             if (PrimaryBlockCopyStatus == BPLIB_SUCCESS)
             {
-                // PrimaryDataBytesCopied = PrimaryBlockSize;
                 *NumBytesCopied = PrimaryBlockSize;
                 ReturnStatus = PrimaryBlockCopyStatus;
             }
             else
             {
-                // PrimaryDataBytesCopied = 0;
                 *NumBytesCopied = 0;
                 ReturnStatus = BPLIB_SUCCESS;
             }
-
-            /*
-            ** Close the byte array, telling CBOR how much data we just copied in
-            */
-            // QCBOREncode_CloseBytes(Context, PrimaryDataBytesCopied);
-
-            /* don't forget to set our outputs! */
-            // *NumBytesCopied = PrimaryDataBytesCopied;
-            // ReturnStatus = BPLIB_SUCCESS;
         }
     }
     return ReturnStatus;
