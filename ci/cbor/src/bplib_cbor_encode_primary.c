@@ -134,14 +134,14 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
                 OutputBuffer,
                 OutputBufferSize);
     
-            if (PrimaryBlockCopyStatus == BPLIB_SUCCESS)
+            if (PrimaryBlockCopyStatus != BPLIB_SUCCESS)
             {
-                *NumBytesCopied = PrimaryBlockSize;
+                *NumBytesCopied = 0;
                 ReturnStatus = PrimaryBlockCopyStatus;
             }
             else
             {
-                *NumBytesCopied = 0;
+                *NumBytesCopied = PrimaryBlockSize;
                 ReturnStatus = BPLIB_SUCCESS;
             }
         }
