@@ -132,9 +132,10 @@ void Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError(void)
     memset(&FirstBlock, 0, sizeof(FirstBlock));
     InputBundle.blob = &FirstBlock;
 
-    /* Set up for first `EncodedSize` error check */
+    /* Set up for encoded primary length error check */
     InputBundle.blocks.PrimaryBlock.RequiresEncode = false;
-    InputBundle.blocks.PrimaryBlock.EncodedSize = sizeof(OutputBuffer) + 1;
+    InputBundle.blocks.PrimaryBlock.BlockOffsetStart = 1;
+    InputBundle.blocks.PrimaryBlock.BlockOffsetEnd = sizeof(OutputBuffer) + 1;
 
 
     ReturnStatus = BPLib_CBOR_EncodeBundle(&InputBundle,
@@ -142,41 +143,10 @@ void Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError(void)
                                         sizeof(OutputBuffer),
                                         &OutputSize);
 
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_OUTPUT_ERR);
-    // TODO: Update OutputSize verification
-    // UtAssert_EQ(size_t, OutputSize, (size_t) 0);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR);
+    UtAssert_EQ(size_t, OutputSize, (size_t) 2);
     UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 0);
 }
-
-
-void Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtUserLenError(void)
-{
-    BPLib_Status_t ReturnStatus;
-    BPLib_Bundle_t InputBundle;
-    uint8_t OutputBuffer[1024];
-    size_t OutputSize = 0xdeadbeef;
-    BPLib_MEM_Block_t FirstBlock;
-
-    memset(&InputBundle, 0, sizeof(InputBundle));
-    memset(&FirstBlock, 0, sizeof(FirstBlock));
-    InputBundle.blob = &FirstBlock;
-
-    /* Set up for second `EncodedSize` error check (EncodedSize > used_len) */
-    InputBundle.blocks.PrimaryBlock.RequiresEncode = false;
-    InputBundle.blocks.PrimaryBlock.EncodedSize = 10;
-    InputBundle.blob->used_len = InputBundle.blocks.PrimaryBlock.EncodedSize - 1;
-
-    ReturnStatus = BPLib_CBOR_EncodeBundle(&InputBundle,
-                                        OutputBuffer,
-                                        sizeof(OutputBuffer),
-                                        &OutputSize);
-
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_USER_DATA_ERR);
-    // TODO: Update OutputSize verification
-    // UtAssert_EQ(size_t, OutputSize, (size_t) 0);
-    UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 0);
-}
-
 
 void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
 {
@@ -210,10 +180,7 @@ void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
                                         sizeof(OutputBuffer),
                                         &OutputSize);
 
-    // TODO: figure out why this returns success
-    // test should expect this error:
-    // BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR);
 
     // TODO: Update OutputSize verification
     // UtAssert_EQ(size_t, OutputSize, InputBundle.blocks.PrimaryBlock.EncodedSize);
@@ -298,8 +265,7 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryCopyPayload(void)
                                         &OutputSize);
 
     // TODO: figure out why this doesn't return BPLIB_SUCCESS.
-    //       Instead it returns BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR
-    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR);
+    UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR);
 
     // TODO: Update OutputSize verification
     // UtAssert_EQ(size_t, OutputSize, sizeof(primary_and_payload_with_aa_x_20));
@@ -375,7 +341,6 @@ void TestBplibCborEncode_Register(void)
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_OutputSizeBufNullError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_OutputSizeBufNullError");
 
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError");
-    UtTest_Add(Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtUserLenError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtUserLenError");
 
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError");
 

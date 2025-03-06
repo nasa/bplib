@@ -241,13 +241,8 @@ typedef struct BPLib_IpnAddr
 
 #define BPLIB_CBOR_ENC_PRIMARY_FINISH_ERR              ((BPLib_Status_t) -180) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish error */
 #define BPLIB_CBOR_ENC_BUNDLE_FINISH_ERR               ((BPLib_Status_t) -181) /* BPLib_CBOR_EncodeBundle: QCBOREncode_Finish error */
-
-
-
-#define BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_OUTPUT_ERR      ((BPLib_Status_t) -200) /* Encoded Prim Blk Size > Output Buffer Size */
-#define BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_USER_DATA_ERR   ((BPLib_Status_t) -201) /* Encoded Prim Blk Size > User Data Size */
-#define BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -202) /* Encoded Payload Size > Output Buffer Size */
-
+#define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
+#define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
 
 
 // TODO TIME Helpers

@@ -316,7 +316,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
         */
         if (TotalPayloadSize > OutputBufferSize)
         {
-            ReturnStatus = BPLIB_BI_COPY_PAYLOAD_ENC_SIZE_GT_OUTPUT_ERR;
+            ReturnStatus = BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR;
         }
         else
         {

@@ -123,7 +123,8 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
             /*
             ** the encoded primary block (our source) exceeds the output buffer size
             */
-            ReturnStatus = BPLIB_BI_COPY_PRIME_ENC_SIZE_GT_OUTPUT_ERR;
+            *NumBytesCopied = 0;
+            ReturnStatus = BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR;
         }
         else
         {
