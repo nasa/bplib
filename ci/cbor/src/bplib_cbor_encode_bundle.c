@@ -6,12 +6,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
                                         size_t* NumBytesCopied)
 {
     BPLib_Status_t ReturnStatus;
-    // QCBOREncodeContext Context;
-    // UsefulBuf InitStorage;
-    // UsefulBufC FinishBuffer;
-    // QCBORError QcborStatus;
-
-    /* TODO: these variables need to be scrubbed for usage (since I moved this from BI) */
     BPLib_Status_t PrimaryBlockReturnStatus;
     BPLib_Status_t ExtensionBlockReturnStatus = BPLIB_SUCCESS; // start with success, in case no ext blocks
     BPLib_Status_t PayloadBlockReturnStatus;
@@ -31,21 +25,15 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     }
 
     /*
-    ** Initialize the encoder.
+    ** Jam in an "open indefinite array" character
+    ** Major Type: 4 (array)
+    ** Additional Info: indefinite length (31, or 0x1F)
     */
-    // InitStorage.ptr = OutputBuffer;
-    // InitStorage.len = OutputBufferSize;
-    // QCBOREncode_Init(&Context, InitStorage);
     CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer);
     *(uint8_t*)CurrentOutputBufferAddr = 0x9F;
     TotalBytesCopied = 1;
     CurrentOutputBufferAddr++;
     BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
-
-    /*
-    ** Open Array
-    */
-    // QCBOREncode_OpenArrayIndefiniteLength(&Context);
 
 
     /*
@@ -58,10 +46,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
 
     if (PrimaryBlockReturnStatus != BPLIB_SUCCESS)
     {
-        // *(uint8_t*)CurrentOutputBufferAddr = 0xFF;
-        // CurrentOutputBufferAddr++;
-        // TotalBytesCopied++;
-        // *NumBytesCopied = TotalBytesCopied;
         ReturnStatus = PrimaryBlockReturnStatus;
     }
     else
@@ -118,43 +102,17 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     }
 
     /*
-    ** Close Array
+    ** Close the indefinte-length Array
     */
-    // QCBOREncode_CloseArrayIndefiniteLength(&Context);
-
     CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
     *(uint8_t*)CurrentOutputBufferAddr = 0xFF;
     CurrentOutputBufferAddr++;
     TotalBytesCopied++;
 
     /*
-    ** Finish encoding, and check for errors
+    ** Set the output size
     */
-    // FinishBuffer.len = 0;
-    // FinishBuffer.ptr = NULL;
-    // QcborStatus = QCBOREncode_Finish(&Context, &FinishBuffer);
-
-    /*
-    ** Its possible for us to have a combination of errors here
-    ** If there was a previous error along with a QCBOR error, preserve and return the original error
-    ** If there were no other errors and we hit a QCBOR error, report the QCBOR error
-    */
-    /*
-    if ((QcborStatus != QCBOR_SUCCESS) && (ReturnStatus != BPLIB_SUCCESS))
-    {
-        *NumBytesCopied = 0;
-    }
-    else if (QcborStatus != QCBOR_SUCCESS)
-    {
-        *NumBytesCopied = 0;
-        ReturnStatus = BPLIB_CBOR_ENC_BUNDLE_FINISH_ERR;
-    }
-    else
-    {
-        *NumBytesCopied = FinishBuffer.len;
-    }
-    */
-   *NumBytesCopied = TotalBytesCopied;
+    *NumBytesCopied = TotalBytesCopied;
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Output encoded bundle generated with size %lu: \n", *NumBytesCopied);
@@ -168,7 +126,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     }
     printf("\n");
     #endif
-
 
     return ReturnStatus;
 }

@@ -216,7 +216,6 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
 /**
  * \brief Encodes the primary block data into the output buffer
  *
- * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
  * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
@@ -236,7 +235,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
  * This function copies the Primary Block from the specified bundle into the provided buffer.
  * If the bundle has more Primary Block than OutputBufferSize, this function returns BPLIB_BUF_LEN_ERROR
  *
- * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] StoredBundle Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer A buffer to store the copied data.
  * \param[in] OutputBufferSize The maximum number of bytes to copy.
@@ -263,7 +261,6 @@ uint32_t BPLib_CBOR_GetNumExtensionBlocks(BPLib_Bundle_t* StoredBundle);
 /**
  * \brief Encodes the specified extension block data into the output buffer
  *
- * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
  * \param[in] ExtensionBlockIndex (uint32_t) Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
@@ -281,7 +278,6 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
 /**
  * \brief Encodes the payload into the output buffer
  *
- * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
  * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
@@ -302,7 +298,6 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
  * This function copies the Payload Block from the specified bundle into the provided buffer.
  * If the bundle has more Payload Block than OutputBufferSize, this function returns BPLIB_BUF_LEN_ERROR
  *
- * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
  * \param[in] StoredBundle Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer A buffer to store the copied data.
  * \param[in] OutputBufferSize The maximum number of bytes to copy.

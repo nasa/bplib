@@ -221,15 +221,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
-        // bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
-        /*
-        ** Open Array
-        */
-        // QCBORDecode_EnterArray(&ctx, &OuterArr);
-        /*
-        ** Close Array
-        */
-        // QCBORDecode_ExitArray(&ctx);
+        /* TODO: Should we do anything with this data? */
     }
     else
     {
@@ -244,19 +236,12 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_EXIT_BYTE_STR_ERR;
     }
 
-    /* Grab the current offset, to be kept in the canonical block's metadata */
-    // CanonicalBlockHdr->EncodedCrcValOffset = QCBORDecode_Tell(ctx);
-
     /* CRC Value */
     Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
     }
-
-    /* Grab the current offset, to calculate the encoded CRC value's size */
-    /* TODO: is this still needed? */
-    // CanonicalBlockHdr->EncodedCrcValSize = QCBORDecode_Tell(ctx) - CanonicalBlockHdr->EncodedCrcValOffset;
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);

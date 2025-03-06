@@ -61,9 +61,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR;
     }
 
-    /* Grab the current offset, to be kept in the primary block's metadata */
-    // bundle->blocks.PrimaryBlock.DataOffsetStart = QCBORDecode_Tell(ctx);
-
     /* Version */
     Status = PrimaryBlockParser.VersionParser(ctx, &Version);
     if (Status != BPLIB_SUCCESS)
@@ -142,9 +139,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
     }
 
-    /* Grab the current offset, to be kept in the primary block's metadata */
-    // bundle->blocks.PrimaryBlock.DataOffsetEnd = QCBORDecode_Tell(ctx) - 1;
-
     /* Exit the primary block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
@@ -154,10 +148,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Grab the current offset, to be kept in the primary block's metadata */
     bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
-
-    /* TODO: this data may no longer be necessary */
-    // bundle->blocks.PrimaryBlock.EncodedSize = bundle->blocks.PrimaryBlock.BlockOffsetEnd
-    //                                         - bundle->blocks.PrimaryBlock.BlockOffsetStart;
 
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;
@@ -182,11 +172,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
     printf("\t Requires Encode: %u\n", bundle->blocks.PrimaryBlock.RequiresEncode);
     printf("\t Block Offset Start: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
-    // printf("\t Data Offset Start: %u\n", bundle->blocks.PrimaryBlock.DataOffsetStart);
-    // printf("\t Data Offset End: %u\n", bundle->blocks.PrimaryBlock.DataOffsetEnd);
     printf("\t Block Offset End: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
-    // printf("\t Data Size: %u\n",
-    //     bundle->blocks.PrimaryBlock.DataOffsetEnd - bundle->blocks.PrimaryBlock.DataOffsetStart + 1);
     printf("\t Block Size: %u\n",
         bundle->blocks.PrimaryBlock.BlockOffsetEnd - bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     #endif
