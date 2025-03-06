@@ -65,7 +65,6 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
     pthread_mutex_lock(&pool->lock);
     block = (BPLib_MEM_Block_t*)(BPLib_MEM_PoolImplAlloc(&pool->impl));
     pthread_mutex_unlock(&pool->lock);
-
     if (block != NULL)
     {
         block->used_len = 0;

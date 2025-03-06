@@ -23,6 +23,18 @@
 */
 
 #include "bplib_stor_test_utils.h"
+#include "bplib_pi.h"
+#include "bplib_cla.h"
+#include "bplib_fwp.h"
+
+
+/*
+** Global Data
+*/
+
+BPLib_Instance_t BplibInst;
+BPLib_PI_ChannelTable_t TestChanTbl;
+BPLib_CLA_ContactsTable_t TestContTbl;
 
 /*
 ** Function Definitions
@@ -32,6 +44,12 @@ void BPLib_STOR_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    BPLib_FWP_ConfigPtrs.ChanTblPtr = &TestChanTbl;
+    BPLib_FWP_ConfigPtrs.ContactsTblPtr = &TestContTbl;
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }
 
 void BPLib_STOR_Test_Teardown(void)

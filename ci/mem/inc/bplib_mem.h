@@ -39,7 +39,8 @@ typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
  */
 typedef struct BPLib_Bundle
 {
-    BPLib_BBlocks_t blocks;
+    BPLib_BundleMetaData_t  Meta;
+    BPLib_BBlocks_t         blocks;
     struct BPLib_MEM_Block* blob;
 } BPLib_Bundle_t;
 

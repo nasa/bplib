@@ -76,13 +76,13 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
         Status = BPLIB_NULL_PTR_ERROR;
     }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &Bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
     {
         /* Copy the bundle to the CLA buffer */
         Status = BPLib_MEM_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
-            //printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
+            printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
         }
     
         /* Free the bundle blocks */

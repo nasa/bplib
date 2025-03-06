@@ -18,36 +18,23 @@
  *
  */
 
-#ifndef BPLIB_STOR_TEST_UTILS_H
-#define BPLIB_STOR_TEST_UTILS_H
+/**
+ * @file
+ *
+ * Handlers for QM function stubs
+ */
 
-/*
-** Include
-*/
-
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib_api_types.h"
-#include "bplib_stor.h"
-#include "bplib_em_handlers.h"
 #include "bplib_qm_handlers.h"
 
-/*
-** Global Data
-*/
+void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *ret_item = UT_Hook_GetArgValueByName(Context, "ret_item", void *);
+    int32 Status;
 
-extern BPLib_Instance_t BplibInst;
+    UT_Stub_GetInt32StatusCode(Context, &Status);
 
-
-/*
-** Function Definitions
-*/
-
-void BPLib_STOR_Test_Setup(void);
-void BPLib_STOR_Test_Teardown(void);
-
-void TestBplibStor_Register(void);
-
-#endif /* BPLIB_STOR_TEST_UTILS_H */
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_QM_WaitQueueTryPull), ret_item, sizeof(BPLib_Bundle_t *));
+    }
+}

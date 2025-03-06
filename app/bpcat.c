@@ -18,349 +18,189 @@
  *
  */
 
-/*************************************************************************
- * Includes
- *************************************************************************/
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <getopt.h>
-#include <poll.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+/*******************************************************************************
+** Includes
+*/
+#include "bpcat_types.h"
+#include "bpcat_fwp.h"
+#include "bpcat_task.h"
+#include "bpcat_cla.h"
 
 #include "osapi.h"
 
-#include "bplib.h"
+/*******************************************************************************
+** Configuration Definitions
+*/
+#define BPCAT_NUM_GEN_WORKER            1
+#define BPCAT_GEN_WORKER_TIMEOUT        100u
+#define BPCAT_MEMPOOL_LEN               8000000u
+#define BPCAT_QM_MAX_JOBS               1024u
+#define BPCAT_JOBS_PER_CYCLE            100
 
-#define NUM_GEN_WORKER 1
-#define MEM_ALLOC_BYTES 8000000
+/*******************************************************************************
+** Global State
+*/
+static BPCat_AppData_t AppData;
+static BPCat_Task_t CLAOutTask;
+static BPCat_Task_t CLAInTask;     
+static BPCat_Task_t GenWorkers[BPCAT_NUM_GEN_WORKER];
 
-static BPLib_Instance_t            BplibInst;
-static pthread_t cla_in_thr;
-static pthread_t cla_out_thr;
-static pthread_t gen_worker_thr[NUM_GEN_WORKER];
-
-/* Returns current monotonic time */
-int64_t BPA_TIMEP_GetMonotonicTime(void)
+/*******************************************************************************
+** Generic Worker Task Functions
+*/
+static BPLib_Status_t BPCat_GenWorkerTaskSetup()
 {
-    struct timespec ts;
-
-    printf("get mono\n");
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
-    {
-        perror("clock_gettime MONOTONIC");
-        return 0;
-    }
-    return (int64_t)(ts.tv_sec) * 1000 + (int64_t)(ts.tv_nsec) / 1000000;
+    /* Generic Worker does not need any pre-task setup */
+    return BPCAT_SUCCESS;
 }
 
-/* Returns current host time */
-int64_t BPA_TIMEP_GetHostTime(void)
+static BPLib_Status_t BPCat_GenWorkerTaskTeardown()
 {
-    struct timeval tv;
-
-    printf("get host\n");
-    if (gettimeofday(&tv, NULL) == -1) {
-        perror("gettimeofday");
-        return 0;
-    }
-
-    return (int64_t)(tv.tv_sec) * 1000 + (int64_t)(tv.tv_usec) / 1000;
+    /* Generic Worker does not need any post-task teardown */
+    return BPCAT_SUCCESS;
 }
 
-/* Returns host time epoch */
-void BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch)
+static void* BPCat_GenWorkerTaskFunc(BPCat_AppData_t* gAppData)
 {
-    if (Epoch != NULL)
+    while (gAppData->Running)
     {
-        Epoch->Year   = 1970;
-        Epoch->Day    = 1;
-        Epoch->Hour   = 1;
-        Epoch->Minute = 0;
-        Epoch->Second = 0;
-        Epoch->Msec   = 0;
+        BPLib_QM_RunJob(&gAppData->BPLibInst, BPCAT_GEN_WORKER_TIMEOUT);
     }
+    return NULL;
+}
+
+static BPCat_Status_t BPCat_StartTasks()
+{
+    int i;
+    BPCat_Status_t Status;
+
+    /* Genworkers TaskInit */
+    for (i = 0; i < BPCAT_NUM_GEN_WORKER; i++)
+    {
+        GenWorkers[i].TaskSetup = BPCat_GenWorkerTaskSetup;
+        GenWorkers[i].TaskTeardown = BPCat_GenWorkerTaskTeardown;
+        GenWorkers[i].TaskFunc = BPCat_GenWorkerTaskFunc;
+        Status = BPCat_TaskInit(&GenWorkers[i]);
+        if (Status != BPCAT_SUCCESS)
+        {
+            fprintf(stderr, "Failed to initialize Generic Worker Task\n");
+            return Status;
+        }
+    }
+
+    /* CLA TaskInit */
+    CLAOutTask.TaskSetup = BPCat_CLAOutSetup;
+    CLAOutTask.TaskTeardown = BPCat_CLAOutTeardown;
+    CLAOutTask.TaskFunc = BPCat_CLAOutTaskFunc;
+    Status = BPCat_TaskInit(&CLAOutTask);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to initialize CLA Out Task\n");
+        return Status;
+    }
+    CLAInTask.TaskSetup = BPCat_CLAInSetup;
+    CLAInTask.TaskTeardown = BPCat_CLAOutTeardown;
+    CLAInTask.TaskFunc = BPCat_CLAInTaskFunc;
+    Status = BPCat_TaskInit(&CLAInTask);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to initialize CLA IN Task\n");
+        return Status;
+    }
+
+    /* Start the generic workers first so BPLib is ready to do work */
+
+    /* Start the CLAs */
+
+    return BPCAT_SUCCESS;
+}
+
+static void BPCat_StopTasks()
+{
     return;
-}
-
-/* Returns current host clock state */
-BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void)
-{
-    return BPLIB_TIME_CLOCK_VALID;
-}
-
-void BPA_PERFLOGP_Entry(uint32_t PerfLogID)
-{
-
-}
-
-void BPA_PERFLOGP_Exit(uint32_t PerfLogID)
-{
-
-}
-
-BPLib_Status_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_EVP_Init()
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec)
-{
-    printf("%s\n", Spec);
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendNodeMibConfigPkt(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendPerSourceMibConfigPkt(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendNodeMibCounterPkt(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendPerSourceMibCounterPkt(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendChannelContactPkt(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* StorTlmPayload)
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
-{
-    printf("Add app called\n");
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
-{
-    printf("Start App\n");
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
-{
-    printf("Stop App\n");
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
-{
-    printf("Remove App\n");
-    return BPLIB_SUCCESS;
-}
-
-static BPLib_FWP_ProxyCallbacks_t Callbacks = {
-    /* Time Proxy */
-    .BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime,
-    .BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch,
-    .BPA_TIMEP_GetHostClockState = BPA_TIMEP_GetHostClockState,
-    .BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime,
-    /* Perf Log Proxy */
-    .BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry,
-    .BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit,
-    /* Table Proxy */
-    .BPA_TABLEP_SingleTableUpdate = BPA_TABLEP_SingleTableUpdate,
-    /* Event Proxy */
-    .BPA_EVP_Init = BPA_EVP_Init,
-    .BPA_EVP_SendEvent = BPA_EVP_SendEvent,
-    /* ADU Proxy */
-    .BPA_ADUP_AddApplication = BPA_ADUP_AddApplication,
-    .BPA_ADUP_StartApplication = BPA_ADUP_StartApplication,
-    .BPA_ADUP_StopApplication = BPA_ADUP_StopApplication,
-    .BPA_ADUP_RemoveApplication = BPA_ADUP_RemoveApplication,
-    /* Telemetry Proxy */
-    .BPA_TLMP_SendNodeMibConfigPkt = BPA_TLMP_SendNodeMibConfigPkt,
-    .BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt,
-    .BPA_TLMP_SendNodeMibCounterPkt = BPA_TLMP_SendNodeMibCounterPkt,
-    .BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt,
-    .BPA_TLMP_SendChannelContactPkt = BPA_TLMP_SendChannelContactPkt,
-    .BPA_TLMP_SendStoragePkt = BPA_TLMP_SendStoragePkt
-};
-
-
-void* cla_in_loop()
-{
-    int sock_fd;
-    struct sockaddr_in bind_addr;
-    uint8_t buffer[4096] = {0};
-    struct pollfd pfd;
-    int bytes_rx, poll_rc;
-
-    /* Create a UDP socket for the RX link */
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock_fd < 0)
-    {
-        perror("socket()");
-        return NULL;
-    }
-
-    /* Bind the socket to localhost */
-    memset(&bind_addr, 0, sizeof(struct sockaddr_in));
-    bind_addr.sin_family = AF_INET;
-    bind_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bind_addr.sin_port = htons(12345);
-    if (bind(sock_fd, (const struct sockaddr*)&bind_addr,
-        sizeof(struct sockaddr))) 
-    {
-        perror("bind()");
-        close(sock_fd);
-        return NULL;
-    }
-
-    while(true)
-    {
-        pfd.fd = sock_fd;
-        pfd.events = POLLIN;
-        poll_rc = poll(&pfd, 1, 100);
-        if (poll_rc > 0)
-        {
-            bytes_rx = recv(sock_fd, buffer, 4096, 0);
-            if (bytes_rx < 0)
-            {
-                perror("recv()");
-            }
-            else
-            {
-                if (BPLib_CLA_Ingress(&BplibInst, 0, buffer, bytes_rx, 0) != BPLIB_SUCCESS)
-                {
-                    printf("Ingress fail\n");
-                }
-            }
-        }
-        else if (poll_rc < 0)
-        {
-            perror("poll()");
-        }
-    }
-
-    return NULL;
-}
-
-void* gen_worker_loop()
-{
-    while (true)
-    {
-        BPLib_QM_RunJob(&BplibInst, 100);
-    }
-    return NULL;
-}
-
-void* cla_out_loop()
-{
-    uint8_t buffer[4096] = {0};
-    size_t outSize;
-    int sock_fd;
-    struct sockaddr_in server_addr;
-
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock_fd < 0)
-    {
-        perror("socket()");
-        return NULL;
-    }
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(4551);
-    server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-    while(true)
-    {
-        
-        BPLib_CLA_Egress(&BplibInst, 0, buffer, &outSize, 4096, 100);
-        sendto(sock_fd, buffer, outSize, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
-    }
-    return NULL;
 }
 
 void BPCat_Main()
 {
-    BPLib_Status_t InitStatus;
+    BPLib_Status_t BPLibStatus;
+    BPCat_Status_t Status;
 
     /* FWP */
-    InitStatus = BPLib_FWP_Init(&Callbacks);
-    if (InitStatus != BPLIB_SUCCESS)
+    Status = BPCat_FWP_Init();
+    if (Status != BPLIB_SUCCESS)
     {
         printf("Failed to init FWP\n");
         return;
     }
 
-    InitStatus = BPLib_EM_Init();
-    if (InitStatus != BPLIB_SUCCESS)
+    /* EM */
+    BPLibStatus = BPLib_EM_Init();
+    if (BPLibStatus != BPLIB_SUCCESS)
     {
         printf("Failed to init EM\n");
         return;
     }
 
     /* Time Management */
-    // InitStatus = BPLib_TIME_Init();
-    // if (InitStatus != BPLIB_SUCCESS)
-    // {
-    //     printf("Failed to init time\n");
-    //     return;
-    // }
-
-    InitStatus = BPLib_QM_QueueTableInit(&BplibInst, 1024);
-    if (InitStatus != BPLIB_SUCCESS)
+    /* Without modifying the TIME module, I was unable to get this to work.
+    ** We need a follow-on ticket to abstract the TIME module and AS module's
+    ** use of OSAL. Because no data is being put into BPLib, nothing will break
+    ** by having this commented out.
+    BPLibStatus = BPLib_TIME_Init();
+    if (BPLibStatus != BPLIB_SUCCESS)
     {
-        printf("Failed to initialize QM\n");
+        printf("Failed to init time\n");
+        return;
+    }
+    */
+
+    /* MEM */
+    AppData.PoolMem = (void *)calloc(BPCAT_MEMPOOL_LEN, 1);
+    if (AppData.PoolMem == NULL)
+    {
+        fprintf(stderr, "Failed to calloc() memory for the BPLib Memory Pool\n");
+        return;
+    }
+    BPLibStatus = BPLib_MEM_PoolInit(&AppData.BPLibInst.pool, AppData.PoolMem,
+        (size_t)BPCAT_MEMPOOL_LEN);
+    if (BPLibStatus != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to initialize MEM\n");
         return;
     }
 
-    InitStatus = BPLib_MEM_PoolInit(&BplibInst.pool, (void *)calloc(MEM_ALLOC_BYTES, 1),
-        (size_t)MEM_ALLOC_BYTES);
-    if (InitStatus != BPLIB_SUCCESS)
+    /* QM */
+    BPLibStatus = BPLib_QM_QueueTableInit(&AppData.BPLibInst, BPCAT_QM_MAX_JOBS);
+    if (BPLibStatus != BPLIB_SUCCESS)
     {
-        printf("Failed to initialize MEM\n");
+        fprintf(stderr, "Failed to initialize QM\n");
         return;
     }
 
-    pthread_create(&cla_in_thr, NULL, cla_in_loop, NULL);
-    pthread_create(&cla_out_thr, NULL, cla_out_loop, NULL);
-    for (int i = 0; i < NUM_GEN_WORKER; i++)
+    /* Start CLAs and Gen Workers */
+    Status = BPCat_StartTasks();
+    if (Status != BPCAT_SUCCESS)
     {
-        pthread_create(&gen_worker_thr[i], NULL, gen_worker_loop, NULL);
+        fprintf(stderr, "Failed to start BPCat tasks\n");
+        return;
     }
 
-    while (true)
+    /* Run until a SIGINT (CTRL-C) sets AppRun to 0 */
+    while (AppData.Running)
     {
-        BPLib_QM_SortJobs(&BplibInst, 1000);
+        BPLib_QM_SortJobs(&AppData.BPLibInst, BPCAT_JOBS_PER_CYCLE);
+        /* ScanCache here after SQL is added */
     }
+
+    /* Cleanup */
+    BPCat_StopTasks();
+    BPLib_QM_QueueTableDestroy(&AppData.BPLibInst);
+    free(AppData.PoolMem);
 }
 
-/* We're forced to use OSAL until AS, TIME, and QM implement abstraction */
+/* There is no main() because presently, BPLib needs OSAL for TIME and AS
+** Once that is re-worked, this function can be replaced by main()
+*/
 void OS_Application_Startup()
 {
     OS_API_Init();

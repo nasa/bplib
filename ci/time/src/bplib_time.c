@@ -60,6 +60,7 @@ BPLib_Status_t BPLib_TIME_Init(void) {
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime == NULL)
     {
         BPLib_TIME_GlobalData.InitState = BPLIB_TIME_UNINIT;
+
         return BPLIB_TIME_UNINIT_ERROR;
     }
 
