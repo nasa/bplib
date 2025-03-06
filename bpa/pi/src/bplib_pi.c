@@ -157,7 +157,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Bundle_t    *Bundle;
-    BPLib_Status_t     Status = BPLIB_SUCCESS;
+    BPLib_Status_t     Status;
 
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
@@ -168,15 +168,23 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
     {
         /* Copy out the contents of the bundle payload to the return pointer */
-        Status = BPLib_MEM_BlobCopyOut(Bundle, AduPtr, BufLen, AduSize);
+        Status = BPLib_MEM_CopyOutFromOffset(Bundle,
+            Bundle->blocks.PayloadHeader.DataOffsetStart,
+            Bundle->blocks.PayloadHeader.DataOffsetSize,
+            AduPtr,
+            BufLen);
 
-        /* Free the bundle */
-        BPLib_MEM_BundleFree(&Inst->pool, Bundle);
-
-        if (Status == BPLIB_SUCCESS)
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("BPLib_PI_Egress hit BPLib_MEM_CopyOutFromOffset error: %d\n", Status);
+        }
+        else
         {
             printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
         }
+
+        /* Free the bundle */
+        BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
     /* No packet was pulled, presumably queue is empty */
     else 
