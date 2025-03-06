@@ -3,10 +3,15 @@
 
 uint32_t BPLib_CBOR_GetNumExtensionBlocks(BPLib_Bundle_t* StoredBundle)
 {
-    /*
-    ** TODO
-    */
-    return 0;
+    uint32_t ExtensionBlockIndex;
+    for (ExtensionBlockIndex = 0; ExtensionBlockIndex < BPLIB_MAX_NUM_EXTENSION_BLOCKS; ExtensionBlockIndex++)
+    {
+        if (StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.BlockType == BPLib_BlockType_Reserved)
+        {
+            break;
+        }
+    }
+    return ExtensionBlockIndex;
 }
 
 
