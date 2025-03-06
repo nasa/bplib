@@ -42,7 +42,7 @@
 */
 static BPCat_AppData_t AppData;
 static BPCat_Task_t CLAOutTask;
-static BPCat_Task_t CLAInTask;     
+static BPCat_Task_t CLAInTask;
 static BPCat_Task_t GenWorkers[BPCAT_NUM_GEN_WORKER];
 
 /*******************************************************************************
@@ -51,6 +51,7 @@ static BPCat_Task_t GenWorkers[BPCAT_NUM_GEN_WORKER];
 static BPLib_Status_t BPCat_GenWorkerTaskSetup()
 {
     /* Generic Worker does not need any pre-task setup */
+    printf("BPLib generic-worker reporting for duty\n");
     return BPCAT_SUCCESS;
 }
 
@@ -69,6 +70,9 @@ static void* BPCat_GenWorkerTaskFunc(BPCat_AppData_t* gAppData)
     return NULL;
 }
 
+/*******************************************************************************
+** Task Start/Stop
+*/
 static BPCat_Status_t BPCat_StartTasks()
 {
     int i;
@@ -95,7 +99,7 @@ static BPCat_Status_t BPCat_StartTasks()
     Status = BPCat_TaskInit(&CLAOutTask);
     if (Status != BPCAT_SUCCESS)
     {
-        fprintf(stderr, "Failed to initialize CLA Out Task\n");
+        fprintf(stderr, "Failed to initialize CLA-Egress Task\n");
         return Status;
     }
     CLAInTask.TaskSetup = BPCat_CLAInSetup;
@@ -104,22 +108,72 @@ static BPCat_Status_t BPCat_StartTasks()
     Status = BPCat_TaskInit(&CLAInTask);
     if (Status != BPCAT_SUCCESS)
     {
-        fprintf(stderr, "Failed to initialize CLA IN Task\n");
+        fprintf(stderr, "Failed to initialize CLA-Ingress Task\n");
         return Status;
     }
 
     /* Start the generic workers first so BPLib is ready to do work */
+    for (i = 0; i < BPCAT_NUM_GEN_WORKER; i++)
+    {
+        Status = BPCat_TaskStart(&GenWorkers[i], &AppData);
+        if (Status != BPCAT_SUCCESS)
+        {
+            fprintf(stderr, "Failed to start Generic Worker Task\n");
+            return Status;
+        }
+    }
 
     /* Start the CLAs */
+    Status = BPCat_TaskStart(&CLAOutTask, &AppData);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to start CLA-Egress Task\n");
+        return Status;
+    }
+    Status = BPCat_TaskStart(&CLAInTask, &AppData);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to start CLA-Ingress Task\n");
+        return Status;
+    }
 
     return BPCAT_SUCCESS;
 }
 
 static void BPCat_StopTasks()
 {
+    int i;
+    BPCat_Status_t Status;
+
+    /* Stop CLA Tasks */
+    Status = BPCat_TaskStop(&CLAOutTask);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to stop CLA-Egress Task\n");
+    }
+    Status = BPCat_TaskStop(&CLAInTask);
+    if (Status != BPCAT_SUCCESS)
+    {
+        fprintf(stderr, "Failed to stop CLA-Ingress Task\n");
+    }
+
+    /* Stop Generic Workers */
+    for (i = 0; i < BPCAT_NUM_GEN_WORKER; i++)
+    {
+        Status = BPCat_TaskStop(&GenWorkers[i]);
+        if (Status != BPCAT_SUCCESS)
+        {
+            fprintf(stderr, "Failed to stop generic worker\n");
+        }
+    }
+
     return;
 }
 
+/*******************************************************************************
+** Main
+**   Note: Because BPLib is dependent on OSAL, we have to use OS_Application_Startup().
+*/
 void BPCat_Main()
 {
     BPLib_Status_t BPLibStatus;
@@ -189,8 +243,10 @@ void BPCat_Main()
     while (AppData.Running)
     {
         BPLib_QM_SortJobs(&AppData.BPLibInst, BPCAT_JOBS_PER_CYCLE);
-        /* ScanCache here after SQL is added */
+        /* BPLib_ScanCache goes here */
     }
+
+    /* Exit Signal Received */
 
     /* Cleanup */
     BPCat_StopTasks();
@@ -198,11 +254,23 @@ void BPCat_Main()
     free(AppData.PoolMem);
 }
 
-/* There is no main() because presently, BPLib needs OSAL for TIME and AS
-** Once that is re-worked, this function can be replaced by main()
-*/
+void SigHandler(int signo)
+{
+    if (signo == SIGINT)
+    {
+        AppData.Running = 0;
+    }
+}
+
 void OS_Application_Startup()
 {
     OS_API_Init();
+
+    AppData.Running = 1;
+    if (signal(SIGINT, SigHandler) == SIG_ERR) {
+        fprintf(stderr, "Failed to register signal handler for SIGINT.\n");
+        return;
+    }
+
     BPCat_Main();
 }

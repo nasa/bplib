@@ -28,51 +28,87 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define BPCAT_CLA_IN_PORT              4501
-#define BPCAT_CLA_OUT_PORT             4551
 #define BPCAT_CLA_TIMEOUT              100
+#define BPCAT_CLA_BUFLEN               4096
+
+/* These configurations are going to be greatly improved
+** once there is a) time to do so and b) an ability to pass
+** config into BPCat. For now, keeping them static and hardcoded
+** is ok for our testing purposes.
+*/
+typedef struct CLAOutConfig
+{
+    int SockFd;
+    uint16_t TxPort;
+} CLAOutConfig_t;
+
+typedef struct CLAInConfig
+{
+    int SockFd;
+    uint16_t RxPort;
+} CLAInConfig_t;
+
+static CLAOutConfig_t TxCLAConfig = {
+    .SockFd = -1,
+    .TxPort = 4551,
+};
+
+static CLAInConfig_t RxCLAConfig = {
+    .SockFd = -1,
+    .RxPort = 4501,
+};
 
 /*******************************************************************************
 * CLA Out Task Implementation 
 */
-BPCat_Status_t CLAOutSetup()
+BPCat_Status_t BPCat_CLAOutSetup()
 {
-    uint8_t buffer[4096] = {0};
-    size_t outSize;
-    int sock_fd;
-    struct sockaddr_in server_addr;
-
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock_fd < 0)
+    int SockFd;
+    SockFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (SockFd < 0)
     {
         perror("socket()");
         return BPCAT_SOCKET_ERR;
     }
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(4551);
-    server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
+    printf("Setup CLA Egress UDP socket on 127.0.0.1:%u\n", TxCLAConfig.TxPort);
+    TxCLAConfig.SockFd = SockFd;
     return BPCAT_SUCCESS;
 }
 
-BPCat_Status_t CLAOutTeardown()
+BPCat_Status_t BPCat_CLAOutTeardown()
 {
+    close(TxCLAConfig.SockFd);
+    TxCLAConfig.SockFd = -1;
     return BPCAT_SUCCESS;
 }
 
-void* CLAOutTaskFunc()
+void* BPCat_CLAOutTaskFunc(BPCat_AppData_t* AppData)
 {
+    BPLib_Status_t EgressStatus;
     int rc;
+    uint8_t buffer[BPCAT_CLA_BUFLEN] = {0};
+    size_t OutSize;
+    struct sockaddr_in ServerAddr;
 
-    while(true)
+    /* Pre-populate the ServerAddr here to prevent doing it in the run loop */
+    memset(&ServerAddr, 0, sizeof(ServerAddr));
+    ServerAddr.sin_family = AF_INET;
+    ServerAddr.sin_port = htons(TxCLAConfig.TxPort);
+    ServerAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+    while(AppData->Running)
     {
-        BPLib_CLA_Egress(&BPLibInst, 0, buffer, &outSize, 4096, 100);
-        rc = sendto(sock_fd, buffer, outSize, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
-        if (rc < 0)
+        EgressStatus = BPLib_CLA_Egress(&AppData->BPLibInst, 0, buffer, &OutSize, BPCAT_CLA_BUFLEN,
+            BPCAT_CLA_TIMEOUT);
+        if (EgressStatus == BPLIB_SUCCESS)
         {
-            perror("sendto()");
-            return NULL;
+            rc = sendto(TxCLAConfig.SockFd, buffer, OutSize, 0, (struct sockaddr*)&ServerAddr, sizeof(ServerAddr));
+            if (rc < 0)
+            {
+                perror("sendto()");
+                return NULL;
+            }
         }
     }
     return NULL;
@@ -81,68 +117,73 @@ void* CLAOutTaskFunc()
 /*******************************************************************************
 * CLA In Task Implementation 
 */
-BPCat_Status_t CLAInSetup()
+BPCat_Status_t BPCat_CLAInSetup()
 {
-    int sock_fd;
-    struct sockaddr_in bind_addr;
-    uint8_t buffer[BPCAT_CLA_BUFLEN] = {0};
-    struct pollfd pfd;
-    int bytes_rx, poll_rc;
+    int SockFd;
+    struct sockaddr_in BindAddr;
 
     /* Create a UDP socket for the RX link */
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock_fd < 0)
+    SockFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (SockFd < 0)
     {
         perror("socket()");
         return BPCAT_SOCKET_ERR;
     }
 
     /* Bind the socket to localhost */
-    memset(&bind_addr, 0, sizeof(struct sockaddr_in));
-    bind_addr.sin_family = AF_INET;
-    bind_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bind_addr.sin_port = htons(12345);
-    if (bind(sock_fd, (const struct sockaddr*)&bind_addr,
+    memset(&BindAddr, 0, sizeof(struct sockaddr_in));
+    BindAddr.sin_family = AF_INET;
+    BindAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    BindAddr.sin_port = htons(RxCLAConfig.RxPort);
+    if (bind(SockFd, (const struct sockaddr*)&BindAddr,
         sizeof(struct sockaddr))) 
     {
         perror("bind()");
-        close(sock_fd);
+        close(SockFd);
         return BPCAT_SOCKET_ERR;
     }
 
+    printf("Setup CLA Ingress UDP socket on 127.0.0.1:%u\n", RxCLAConfig.RxPort);
+    RxCLAConfig.SockFd = SockFd;
     return BPCAT_SUCCESS;
 }
 
-BPCat_Status_t CLAInTeardown()
+BPCat_Status_t BPCat_CLAInTeardown()
 {
+    close(RxCLAConfig.SockFd);
+    RxCLAConfig.SockFd = -1;
     return BPCAT_SUCCESS;
 }
 
-void* CLAInTaskFunc(BPCat_AppData_t* AppData);
+void* BPCat_CLAInTaskFunc(BPCat_AppData_t* AppData)
 {
+    uint8_t buffer[BPCAT_CLA_BUFLEN] = {0};
+    struct pollfd pfd;
+    int BytesRx, PollRc;
+
     while(AppData->Running)
     {
-        pfd.fd = sock_fd;
+        pfd.fd = RxCLAConfig.SockFd;
         pfd.events = POLLIN;
-        poll_rc = poll(&pfd, 1, 100);
-        if (poll_rc > 0)
+        PollRc = poll(&pfd, 1, BPCAT_CLA_TIMEOUT);
+        if (PollRc > 0)
         {
-            bytes_rx = recv(sock_fd, buffer, 4096, 0);
-            if (bytes_rx < 0)
+            BytesRx = recv(RxCLAConfig.SockFd, buffer, BPCAT_CLA_BUFLEN, 0);
+            if (BytesRx > 0)
+            {
+                printf("Received Candidate Bundle with len %d\n", BytesRx);
+                if (BPLib_CLA_Ingress(&AppData->BPLibInst, 0, buffer, BytesRx, 0) != BPLIB_SUCCESS)
+                {
+                    printf("BPLib_CLA_Ingress Fail\n");
+                }
+            }
+            else if (BytesRx < 0)
             {
                 perror("recv()");
-            }
-            else
-            {
-                /* In this Ticket, Ingress is disabled to simplify the review process */
-                printf("UDP Recv %lu bytes\n", bytes_rx);
-                // if (BPLib_CLA_Ingress(&BPLibInst, 0, buffer, bytes_rx, 0) != BPLIB_SUCCESS)
-                // {
-                //     printf("Ingress fail\n");
-                // }
+                return NULL;
             }
         }
-        else if (poll_rc < 0)
+        else if (PollRc < 0)
         {
             perror("poll()");
             return NULL;

@@ -38,7 +38,7 @@ typedef int BPCat_Status_t;
 
 typedef struct BPCat_AppData
 {
-    volatile sig_atomic_t* Running;
+    volatile sig_atomic_t Running;
     void* PoolMem;
     BPLib_Instance_t BPLibInst;
 } BPCat_AppData_t;

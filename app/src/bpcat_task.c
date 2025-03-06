@@ -43,13 +43,21 @@ BPCat_Status_t BPCat_TaskInit(BPCat_Task_t* task)
 
 BPCat_Status_t BPCat_TaskStart(BPCat_Task_t* task, BPCat_AppData_t* AppData)
 {
-    if (task == NULL)
+    int rc;
+
+    if ((task == NULL) || (AppData == NULL))
     {
         return BPCAT_NULL_PTR_ERR;
     }
 
     /* Launch the task in it's own thread */
-
+    rc = pthread_create(&task->Handle, NULL, (void* (*)(void*))task->TaskFunc,
+        (void*)(AppData));
+    if (rc != 0)
+    {
+        perror("pthread_create()");
+        return BPCAT_TASK_INIT_ERR;
+    }
 
     return BPCAT_SUCCESS;
 }
@@ -64,6 +72,7 @@ BPCat_Status_t BPCat_TaskStop(BPCat_Task_t* task)
     }
 
     /* Join */
+    pthread_join(task->Handle, NULL);
 
     Status = task->TaskTeardown();
     if (Status != BPCAT_SUCCESS)
