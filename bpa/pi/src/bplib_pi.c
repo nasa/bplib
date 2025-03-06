@@ -109,7 +109,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* TODO need additional changes to set CRC */
     /* TODO add extension blocks configs? Or is that EBP? */
 
-    //printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
+    printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
 
     return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
@@ -137,7 +137,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
 
         if (Status == BPLIB_SUCCESS)
         {
-            //printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
+            printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
         }
     }
     /* No packet was pulled, presumably queue is empty */
