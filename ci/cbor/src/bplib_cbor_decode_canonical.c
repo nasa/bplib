@@ -250,8 +250,18 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR;
     }
 
-    /* Grab the end-of-block offset (subtract one?) */
-    CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+    /*
+    ** Grab the end-of-block offset
+    ** TODO: Figure out why we have to subtract 2 if the block is a payload block!
+    */
+    if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
+    {
+        CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 2;
+    }
+    else
+    {
+        CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+    }
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Canonical Block [%u]: \n", CanonicalBlockIndex);

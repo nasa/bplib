@@ -306,12 +306,10 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
     {
         /*
         ** Calculate the total payload size
-        **
-        ** TODO: Figure out why we don't have to add one here!
-        **       This is likely due to how we're assigning BlockOffsetEnd during the payload decode
         */
         TotalPayloadSize = StoredBundle->blocks.PayloadHeader.BlockOffsetEnd
-                         - StoredBundle->blocks.PayloadHeader.BlockOffsetStart;
+                         - StoredBundle->blocks.PayloadHeader.BlockOffsetStart
+                         + 1;
 
         /*
         ** Copy in the whole payload (header, data, and crc value)
