@@ -211,7 +211,7 @@ void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
     */
     UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
     UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
-    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BundleProcFlags, 0);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockProcFlags, 0);
     UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_CRC16);
 }
 
@@ -315,7 +315,7 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
     */
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BundleProcFlags, 0);
+   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockProcFlags, 0);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_None);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcVal, 0);
 }
@@ -408,7 +408,7 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
     */
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BundleProcFlags, 0);
+   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockProcFlags, 0);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_CRC32C);
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcVal, 0x3C30C058);
 }
