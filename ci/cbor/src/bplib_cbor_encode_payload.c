@@ -7,7 +7,6 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
 {
     BPLib_Status_t ReturnStatus;
     BPLib_Status_t PayloadDataCopyStatus;
-    UsefulBuf OutputSubBuffer;
     QCBOREncodeContext Context;
     UsefulBuf InitStorage;
     UsefulBufC FinishBuffer;
@@ -53,7 +52,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         /*
         ** Initialize the encoder (encoding just the initial items before the ADU)
         */
-        InitStorage.ptr = CurrentOutputBufferAddr;
+        InitStorage.ptr = (void*) CurrentOutputBufferAddr;
         InitStorage.len = BytesLeftInOutputBuffer;
         QCBOREncode_Init(&Context, InitStorage);
 
@@ -102,14 +101,14 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         */
         if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 24)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (0b010 << 5) | StoredBundle->blocks.PayloadHeader.DataOffsetSize;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | StoredBundle->blocks.PayloadHeader.DataOffsetSize;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
         }
         else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x100)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (0b010 << 5) | 24;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 24;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
@@ -122,7 +121,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         }
         else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x10000)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (0b010 << 5) | 25;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 25;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
@@ -141,7 +140,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         }
         else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x100000000)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (0b010 << 5) | 26;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 26;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
@@ -172,7 +171,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         }
         else
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (0b010 << 5) | 27;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 27;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
@@ -232,7 +231,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         PayloadDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
             StoredBundle->blocks.PayloadHeader.DataOffsetStart,
             StoredBundle->blocks.PayloadHeader.DataOffsetSize,
-            CurrentOutputBufferAddr,
+            (void*) CurrentOutputBufferAddr,
             BytesLeftInOutputBuffer);
 
         if (PayloadDataCopyStatus == BPLIB_SUCCESS)
@@ -251,7 +250,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         /*
         ** Initialize the encoder (to encode the CRC)
         */
-        InitStorage.ptr = CurrentOutputBufferAddr;
+        InitStorage.ptr = (void*) CurrentOutputBufferAddr;
         InitStorage.len = BytesLeftInOutputBuffer;
         QCBOREncode_Init(&Context, InitStorage);
 
