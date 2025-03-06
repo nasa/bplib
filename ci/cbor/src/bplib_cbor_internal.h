@@ -259,6 +259,17 @@ uint32_t BPLib_CBOR_GetNumExtensionBlocks(BPLib_Bundle_t* StoredBundle);
 
 
 /**
+ * \brief Encodes the extension block's block-specific data, putting the output in the provided buffer
+ *
+ * \param[in] CurrExtBlock (BPLib_ExtensionBlock_t*) Pointer to the extension block to be encoded
+ * \param[in] ExtensionBlockIndex (UsefulBuf*) Pointer to the output buffer info (ptr and len)
+ *
+ * \return Number of bytes encoded and output to the buffer.
+ */
+size_t BPLib_CBOR_EncodeBlockSpecificData(BPLib_ExtensionBlock_t* CurrExtBlock,
+    UsefulBuf* CurrentContextPlace);
+
+/**
  * \brief Encodes the specified extension block data into the output buffer
  *
  * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
