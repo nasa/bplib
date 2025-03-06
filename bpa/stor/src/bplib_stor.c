@@ -67,7 +67,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
     uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
     uint16_t            i, j;
-    
+
     if (Inst == NULL)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID, BPLib_EM_EventType_ERROR,
@@ -112,7 +112,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
             if (QueuedBundle != NULL)
             {
                 QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
-                
+
                 /* If destination EID matches this node, look for an available channel */
                 if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                             BPLIB_EID_INSTANCE))
