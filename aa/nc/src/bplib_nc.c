@@ -130,11 +130,8 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
 
 BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 {
-    BPLib_Status_t Status;
     BPLib_Status_t FWP_UpdateStatus;
     // BPLib_Status_t ModuleStatus;
-
-    Status = BPLIB_SUCCESS;
 
     /* Update Channel Configurations configuration with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_CHANNEL,
@@ -142,7 +139,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_NC_ChannelConfigTblUpdate();
 
@@ -164,7 +160,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Contacts configuration with TABLEP */
@@ -173,7 +169,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_NC_ContactsTblUpdate();
 
@@ -195,7 +190,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Compressed Reporting configuration with TABLEP */
@@ -204,7 +199,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_ARP_CompressedReportingTblUpdate();
         if (ModuleStatus != BPLIB_SUCCESS)
@@ -225,7 +219,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Custodian Authorization configuration with TABLEP */
@@ -234,7 +228,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_PD_CustodianAuthorizationTblUpdate();
 
@@ -256,7 +249,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Custody Authorization configuration with TABLEP */
@@ -265,7 +258,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_PD_CustodyAuthorizationTblUpdate();
 
@@ -287,7 +279,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update MIB Configuration per Node configuration with TABLEP */
@@ -296,7 +288,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_NC_NodeConfigTblUpdate();
 
@@ -318,7 +309,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update MIB Configuration per Source configuration with TABLEP */
@@ -327,7 +318,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_NC_SourceConfigTblUpdate();
 
@@ -349,7 +339,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Report-to-EID Authorization Policy configuration with TABLEP */
@@ -358,7 +348,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_PD_ReportTblUpdate();
 
@@ -380,7 +369,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Source Authorization Policy configuration with TABLEP */
@@ -389,7 +378,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_PD_SrcAuthTblUpdate();
 
@@ -411,7 +399,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Source Latency Policy configuration with TABLEP */
@@ -420,7 +408,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_PD_SrcLatencyTblUpdate();
 
@@ -442,7 +429,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
     /* Update Storage configuration with TABLEP */
@@ -451,7 +438,6 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        Status = BPLIB_TBL_UPDATED;
         /*
         ModuleStatus = BPLib_STOR_StorageTblUpdate();
 
@@ -473,8 +459,8 @@ BPLib_Status_t BPLib_NC_ConfigUpdate(void)
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
-        Status = BPLIB_ERROR;
+        return BPLIB_ERROR;
     }
 
-    return Status;
+    return BPLIB_SUCCESS;
 }

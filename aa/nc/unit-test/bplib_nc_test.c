@@ -1581,7 +1581,7 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
     /* Run function under test */
     Status = BPLib_NC_ConfigUpdate();
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_TBL_UPDATED);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 
     /* Verify that every configuration update event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
@@ -1628,8 +1628,8 @@ void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
     /* Show that 0 configuration update events were issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 
-    /* Show that an attempt to update all configurations was made */
-    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    /* Show that upon table update error, table updates aborted */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 1);
     BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
     BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
     BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
