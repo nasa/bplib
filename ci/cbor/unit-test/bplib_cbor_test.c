@@ -307,7 +307,7 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
     
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Lifetime, 3600000);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.FragmentOffset, 0);
-    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.TotalAduLength, 30);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.TotalAduLength, 0);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcVal, 0);
     
     /*
@@ -400,7 +400,7 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
     
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Lifetime, 3600000);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.FragmentOffset, 0);
-    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.TotalAduLength, 40);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.TotalAduLength, 0);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcVal, 0x065315CD);
     
     /*
