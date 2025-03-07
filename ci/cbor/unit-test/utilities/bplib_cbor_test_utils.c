@@ -43,4 +43,5 @@ void UtTest_Setup(void)
 {
     TestBplibCbor_Register();
     TestBplibCborEncode_Register();
+    TestBplibCborEncodePrevNode_Register();
 }
