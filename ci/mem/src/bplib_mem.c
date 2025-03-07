@@ -217,7 +217,7 @@ BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, s
     BPLib_MEM_Block_t* curr_block;
     size_t bytes_copied;
 
-    if ((bundle == NULL) || (out_buffer == NULL) || (out_size == NULL))
+    if ((bundle == NULL) || (out_buffer == NULL) || (out_size == NULL) || (bundle->blob == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
