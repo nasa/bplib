@@ -24,7 +24,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_JOBWAIT_TIMEOUT 1L
@@ -223,12 +222,6 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         **  I think it could be a good idea to make the unsorted jobs queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        if (curr_job.Context.Bundle == NULL)
-        {
-            printf("NULL Bundle in RunJob: Curr State: %d, NextState: %d\n", curr_job.Context.NextState, next_state);
-        }
-        assert(curr_job.Context.Bundle != NULL);
-        assert(curr_job.Context.Bundle->blob != NULL);
         if (next_state != NO_NEXT_STATE)
         {
             BPLib_QM_AddUnsortedJob(inst, curr_job.Context.Bundle, next_state, 
