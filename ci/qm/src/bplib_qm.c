@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_JOBWAIT_TIMEOUT 1L
@@ -206,7 +207,7 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.JobFunc(inst, curr_job.Context->Bundle);
+        next_state = curr_job.JobFunc(inst, curr_job.Context.Bundle);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
@@ -222,9 +223,15 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         **  I think it could be a good idea to make the unsorted jobs queue larger than the jobs queue so that this
         **  case is infrequent.
         */
+        if (curr_job.Context.Bundle == NULL)
+        {
+            printf("NULL Bundle in RunJob: Curr State: %d, NextState: %d\n", curr_job.Context.NextState, next_state);
+        }
+        assert(curr_job.Context.Bundle != NULL);
+        assert(curr_job.Context.Bundle->blob != NULL);
         if (next_state != NO_NEXT_STATE)
         {
-           BPLib_QM_AddUnsortedJob(inst, curr_job.Context->Bundle, next_state, 
+            BPLib_QM_AddUnsortedJob(inst, curr_job.Context.Bundle, next_state, 
                                                         QM_PRI_NORMAL, QM_WAIT_FOREVER);
         } 
     }    
@@ -235,19 +242,21 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobFunc_t next_job_func;
-    BPLib_QM_JobContext_t unsorted_job;
 
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
+        /* RECEIVING INTO curr_job.Context directly may be a quick fix. 
+        ** This prevents the previous segfault.  We're probably ok doing this
+        ** until our queue design and back-pressuring is developed.
+        */
+        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &curr_job.Context, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            next_job_func = BPLib_QM_Job_Lookup(unsorted_job.NextState);
+            next_job_func = BPLib_QM_Job_Lookup(curr_job.Context.NextState);
             if (next_job_func)
             {
                 /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
                 curr_job.JobFunc = next_job_func;
-                curr_job.Context = &unsorted_job;
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
@@ -261,7 +270,7 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
             else
             {
                 /* I don't think this warrants an event message, but we should know if something got here */
-                printf("Invalid Bundle State Reached: %d\n", unsorted_job.NextState);
+                printf("Invalid Bundle State Reached: %d\n", curr_job.Context.NextState);
             }
         }
         else
