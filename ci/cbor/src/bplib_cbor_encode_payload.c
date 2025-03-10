@@ -360,29 +360,5 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
             }
         }
     }
-
-    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
-    if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
-    {
-        printf("BPLib_CBOR_CopyOrEncodePayload encoded payload block of size %lu: \n", *NumBytesCopied);
-    }
-    else
-    {
-        printf("BPLib_CBOR_CopyOrEncodePayload copied payload block of size %lu: \n", *NumBytesCopied);
-    }
-    if (ReturnStatus == BPLIB_SUCCESS)
-    {
-        for (size_t i = 0 ; i < *NumBytesCopied; i++)
-        {
-            printf("0x%02x, ", ((uint8_t*)OutputBuffer)[i]);
-            if (((i+1) % 8) == 0)
-            {
-                printf("\n");
-            }
-        }
-        printf("\n");
-    }
-    #endif
-
     return ReturnStatus;
 }
