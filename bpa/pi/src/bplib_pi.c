@@ -90,6 +90,22 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* Mark the primary block as "dirty" */
     NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
 
+    /* Set primary block based on channel table configurations */
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID),
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID),
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].ReportToEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
+    NewBundle->blocks.PrimaryBlock.SrcEID.Service =
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
+
+    NewBundle->blocks.PrimaryBlock.BundleProcFlags =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].BundleProcFlags;
+    NewBundle->blocks.PrimaryBlock.CrcType =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CrcType;
+    NewBundle->blocks.PrimaryBlock.Lifetime =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].Lifetime;
+
     /* 
     ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime
     ** will be set to 0 and the MonoTime will be used for age block calculations and 
@@ -97,20 +113,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     */
     BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
     NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
-
-    /* Set primary block based on channel table configurations */
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID),
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID),
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].ReportToEID);
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID),
-                        BPLIB_EID_INSTANCE);
-    NewBundle->blocks.PrimaryBlock.SrcEID.Service =
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
-
-    NewBundle->blocks.PrimaryBlock.BundleProcFlags = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].BundleProcFlags;
-    NewBundle->blocks.PrimaryBlock.CrcType = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CrcType;
-    NewBundle->blocks.PrimaryBlock.Lifetime = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].Lifetime;
 
 
     /* Fill out the canonical block configs */
