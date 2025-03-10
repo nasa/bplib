@@ -834,35 +834,28 @@ void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 
 void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - Identify contact to be stopped
-    Status = BPLib_CLA_ContactStop();
-
-    - Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
+    Status = BPLib_CLA_ContactStop(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
+        /* TODO: Request Storage clear all queues associated with the CLA. Storage clears the queues */
+
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact stop directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-stop directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_STOP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact stop directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-stop directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
