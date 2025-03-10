@@ -202,5 +202,32 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         ReturnStatus = BPLIB_SUCCESS;
     }
 
+    #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
+    if (StoredBundle->blocks.PayloadHeader.RequiresEncode)
+    {
+        printf("BPLib_CBOR_EncodeExtensionBlock encoded ext block %u of size %lu: \n",
+            ExtensionBlockIndex,
+            *NumBytesCopied);
+    }
+    else
+    {
+        printf("BPLib_CBOR_EncodeExtensionBlock copied ext block %u of size %lu: \n",
+            ExtensionBlockIndex,
+            *NumBytesCopied);
+    }
+    if (ReturnStatus == BPLIB_SUCCESS)
+    {
+        for (size_t i = 0 ; i < *NumBytesCopied; i++)
+        {
+            printf("0x%02x, ", ((uint8_t*)OutputBuffer)[i]);
+            if (((i+1) % 8) == 0)
+            {
+                printf("\n");
+            }
+        }
+        printf("\n");
+    }
+    #endif
+
     return ReturnStatus;
 }
