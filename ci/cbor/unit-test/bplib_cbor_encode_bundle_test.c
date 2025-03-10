@@ -331,7 +331,7 @@ void Test_BPLib_CBOR_EncodeBundle_EncodePrimaryAndPayload(void)
     /* Payload Metadata */
     InputBundle.blocks.PayloadHeader.RequiresEncode = true;
     InputBundle.blocks.PayloadHeader.DataOffsetStart = 42;
-    InputBundle.blocks.PayloadHeader.DataOffsetSize = 29;
+    InputBundle.blocks.PayloadHeader.DataSize = 29;
 
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_CopyOutFromOffset), BPLIB_SUCCESS);

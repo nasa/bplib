@@ -154,7 +154,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* Fill out the rest of the payload block fields */
     NewBundle->blocks.PayloadHeader.RequiresEncode = true;
     NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
-    NewBundle->blocks.PayloadHeader.DataOffsetSize = AduSize;
+    NewBundle->blocks.PayloadHeader.DataSize = AduSize;
 
     printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
 
@@ -179,7 +179,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         /* Copy out the contents of the bundle payload to the return pointer */
         Status = BPLib_MEM_CopyOutFromOffset(Bundle,
             Bundle->blocks.PayloadHeader.DataOffsetStart,
-            Bundle->blocks.PayloadHeader.DataOffsetSize,
+            Bundle->blocks.PayloadHeader.DataSize,
             AduPtr,
             BufLen);
 
@@ -189,7 +189,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         }
         else
         {
-            *AduSize = Bundle->blocks.PayloadHeader.DataOffsetSize;
+            *AduSize = Bundle->blocks.PayloadHeader.DataSize;
             printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
         }
 

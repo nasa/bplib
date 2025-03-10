@@ -190,7 +190,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     ** This will be used for ADU delivery
     */
     CanonicalBlockHdr->DataOffsetStart = QCBORDecode_Tell(ctx);
-    CanonicalBlockHdr->DataOffsetSize = CanonBlockDataByteStrInfo.len;
+    CanonicalBlockHdr->DataSize = CanonBlockDataByteStrInfo.len;
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
@@ -291,7 +291,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
     printf("\t Block Offset Start: %lu\n", CanonicalBlockHdr->BlockOffsetStart);
     printf("\t Data Offset Start: %lu\n", CanonicalBlockHdr->DataOffsetStart);
-    printf("\t Data Offset Size: %lu\n", CanonicalBlockHdr->DataOffsetSize);
+    printf("\t Data Size: %lu\n", CanonicalBlockHdr->DataSize);
     printf("\t Block Offset End: %lu\n", CanonicalBlockHdr->BlockOffsetEnd);
     printf("\t Block Size: %lu\n", CanonicalBlockHdr->BlockOffsetEnd - CanonicalBlockHdr->BlockOffsetStart + 1);
     switch (CanonicalBlockHdr->BlockType)
@@ -327,7 +327,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
             break;
         case BPLib_BlockType_Payload:
             printf("\t Payload Data Length: %lu bytes\n",
-                CanonicalBlockHdr->DataOffsetSize);
+                CanonicalBlockHdr->DataSize);
             break;
         default:
             printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);

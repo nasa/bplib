@@ -119,71 +119,71 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         **      - the next 5 bits should be set to 27
         **      - the next 8 bytes should describe the length
         */
-        if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 24)
+        if (StoredBundle->blocks.PayloadHeader.DataSize < 24)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | StoredBundle->blocks.PayloadHeader.DataOffsetSize;
+            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | StoredBundle->blocks.PayloadHeader.DataSize;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
         }
-        else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x100)
+        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x100)
         {
             *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 24;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataOffsetSize & 0xFF);
+            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
         }
-        else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x10000)
+        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x10000)
         {
             *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 25;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 8) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataOffsetSize & 0xFF);
+            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
         }
-        else if (StoredBundle->blocks.PayloadHeader.DataOffsetSize < 0x100000000)
+        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x100000000)
         {
             *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 26;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 24) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 24) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 16) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 16) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 8) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataOffsetSize & 0xFF);
+            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
@@ -196,49 +196,49 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 56) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 56) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 48) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 48) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 40) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 40) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 32) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 32) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 24) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 24) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 16) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 16) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataOffsetSize >> 8) & 0xFF);
+            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
             BytesLeftInOutputBuffer--;
 
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataOffsetSize & 0xFF);
+            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
             *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
             TotalBytesCopied++;
             CurrentOutputBufferAddr++;
@@ -250,15 +250,15 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         */
         PayloadDataCopyStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
             StoredBundle->blocks.PayloadHeader.DataOffsetStart,
-            StoredBundle->blocks.PayloadHeader.DataOffsetSize,
+            StoredBundle->blocks.PayloadHeader.DataSize,
             (void*) CurrentOutputBufferAddr,
             BytesLeftInOutputBuffer);
 
         if (PayloadDataCopyStatus == BPLIB_SUCCESS)
         {
-            CurrentOutputBufferAddr += StoredBundle->blocks.PayloadHeader.DataOffsetSize;
-            BytesLeftInOutputBuffer -= StoredBundle->blocks.PayloadHeader.DataOffsetSize;
-            TotalBytesCopied += StoredBundle->blocks.PayloadHeader.DataOffsetSize;
+            CurrentOutputBufferAddr += StoredBundle->blocks.PayloadHeader.DataSize;
+            BytesLeftInOutputBuffer -= StoredBundle->blocks.PayloadHeader.DataSize;
+            TotalBytesCopied += StoredBundle->blocks.PayloadHeader.DataSize;
         }
         else
         {

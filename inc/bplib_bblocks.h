@@ -118,7 +118,7 @@ typedef struct
     uint64_t        BlockOffsetStart; // Used when skipping re-encoding
     uint64_t        BlockOffsetEnd; // Used when skipping re-encoding
     uint64_t        DataOffsetStart; // Used for ADU Delivery
-    uint64_t        DataOffsetSize; // Used for ADU Delivery
+    uint64_t        DataSize; // Used for ADU Delivery
     bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 

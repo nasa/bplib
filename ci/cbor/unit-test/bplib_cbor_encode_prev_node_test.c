@@ -178,7 +178,7 @@ void Test_BPLib_CBOR_EncodeBundle_PrevNode(void)
     /* Payload Metadata */
     InputBundle.blocks.PayloadHeader.RequiresEncode = true;
     InputBundle.blocks.PayloadHeader.DataOffsetStart = 65; // from `bundle_w_prev_node_and_payload`
-    InputBundle.blocks.PayloadHeader.DataOffsetSize = 30; // from `bundle_w_prev_node_and_payload`
+    InputBundle.blocks.PayloadHeader.DataSize = 30; // from `bundle_w_prev_node_and_payload`
 
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_CopyOutFromOffset), BPLIB_SUCCESS);
