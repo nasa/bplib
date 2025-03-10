@@ -18,33 +18,24 @@
  *
  */
 
-/**
- * @file
- *
- * Auto-Generated stub implementations for functions defined in bplib_fwp header
- */
-
-#include "bplib_fwp.h"
-#include "utgenstub.h"
-
-/* =========== */
-/* Global Data */
-/* =========== */
-
-BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+#ifndef BPLIB_QM_HANDLERS_H
+#define BPLIB_QM_HANDLERS_H
 
 /*
- * ----------------------------------------------------
- * Generated stub function for BPLib_FWP_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t *Callbacks)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_FWP_Init, BPLib_Status_t);
+** Include 
+*/
 
-    UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ProxyCallbacks_t *, Callbacks);
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
-    UT_GenStub_Execute(BPLib_FWP_Init, Basic, NULL);
+#include "bplib_qm.h"
 
-    return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
-}
+
+/*
+** Function Definitions
+*/
+
+void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+#endif /* BPLIB_QM_HANDLERS_H */

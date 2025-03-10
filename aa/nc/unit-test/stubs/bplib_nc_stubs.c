@@ -27,6 +27,12 @@
 #include "bplib_nc.h"
 #include "utgenstub.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_NC_GetAppState()
@@ -48,11 +54,11 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
  * Generated stub function for BPLib_NC_Init()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t *ConfigPtrs)
+BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t *ConfigPtrs)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_NC_Init, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_NC_Init, BPLib_FWP_ConfigPtrs_t *, ConfigPtrs);
+    UT_GenStub_AddParam(BPLib_NC_Init, BPLib_NC_ConfigPtrs_t *, ConfigPtrs);
 
     UT_GenStub_Execute(BPLib_NC_Init, Basic, NULL);
 
@@ -102,4 +108,18 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State)
     UT_GenStub_AddParam(BPLib_NC_SetAppState, BPLib_NC_ApplicationState_t, State);
 
     UT_GenStub_Execute(BPLib_NC_SetAppState, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_ConfigUpdate()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_NC_ConfigUpdate(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_ConfigUpdate, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_NC_ConfigUpdate, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_NC_ConfigUpdate, BPLib_Status_t);
 }

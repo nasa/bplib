@@ -46,11 +46,11 @@ const BPLib_EID_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                            .Node         = 0,
                                            .Service      = 0};
 
-const BPLib_EID_t BPLIB_EID_INSTANCE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                        .Allocator    = 0,
-                                        .Node         = 0,
-                                        .Service      = 0};
+const BPLib_EID_t BPLIB_EID_INSTANCE = {.Scheme       = BPLIB_LOCAL_EID_SCHEME,
+                                        .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
+                                        .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
+                                        .Node         = BPLIB_LOCAL_EID_NODE_NUM,
+                                        .Service      = BPLIB_LOCAL_EID_SERVICE_NUM};
 
 /* ==================== */
 /* Function Definitions */
@@ -175,6 +175,23 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
             EID_Actual.Allocator    == EID_Reference.Allocator    &&
             EID_Actual.Node         == EID_Reference.Node         &&
             EID_Actual.Service      == EID_Reference.Service);
+}
+
+bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
+{
+    return (EID_Actual.Scheme       == EID_Reference.Scheme       &&
+            EID_Actual.IpnSspFormat == EID_Reference.IpnSspFormat &&
+            EID_Actual.Allocator    == EID_Reference.Allocator    &&
+            EID_Actual.Node         == EID_Reference.Node);
+}
+
+void BPLib_EID_CopyEids(BPLib_EID_t *EID_Actual, BPLib_EID_t EID_Reference)
+{
+    EID_Actual->Allocator = EID_Reference.Allocator;
+    EID_Actual->IpnSspFormat = EID_Reference.IpnSspFormat;
+    EID_Actual->Node = EID_Reference.Node;
+    EID_Actual->Scheme = EID_Reference.Scheme;
+    EID_Actual->Service = EID_Reference.Service;
 }
 
 bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)

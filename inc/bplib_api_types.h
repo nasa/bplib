@@ -29,6 +29,8 @@ extern "C" {
 ** Include Files
 */
 
+#include "bplib_cfg.h"
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -91,15 +93,21 @@ typedef struct BPLib_IpnAddr
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
 
+/**
+ * \brief Job egress ID to use before a bundle's route is known 
+*/
+#define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
+
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
+#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Configuration has been updated */
 #define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
 #define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
 #define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
 #define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Table validation error code */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Configuration validation error code */
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
 #define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
@@ -174,6 +182,9 @@ typedef struct BPLib_IpnAddr
 
 /* MEM Errors */
 #define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
+
+
+#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -57)
 
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
