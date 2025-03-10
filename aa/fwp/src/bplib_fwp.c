@@ -62,7 +62,8 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         Callbacks->BPA_TLMP_SendStoragePkt               == NULL ||
         Callbacks->BPA_TABLEP_TableUpdate                == NULL ||
         Callbacks->BPA_CLAP_ContactSetup                 == NULL ||
-        Callbacks->BPA_CLAP_ContactStart                 == NULL)
+        Callbacks->BPA_CLAP_ContactStart                 == NULL ||
+        Callbacks->BPA_CLAP_ContactStop                  == NULL)
     {
         Status = BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -96,14 +97,13 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = Callbacks->BPA_TLMP_SendChannelContactPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = Callbacks->BPA_TLMP_SendStoragePkt;
 
-<<<<<<< HEAD
+        /* Initialize Table Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate = Callbacks->BPA_TABLEP_TableUpdate;
+
         /* Initialize CLA Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup = Callbacks->BPA_CLAP_ContactSetup;
         BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart = Callbacks->BPA_CLAP_ContactStart;
-=======
-        /* Initialize Table Proxy callbacks */
-        BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate = Callbacks->BPA_TABLEP_TableUpdate;
->>>>>>> ee91260b7c7a549e33c54a97299df8c0a93f368f
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop  = Callbacks->BPA_CLAP_ContactStop;
 
         /* Initialize other proxies' callbacks TODO */
     }
