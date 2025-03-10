@@ -231,7 +231,7 @@ void* cla_in_loop()
     memset(&bind_addr, 0, sizeof(struct sockaddr_in));
     bind_addr.sin_family = AF_INET;
     bind_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bind_addr.sin_port = htons(12345);
+    bind_addr.sin_port = htons(4501);
     if (bind(sock_fd, (const struct sockaddr*)&bind_addr,
         sizeof(struct sockaddr))) 
     {

@@ -9,7 +9,13 @@
 /*******************************************************************************
 * Definitions and Types 
 */
-#define BPLIB_STOR_BATCH_SIZE 100
+#define BPLIB_STOR_BATCH_SIZE   1
+
+#define BPLIB_STOR_DBNAME       "bplib.db"
+/* Use this define to run SQLite3 entirely in RAM
+** #define BPLIB_STOR_DBNAME       ":memory:"
+*/
+
 
 typedef struct BPLib_BundleCache
 {
@@ -18,8 +24,6 @@ typedef struct BPLib_BundleCache
     size_t CurrBatchSize;
     pthread_mutex_t lock;
 } BPLib_BundleCache_t;
-
-static int BatchCnt = 0;
 
 /*******************************************************************************
 * SQL Query Definitions 
@@ -54,13 +58,161 @@ static sqlite3_stmt* BlobStmt;
 static BPLib_BundleCache_t CacheInst;
 
 /*******************************************************************************
-* Static Functions
+* SQLite3 Implementation
 */
-static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
+static int BPLib_SQL_Init(sqlite3** db)
 {
-    int i, SQLStatus, CurrBundleID;
-    BPLib_Bundle_t* CurrBundle;
+    int SQLStatus;
+    sqlite3* ActiveDB;
+
+    if (db == NULL)
+    {
+        return -1;
+    }
+
+    SQLStatus = sqlite3_open(BPLIB_STOR_DBNAME, db);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    ActiveDB = *db;
+
+    /* Initialize SQLite3 Pragmas we need for our use case */
+    SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA journal_mode=WAL;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA foreign_keys=ON;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    /* Note: Apparently SQLite3 can silently have foreign_keys=ON fail if your
+    ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
+    ** check if foreign keys were enabled by reading the setting back after writing
+    */
+    // TODO: It looks like I have to use prep_v2 and step here.
+
+    /* Create the table if it doesn't already exist */
+    SQLStatus = sqlite3_exec(ActiveDB, CreateTableSQL, 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK) {
+        return SQLStatus;
+    }
+
+    /* Init SQL Statements: Doing so in Init() is an optimization to avoid
+    ** re-initializing during operation.
+    */
+    SQLStatus = sqlite3_prepare_v2(ActiveDB, InsertMetadataSQL, -1, &MetadataStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_prepare_v2(ActiveDB, InsertBlobSQL, -1, &BlobStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+
+    /* Expecting SQLITE_OK */
+    return SQLStatus;
+}
+
+static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
+{
+    int SQLStatus;
+
+    if (BBlocks == NULL)
+    {
+        return -1;
+    }
+
+    sqlite3_reset(MetadataStmt);
+    sqlite3_bind_int64(MetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
+        (int64_t)BBlocks->PrimaryBlock.Lifetime);
+    sqlite3_bind_int64(MetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
+
+    SQLStatus = sqlite3_step(MetadataStmt);
+    if (SQLStatus != SQLITE_DONE)
+    {
+        printf("Insert meta failed\n");
+        return SQLStatus;
+    }
+
+    return SQLStatus;
+}
+
+static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t ChunkSize)
+{
+    int SQLStatus;
+
+    if ((Chunk == NULL) || (ChunkSize == 0))
+    {
+        return -1;
+    }
+
+    sqlite3_reset(BlobStmt);
+    sqlite3_bind_int64(BlobStmt, 1, BundleRowID);
+    sqlite3_bind_blob(BlobStmt, 2, Chunk, ChunkSize, SQLITE_STATIC);
+
+    SQLStatus = sqlite3_step(BlobStmt);
+    if (SQLStatus != SQLITE_DONE)
+    {
+        printf("Insert chunk failed\n");
+        return SQLStatus;
+    }
+
+    return SQLStatus;
+}
+
+static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
+{
+    int SQLStatus;
+    int BundleRowID;
     BPLib_MEM_Block_t* CurrMemBlock;
+
+    if ((db == NULL) || (Bundle == NULL))
+    {
+        return -1;
+    }
+
+    /* Store the indexable metadata */
+    SQLStatus = BPLib_SQL_StoreMetadata(&Bundle->blocks);
+    if (SQLStatus != SQLITE_DONE)
+    {
+        return SQLStatus;
+    }
+    BundleRowID = sqlite3_last_insert_rowid(db);
+
+    /* Store the decoded metadata block */
+    SQLStatus = BPLib_SQL_StoreChunk(BundleRowID, (const void*)&Bundle->blocks, sizeof(BPLib_BBlocks_t));
+    if (SQLStatus != SQLITE_DONE)
+    {
+        return SQLStatus;
+    }
+
+    /* Store the blobs */
+    CurrMemBlock = Bundle->blob;
+    while (CurrMemBlock != NULL)
+    {
+        SQLStatus = BPLib_SQL_StoreChunk(BundleRowID, (const void*)CurrMemBlock->user_data.raw_bytes,
+            CurrMemBlock->used_len);
+        if (SQLStatus != SQLITE_DONE)
+        {
+            return SQLStatus;
+        }
+        CurrMemBlock = CurrMemBlock->next;
+    }
+
+    /* Expect SQLITE_DONE */
+    return SQLStatus;
+}
+
+static BPLib_Status_t BPLib_STOR_StoreBatch()
+{
+    BPLib_Status_t Status;
+    int SQLStatus;
+    int i;
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(CacheInst.db, "BEGIN;", 0, 0, 0);
@@ -73,60 +225,38 @@ static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
     /* Perform an insert for every bundle */
     for (i = 0; i < CacheInst.CurrBatchSize; i++)
     {
-        CurrBundle = CacheInst.CurrBatch[i];
-
-        /* Store the bundle metadata */
-        sqlite3_reset(MetadataStmt);
-        sqlite3_bind_int(MetadataStmt, 1, (int64_t)CurrBundle->blocks.PrimaryBlock.Timestamp.CreateTime +
-            CurrBundle->blocks.PrimaryBlock.Lifetime);
-        sqlite3_bind_int(MetadataStmt, 2, CurrBundle->blocks.PrimaryBlock.DestEID.Node);
-
-        SQLStatus = sqlite3_step(MetadataStmt);
+        SQLStatus = BPLib_SQL_StoreBundle(CacheInst.db, CacheInst.CurrBatch[i]);
         if (SQLStatus != SQLITE_DONE)
         {
-            printf("Insert meta failed %d\n", i);
-            // ROLLBACK
-            return BPLIB_ERROR;
-        }
-        CurrBundleID = sqlite3_last_insert_rowid(CacheInst.db);
-
-        /* Store bblocks. */
-        sqlite3_reset(BlobStmt);
-        sqlite3_bind_int(BlobStmt, 1, CurrBundleID);
-        sqlite3_bind_blob(BlobStmt, 2, (const void*)&CurrBundle->blocks, sizeof(BPLib_BBlocks_t), SQLITE_STATIC);
-
-        /* Store the blob */
-        CurrMemBlock = CurrBundle->blob;
-        while (CurrMemBlock != NULL)
-        {
-            sqlite3_reset(BlobStmt);
-            sqlite3_bind_int(BlobStmt, 1, CurrBundleID);
-            sqlite3_bind_blob(BlobStmt, 2, (const void*)CurrMemBlock->user_data.raw_bytes, CurrMemBlock->used_len,
-                SQLITE_STATIC);
-
-            // Execute the insert for each blob
-            SQLStatus = sqlite3_step(BlobStmt);
-            if (SQLStatus != SQLITE_DONE)
-            {
-                printf("Insert into bundle_blobs failed\n");
-                return BPLIB_ERROR;
-            }
-
-            /* Move to the next blob in the linked list */
-            CurrMemBlock = CurrMemBlock->next;
+            break;
         }
     }
 
-    /* Commit, which flushes the batch to persistent storage. */
-    SQLStatus = sqlite3_exec(CacheInst.db, "COMMIT;", 0, 0, 0);
+    /* If there have been no errors so far, batch-write the data to persistent storage */
+    if (SQLStatus == SQLITE_DONE)
+    {
+        Status = BPLIB_SUCCESS;
+        SQLStatus = sqlite3_exec(CacheInst.db, "COMMIT;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            printf("Failed to commit transaction\n");
+            Status = BPLIB_ERROR;
+        }
+    }
+
+    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
     if (SQLStatus != SQLITE_OK)
     {
-        printf("Failed to commit transaction\n");
-        // ROLLBACK
-        return BPLIB_ERROR;
+        printf("Attempting ROLLBACK\n");
+        Status = BPLIB_ERROR;
+        SQLStatus = sqlite3_exec(CacheInst.db, "ROLLBACK;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            printf("Failed to rollback transaction\n");
+        }
     }
 
-    return BPLIB_SUCCESS;
+    return Status;
 }
 
 /*******************************************************************************
@@ -134,52 +264,9 @@ static BPLib_Status_t BPLib_STOR_StoreBatch(BPLib_Instance_t* Inst)
 */
 BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
 {
-    int SQLStatus;
-
     pthread_mutex_init(&CacheInst.lock, NULL);
 
-    /* Init SQLite3 Database */
-    SQLStatus = sqlite3_open("test.db", &CacheInst.db);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_ERROR;
-    }
-
-    /* Pragmas 
-    ** These ones are also worth playing with
-    ** "PRAGMA synchronous=OFF;"
-    ** "PRAGMA temp_store=MEMORY;"
-    ** "PRAGMA cache_size=10000;"
-    ** "PRAGMA page_size ..."
-    */
-    SQLStatus = sqlite3_exec(CacheInst.db, "PRAGMA journal_mode=WAL;", 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_ERROR;
-    }
-    SQLStatus = sqlite3_exec(CacheInst.db, "PRAGMA foreign_keys=ON;", 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_ERROR;
-    }
-    /* Need to check that foreign keys are in fact enabled by compilation */
-
-    /* Create the table if it doesn't already exist */
-    SQLStatus = sqlite3_exec(CacheInst.db, CreateTableSQL, 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK) {
-        return BPLIB_ERROR;
-    }
-
-    /* Init Insert statements: Doing so in Init() is an optimization to avoid
-    ** doing in the BatchStore()
-    */
-    SQLStatus = sqlite3_prepare_v2(CacheInst.db, InsertMetadataSQL, -1, &MetadataStmt, 0);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_ERROR;
-    }
-    SQLStatus = sqlite3_prepare_v2(CacheInst.db, InsertBlobSQL, -1, &BlobStmt, 0);
-    if (SQLStatus != SQLITE_OK)
+    if (BPLib_SQL_Init(&CacheInst.db) != SQLITE_OK)
     {
         return BPLIB_ERROR;
     }
@@ -190,7 +277,6 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;
-    int i;
 
     pthread_mutex_lock(&CacheInst.lock);
 
@@ -204,20 +290,11 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* bu
         {
             printf("STORBatch Failed\n");
         }
-        else
-        {
-            for (i = 0; i < CacheInst.CurrBatchSize; i++)
-            {
-                BPLib_QM_AddUnsortedJob(Inst, CacheInst.CurrBatch[i], CONTACT_OUT_STOR_TO_CT, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-            }
-            CacheInst.CurrBatchSize = 0;
-        }
-        BatchCnt++;
-        printf("BatchCnt %d\n", BatchCnt);
+        CacheInst.CurrBatchSize = 0;
     }
 
     pthread_mutex_unlock(&CacheInst.lock);
 
-
+    printf("Batch\n");
     return Status;
 }
