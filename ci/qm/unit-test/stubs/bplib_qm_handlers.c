@@ -21,30 +21,20 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in bplib_fwp header
+ * Handlers for QM function stubs
  */
 
-#include "bplib_fwp.h"
-#include "utgenstub.h"
+#include "bplib_qm_handlers.h"
 
-/* =========== */
-/* Global Data */
-/* =========== */
-
-BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_FWP_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t *Callbacks)
+void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_FWP_Init, BPLib_Status_t);
+    void *ret_item = UT_Hook_GetArgValueByName(Context, "ret_item", void *);
+    int32 Status;
 
-    UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ProxyCallbacks_t *, Callbacks);
+    UT_Stub_GetInt32StatusCode(Context, &Status);
 
-    UT_GenStub_Execute(BPLib_FWP_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_QM_WaitQueueTryPull), ret_item, sizeof(BPLib_Bundle_t *));
+    }
 }

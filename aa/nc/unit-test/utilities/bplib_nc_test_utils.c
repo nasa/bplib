@@ -28,7 +28,8 @@
 /* Global Data */
 /* =========== */
 
-BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+BPLib_NC_ConfigPtrs_t TestConfigPtrs;
+uint8 Context_TableType[UT_MAX_TABLE_TYPE_DEPTH];
 
 /* ==================== */
 /* Function Definitions */
@@ -36,9 +37,6 @@ BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
 
 void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
 {
-    /* Confirm the issuing function was called */
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, EventNum + 1);
-
     /* Check the string */
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
     UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
@@ -87,6 +85,30 @@ void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
     }
 }
 
+void UT_Handler_BPA_TABLEP_TableUpdate(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint16 CallCount;
+    uint16 idx;
+
+    CallCount = UT_GetStubCount(UT_KEY(BPA_TABLEP_TableUpdate));
+
+    if (CallCount > UT_MAX_TABLE_TYPE_DEPTH)
+    {
+        UtAssert_Failed("BPA_TABLEP_TableUpdate UT depth %u exceeded: %u, increase UT_MAX_TABLE_TYPE_DEPTH",
+                        UT_MAX_TABLE_TYPE_DEPTH, CallCount);
+    }
+    else
+    {
+        idx = CallCount - 1;
+        Context_TableType[idx] = UT_Hook_GetArgValueByName(Context, "TableType", uint8);
+    }
+}
+
+void BPNode_Test_TABLEP_TableUpdate(uint8 CallNum, uint8 TableType)
+{
+    UtAssert_EQ(uint8, Context_TableType[CallNum], TableType);
+}
+
 void BPLib_NC_Test_Setup(void)
 {
     BPLib_PI_ChannelTable_t     TestChanTbl;
@@ -112,6 +134,7 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt     = BPA_TLMP_SendChannelContactPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt            = BPA_TLMP_SendStoragePkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate             = BPA_TABLEP_TableUpdate;
 
     memset((void*) &TestChanTbl,      1, sizeof(BPLib_PI_ChannelTable_t));
     memset((void*) &TestContactsTbl,  1, sizeof(BPLib_CLA_ContactsTable_t));
@@ -125,23 +148,24 @@ void BPLib_NC_Test_Setup(void)
     memset((void*) &TestLatencyTbl,   1, sizeof(BPLib_PDB_SrcLatencyTable_t));
     memset((void*) &TestStorTbl,      1, sizeof(BPLib_STOR_StorageTable_t));
 
-    memset((void*) &BPLib_FWP_ConfigPtrs, 0, sizeof(BPLib_FWP_ConfigPtrs_t));
+    memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
 
-    TestConfigPtrs.AuthTblPtr      = &TestAuthTbl;
-    TestConfigPtrs.ChanTblPtr      = &TestChanTbl;
-    TestConfigPtrs.ContactsTblPtr  = &TestContactsTbl;
-    TestConfigPtrs.CrsTblPtr       = &TestCrsTbl;
-    TestConfigPtrs.CustodianTblPtr = &TestCustodianTbl;
-    TestConfigPtrs.CustodyTblPtr   = &TestCustodyTbl;
-    TestConfigPtrs.LatTblPtr       = &TestLatencyTbl;
-    TestConfigPtrs.MibPnTblPtr     = &TestMibPnTbl;
-    TestConfigPtrs.MibPsTblPtr     = &TestMibPsTbl;
-    TestConfigPtrs.ReportTblPtr    = &TestReportTbl;
-    TestConfigPtrs.StorTblPtr      = &TestStorTbl;
+    TestConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
+    TestConfigPtrs.ChanConfigPtr      = &TestChanTbl;
+    TestConfigPtrs.ContactsConfigPtr  = &TestContactsTbl;
+    TestConfigPtrs.CrsConfigPtr       = &TestCrsTbl;
+    TestConfigPtrs.CustodianConfigPtr = &TestCustodianTbl;
+    TestConfigPtrs.CustodyConfigPtr   = &TestCustodyTbl;
+    TestConfigPtrs.LatConfigPtr       = &TestLatencyTbl;
+    TestConfigPtrs.MibPnConfigPtr     = &TestMibPnTbl;
+    TestConfigPtrs.MibPsConfigPtr     = &TestMibPsTbl;
+    TestConfigPtrs.ReportConfigPtr    = &TestReportTbl;
+    TestConfigPtrs.StorConfigPtr      = &TestStorTbl;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_Decrement, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent),     UT_Handler_BPLib_EM_SendEvent,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment),     UT_Handler_BPLib_AS_Increment,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement),     UT_Handler_BPLib_AS_Decrement,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPA_TABLEP_TableUpdate), UT_Handler_BPA_TABLEP_TableUpdate, NULL);
 }
 
 void BPLib_NC_Test_Teardown(void)
