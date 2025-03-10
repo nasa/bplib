@@ -98,6 +98,8 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         else
         {
             TotalBytesCopied += FinishBuffer.len;
+            CurrentOutputBufferAddr += FinishBuffer.len;
+            BytesLeftInOutputBuffer -= FinishBuffer.len;
         }
 
         /*
