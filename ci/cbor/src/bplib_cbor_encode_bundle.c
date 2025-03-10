@@ -122,7 +122,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     }
 
     /*
-    ** Close the indefinte-length Array
+    ** Close the indefinite-length array
     */
     CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
     *(uint8_t*)CurrentOutputBufferAddr = 0xFF;
