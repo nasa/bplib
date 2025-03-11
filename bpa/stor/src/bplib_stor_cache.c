@@ -16,7 +16,6 @@
 ** #define BPLIB_STOR_DBNAME       ":memory:"
 */
 
-
 typedef struct BPLib_BundleCache
 {
     sqlite3* db;
@@ -24,6 +23,11 @@ typedef struct BPLib_BundleCache
     size_t CurrBatchSize;
     pthread_mutex_t lock;
 } BPLib_BundleCache_t;
+
+/*******************************************************************************
+* Module State 
+*/
+static BPLib_BundleCache_t CacheInst;
 
 /*******************************************************************************
 * SQL Query Definitions 
@@ -52,10 +56,11 @@ const char* InsertBlobSQL =
     "INSERT INTO bundle_blobs (bundle_id, blob_data) VALUES (?, ?)";
 static sqlite3_stmt* BlobStmt;
 
-/*******************************************************************************
-* Module State 
-*/
-static BPLib_BundleCache_t CacheInst;
+/* Find by Dest EID */
+
+/* Find by Timestamp */
+
+
 
 /*******************************************************************************
 * SQLite3 Implementation
@@ -88,9 +93,9 @@ static int BPLib_SQL_Init(sqlite3** db)
     {
         return SQLStatus;
     }
-    /* Note: Apparently SQLite3 can silently have foreign_keys=ON fail if your
+    /* Note: Apparently SQLite3 can silently have foreign_keys=ON fail if
     ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
-    ** check if foreign keys were enabled by reading the setting back after writing
+    ** check if foreign keys were enabled by reading the setting back.
     */
     // TODO: It looks like I have to use prep_v2 and step here.
 
@@ -191,7 +196,7 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
         return SQLStatus;
     }
 
-    /* Store the blobs */
+    /* Store the blob chunks */
     CurrMemBlock = Bundle->blob;
     while (CurrMemBlock != NULL)
     {
@@ -204,7 +209,7 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
         CurrMemBlock = CurrMemBlock->next;
     }
 
-    /* Expect SQLITE_DONE */
+    /* Expecting SQLITE_DONE */
     return SQLStatus;
 }
 
