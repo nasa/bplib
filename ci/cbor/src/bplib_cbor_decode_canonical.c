@@ -241,6 +241,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
+        /* payload blocks shouldn't need to be re-encoded */
+        CanonicalBlockHdr->RequiresEncode = false;
         /* TODO: Should we do anything with this data? */
     }
     else
