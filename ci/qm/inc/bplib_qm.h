@@ -114,7 +114,7 @@ typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* Inst, BPLib_
 typedef struct BPLib_QM_Job
 {
     BPLib_QM_JobFunc_t     JobFunc; /**< Function to be called for this job */
-    BPLib_QM_JobContext_t *Context; /**< Job context information */
+    BPLib_QM_JobContext_t  Context; /**< Job context information */
 } BPLib_QM_Job_t;
 
 
