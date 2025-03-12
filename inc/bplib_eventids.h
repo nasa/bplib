@@ -148,6 +148,7 @@
 /* ============ */
 #define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
 
+#define BPLIB_MEM_NO_BLKS_ERR_EID            (660u)
 
 
 #endif /* BPLIB_EVENTIDS_H */

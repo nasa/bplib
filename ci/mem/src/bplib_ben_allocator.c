@@ -21,6 +21,8 @@
  *
  */
 #include "bplib_ben_allocator.h"
+#include "bplib_em.h"
+#include "bplib_eventids.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -141,6 +143,11 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
         {
             pool->mem_next = NULL;
         }
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_MEM_NO_BLKS_ERR_EID, BPLib_EM_EventType_CRITICAL, 
+                                "Error, no more blocks available in the memory pool!");
     }
 
     //printf("MEMAlloc: Blocks Free %lu\n", pool->num_free);
