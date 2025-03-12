@@ -869,19 +869,17 @@ void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact teardown directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-teardown directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_TEARDOWN_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact teardown directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-teardown directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)

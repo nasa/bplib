@@ -121,13 +121,13 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
     /* TODO: Verify that table was validated via cFS table upload */
 
-    BPLib_Status_t Status;
-    BPLib_CLA_ContactsSet_t ContactInfo;
+    BPLib_Status_t              Status;
+    BPLib_CLA_ContactsSet_t     ContactInfo;
     BPLib_CLA_ContactRunState_t RunState;
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
+        ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr.ContactSet[ContactId];
         RunState    = BPLib_CLA_GetContactRunState(ContactId);
 
         if (RunState == BPLIB_CLA_TORNDOWN)
@@ -161,7 +161,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
 BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
     // ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
@@ -189,19 +189,46 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
 
 BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t              Status;
+    BPLib_CLA_ContactRunState_t RunState;
 
-    Status = BPLIB_SUCCESS;
+    RunState = BPLib_CLA_GetContactRunState(ContactId);
+    if (RunState == BPLIB_CLA_STARTED)
+    {
+        Status = BPLIB_SUCCESS;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
+    }
+    else
+    {
+        Status = BPLIB_ERROR;
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "Contact with ID %d needs to be started first",
+                            ContactId);
+    }
 
     return Status;
 }
 
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t              Status;
+    BPLib_CLA_ContactRunState_t RunState;
 
-    /* TODO: Verify that contact has been stopped */
-    Status = BPLIB_SUCCESS;
+    RunState = BPLib_CLA_GetContactRunState(ContactId);
+    if (RunState == BPLIB_CLA_STOPPED)
+    { /* Contact has been stopped */
+        Status = BPLIB_SUCCESS;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
+    }
+    else
+    {
+        Status = BPLIB_ERROR;
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "Contact with ID %d needs to be stopped first",
+                            ContactId);
+    }
 
     return Status;
 }
