@@ -70,7 +70,6 @@ static BPLib_QM_JobState_t ChannelOut_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t*
     return CHANNEL_OUT_CT_TO_EBP;
 }
 
-
 static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CHANNEL_OUT_EBP_TO_PI;
