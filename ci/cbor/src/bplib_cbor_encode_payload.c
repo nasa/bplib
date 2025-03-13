@@ -42,8 +42,9 @@
  *
  * \param[in] DataSize (uint64_t) Size of the ADU (determines how many bytes of additional info are in the CBOR head)
  * \param[in] CurrentOutputBufferAddr (uintptr_t) Destination buffer, to write the cbor head
+ * \param[in] BytesLeftInOutputBuffer (size_t) Destination buffer, to write the cbor head
  *
- * \return Status of the operation.
+ * \return The number of bytes written to the output buffer (0 returned on error)
  */
 size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
     uintptr_t CurrentOutputBufferAddr,
