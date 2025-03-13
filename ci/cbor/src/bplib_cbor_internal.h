@@ -289,6 +289,13 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
 /**
  * \brief Encodes the payload into the output buffer
  *
+ * Note that this function effectively re-implements parts of the QCBOR library,
+ * to prevent an additional memory copy of the payload data.
+ * Specifically, instead of adding the ADU data using QCBOREncode_OpenBytes,
+ * we build our own CBOR byte array head info before copying in the data from our memory blocks.
+ * The use of QCBOREncode_OpenBytes and QCBOREncode_CloseBytes would result in an extra copy of the ADU,
+ * since QCBOR doesn't know the ADU size until QCBOREncode_CloseBytes is called.
+ *
  * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
  * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
  * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.

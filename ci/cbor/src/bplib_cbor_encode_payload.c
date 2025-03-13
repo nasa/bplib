@@ -20,6 +20,141 @@
 
 #include "bplib_cbor_internal.h"
 
+/**
+ * \brief Add an "open byte string" CBOR head
+ *
+ * Major Type: 2 (byte string)
+ * Additional Info: number of bytes in the string
+ *  - If number of bytes in the string is less than 24:
+ *      - the next 5 bits describe the length
+ *  - If number of bytes in the string is 24 to 0xFF
+ *      - the next 5 bits should be set to 24
+ *      - the next 1 byte should describe the length
+ *  - If number of bytes in the string is 0x100 to 0xFFFF
+ *      - the next 5 bits should be set to 25
+ *      - the next 2 bytes should describe the length
+ *  - If number of bytes in the string is 0x1.0000 to 0xFFFF.FFFF
+ *      - the next 5 bits should be set to 26
+ *      - the next 4 bytes should describe the length
+ *  - If number of bytes in the string is 0x1.0000.0000 to 0xFFFF.FFFF.FFFF.FFFF
+ *      - the next 5 bits should be set to 27
+ *      - the next 8 bytes should describe the length
+ *
+ * \param[in] DataSize (uint64_t) Size of the ADU (determines how many bytes of additional info are in the CBOR head)
+ * \param[in] CurrentOutputBufferAddr (uintptr_t) Destination buffer, to write the cbor head
+ *
+ * \return Status of the operation.
+ */
+size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
+    uintptr_t CurrentOutputBufferAddr,
+    size_t BytesLeftInOutputBuffer)
+{
+    size_t BytesWritten;
+    uint8_t DataSizeByte;
+
+    if ((DataSize < 24) && (BytesLeftInOutputBuffer >= 1))
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | DataSize;
+        BytesWritten = 1;
+    }
+    else if ((DataSize < 0x100) && (BytesLeftInOutputBuffer >= 2))
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 24;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) (DataSize & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+
+        BytesWritten = 1 + 1;
+    }
+    else if ((DataSize < 0x10000) && (BytesLeftInOutputBuffer >= 3))
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 25;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) (DataSize & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+
+        BytesWritten = 1 + 2;
+    }
+    else if ((DataSize < 0x100000000) && (BytesLeftInOutputBuffer >= 5))
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 26;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 24) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 16) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) (DataSize & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+
+        BytesWritten = 1 + 4;
+    }
+    else if (BytesLeftInOutputBuffer >= 9)
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 27;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 56) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 48) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 40) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 32) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 24) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 16) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+        CurrentOutputBufferAddr++;
+
+        DataSizeByte = (uint8_t) (DataSize & 0xFF);
+        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+
+        BytesWritten = 1 + 8;
+    }
+    else
+    {
+        /* error - not enough room in output buffer */
+        BytesWritten = 0;
+    }
+
+    return BytesWritten;
+}
+
+
+
+
+
+
 BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
                                         void* OutputBuffer,
                                         size_t OutputBufferSize,
@@ -34,7 +169,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
     uintptr_t CurrentOutputBufferAddr;
     size_t TotalBytesCopied;
     size_t BytesLeftInOutputBuffer;
-    uint8_t DataSizeByte;
+    size_t ByteStringCborHeadSize;
 
     if (StoredBundle == NULL)
     {
@@ -103,149 +238,23 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         }
 
         /*
-        ** Jam in an "open byte string" character
-        ** Major Type: 2 (byte string)
-        ** Additional Info: number of bytes in the string
-        **  - If number of bytes in the string is less than 24:
-        **      - the next 5 bits describe the length
-        **  - If number of bytes in the string is 24 to 0xFF
-        **      - the next 5 bits should be set to 24
-        **      - the next 1 byte should describe the length
-        **  - If number of bytes in the string is 0x100 to 0xFFFF
-        **      - the next 5 bits should be set to 25
-        **      - the next 2 bytes should describe the length
-        **  - If number of bytes in the string is 0x1.0000 to 0xFFFF.FFFF
-        **      - the next 5 bits should be set to 26
-        **      - the next 4 bytes should describe the length
-        **  - If number of bytes in the string is 0x1.0000.0000 to 0xFFFF.FFFF.FFFF.FFFF
-        **      - the next 5 bits should be set to 27
-        **      - the next 8 bytes should describe the length
+        ** Jam in our own "byte string" cbor encoding head
         */
-        if (StoredBundle->blocks.PayloadHeader.DataSize < 24)
+        ByteStringCborHeadSize = BPLib_CBOR_AddByteStringHead(StoredBundle->blocks.PayloadHeader.DataSize,
+                                                              CurrentOutputBufferAddr,
+                                                              BytesLeftInOutputBuffer);
+        if (ByteStringCborHeadSize > 0)
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | StoredBundle->blocks.PayloadHeader.DataSize;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-        }
-        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x100)
-        {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 24;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-        }
-        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x10000)
-        {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 25;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-        }
-        else if (StoredBundle->blocks.PayloadHeader.DataSize < 0x100000000)
-        {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 26;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 24) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 16) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
+            CurrentOutputBufferAddr += ByteStringCborHeadSize;
+            TotalBytesCopied        += ByteStringCborHeadSize;
+            BytesLeftInOutputBuffer -= ByteStringCborHeadSize;
         }
         else
         {
-            *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 27;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 56) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 48) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 40) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 32) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 24) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 16) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) ((StoredBundle->blocks.PayloadHeader.DataSize >> 8) & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
-
-            DataSizeByte = (uint8_t) (StoredBundle->blocks.PayloadHeader.DataSize & 0xFF);
-            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-            TotalBytesCopied++;
-            CurrentOutputBufferAddr++;
-            BytesLeftInOutputBuffer--;
+            *NumBytesCopied = 0;
+            return BPLIB_ERROR;
         }
+
 
         /*
         ** Add the ADU data
