@@ -51,96 +51,51 @@ size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
     size_t BytesLeftInOutputBuffer)
 {
     size_t BytesWritten;
+    size_t DataSizeBitShift;
     uint8_t DataSizeByte;
+    uint8_t FirstByte;
+    size_t BytesNeeded;
 
-    if ((DataSize < 24) && (BytesLeftInOutputBuffer >= 1))
+    if (DataSize < 24)
     {
-        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | DataSize;
-        BytesWritten = 1;
+        BytesNeeded = 1;
+        FirstByte = (2 << 5) | DataSize;
     }
-    else if ((DataSize < 0x100) && (BytesLeftInOutputBuffer >= 2))
+    else if (DataSize < 0x100)
     {
-        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 24;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) (DataSize & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-
-        BytesWritten = 1 + 1;
+        BytesNeeded = 1 + 1;
+        FirstByte = (2 << 5) | 24;
     }
-    else if ((DataSize < 0x10000) && (BytesLeftInOutputBuffer >= 3))
+    else if (DataSize < 0x10000)
     {
-        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 25;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) (DataSize & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-
-        BytesWritten = 1 + 2;
+        BytesNeeded = 1 + 2;
+        FirstByte = (2 << 5) | 25;
     }
-    else if ((DataSize < 0x100000000) && (BytesLeftInOutputBuffer >= 5))
+    else if (DataSize < 0x100000000)
     {
-        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 26;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 24) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 16) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) (DataSize & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-
-        BytesWritten = 1 + 4;
+        BytesNeeded = 1 + 4;
+        FirstByte = (2 << 5) | 26;
     }
-    else if (BytesLeftInOutputBuffer >= 9)
+    else
     {
-        *(uint8_t*)CurrentOutputBufferAddr = (2 << 5) | 27;
+        BytesNeeded = 1 + 8;
+        FirstByte = (2 << 5) | 27;
+    }
+
+    /* Make sure there is enough room in output buffer before writing anything */
+    if (BytesNeeded <= BytesLeftInOutputBuffer)
+    {
+        /* write the first byte */
+        *(uint8_t*)CurrentOutputBufferAddr = FirstByte;
         CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 56) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 48) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 40) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 32) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 24) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 16) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) ((DataSize >> 8) & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-        CurrentOutputBufferAddr++;
-
-        DataSizeByte = (uint8_t) (DataSize & 0xFF);
-        *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
-
-        BytesWritten = 1 + 8;
+        /* optionally write any additional bytes */
+        for (BytesWritten = 1; BytesWritten < BytesNeeded; BytesWritten++)
+        {
+            DataSizeBitShift = ((BytesNeeded - 1) * 8) - (BytesWritten * 8);
+            DataSizeByte = (uint8_t) ((DataSize >> DataSizeBitShift) & 0xFF);
+            *(uint8_t*)CurrentOutputBufferAddr = DataSizeByte;
+            CurrentOutputBufferAddr++;
+        }
     }
     else
     {
