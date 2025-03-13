@@ -46,7 +46,7 @@
  *
  * \return The number of bytes written to the output buffer (0 returned on error)
  */
-size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
+static size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
     uintptr_t CurrentOutputBufferAddr,
     size_t BytesLeftInOutputBuffer)
 {
