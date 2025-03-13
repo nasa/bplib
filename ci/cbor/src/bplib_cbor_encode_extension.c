@@ -134,7 +134,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     }
     else if (ExtensionBlockIndex >= BPLIB_MAX_NUM_EXTENSION_BLOCKS)
     {
-        ReturnStatus = BPLIB_ERROR;
+        ReturnStatus = BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR;
     }
     else
     {
@@ -193,13 +193,13 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         if (QcborStatus != QCBOR_SUCCESS)
         {
             *NumBytesCopied = 0;
+            ReturnStatus = BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR;
         }
         else
         {
             *NumBytesCopied = FinishBuffer.len;
+            ReturnStatus = BPLIB_SUCCESS;
         }
-
-        ReturnStatus = BPLIB_SUCCESS;
     }
 
     return ReturnStatus;

@@ -252,6 +252,12 @@ typedef struct BPLib_IpnAddr
 
 #define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
 #define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
+#define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR           ((BPLib_Status_t) -184) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR       ((BPLib_Status_t) -185) /* BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error */
+#define BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR            ((BPLib_Status_t) -186) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR      ((BPLib_Status_t) -187) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR      ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR      ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
 
 
 // TODO TIME Helpers

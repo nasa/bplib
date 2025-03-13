@@ -229,7 +229,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         if (QcborStatus != QCBOR_SUCCESS)
         {
             *NumBytesCopied = 0;
-            return BPLIB_ERROR;
+            return BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR;
         }
         else
         {
@@ -253,7 +253,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         else
         {
             *NumBytesCopied = 0;
-            return BPLIB_ERROR;
+            return BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR;
         }
 
 
@@ -301,7 +301,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         if (QcborStatus != QCBOR_SUCCESS)
         {
             *NumBytesCopied = 0;
-            return BPLIB_ERROR;
+            return BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR;
         }
         else
         {
