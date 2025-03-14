@@ -32,15 +32,7 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
     QCBORError QcborStatus;
 
 
-    if (StoredBundle == NULL)
-    {
-        ReturnStatus = BPLIB_NULL_PTR_ERROR;
-    }
-    else if (OutputBuffer == NULL)
-    {
-        ReturnStatus = BPLIB_NULL_PTR_ERROR;
-    }
-    else if (NumBytesCopied == NULL)
+    if ((StoredBundle == NULL) || (OutputBuffer == NULL) || (NumBytesCopied == NULL))
     {
         ReturnStatus = BPLIB_NULL_PTR_ERROR;
     }
