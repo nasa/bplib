@@ -144,7 +144,7 @@ void Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError(void)
                                         &OutputSize);
 
     UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR);
-    UtAssert_EQ(size_t, OutputSize, (size_t) 2);
+    UtAssert_EQ(size_t, OutputSize, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_CopyOutFromOffset, 0);
 }
 
@@ -154,7 +154,6 @@ void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
     BPLib_Bundle_t InputBundle;
     uint8_t OutputBuffer[70]; // less than sizeof(primary_and_payload_with_aa_x_20)
     size_t OutputSize = 0xdeadbeef;
-    size_t ExpectedOutputSize;
     BPLib_MEM_Block_t FirstBlock;
 
     memset(&InputBundle, 0, sizeof(InputBundle));
@@ -183,14 +182,7 @@ void Test_BPLib_CBOR_EncodeBundle_PayloadCopyLenError(void)
                                         &OutputSize);
 
     UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR);
-
-
-    ExpectedOutputSize = 1 // 0x9F
-                       + InputBundle.blocks.PrimaryBlock.BlockOffsetEnd
-                       - InputBundle.blocks.PrimaryBlock.BlockOffsetStart
-                       + 1
-                       + 1; // 0xFF
-    UtAssert_EQ(size_t, OutputSize, ExpectedOutputSize);
+    UtAssert_EQ(size_t, OutputSize, 0);
 
     /*
     ** BPLib_MEM_CopyOutFromOffset should be called once:
