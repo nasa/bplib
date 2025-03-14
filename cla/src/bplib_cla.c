@@ -130,7 +130,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
         ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr.ContactSet[ContactId];
         RunState    = BPLib_CLA_GetContactRunState(ContactId);
 
-        if (RunState == BPLIB_CLA_TORNDOWN)
+        if (RunState == BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
         { /* Contact has been not been setup if the state is anything other than torn down */
             Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo, ContactId);
 
@@ -141,6 +141,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
         }
         else
         {
+            Status = BPLIB_CLA_INCORRECT_STATE;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
                                 "Contact with ID %d is already set up",
@@ -150,7 +151,6 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     else
     {
         Status = BPLIB_CLA_CONTACTS_MAX_REACHED;
-
         BPLib_EM_SendEvent(BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Max simultaneous contacts allowed has been reached");
@@ -164,20 +164,16 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    // ContactInfo = BPLib_NC_ConfigPtrs.ContactsTblPtr.ContactSet[ContactId];
     RunState = BPLib_CLA_GetContactRunState(ContactId);
 
-    if (RunState != BPLIB_CLA_TORNDOWN)
+    if (RunState != BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
     { /* Contact must be set up before running */
-        Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
-
-        if (Status == BPLIB_SUCCESS)
-        {
-            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
-        }
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
+        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
     }
     else
     {
+        Status = BPLIB_CLA_INCORRECT_STATE;
         BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact with ID %d needs to be setup first",
@@ -193,14 +189,15 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     BPLib_CLA_ContactRunState_t RunState;
 
     RunState = BPLib_CLA_GetContactRunState(ContactId);
-    if (RunState == BPLIB_CLA_STARTED)
+
+    if (RunState == BPLIB_CLA_STARTED && RunState != BPLIB_CLA_EXITED)
     {
-        Status = BPLIB_SUCCESS;
         BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
+        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED);
     }
     else
     {
-        Status = BPLIB_ERROR;
+        Status = BPLIB_CLA_INCORRECT_STATE;
         BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact with ID %d needs to be started first",
@@ -216,14 +213,15 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
     BPLib_CLA_ContactRunState_t RunState;
 
     RunState = BPLib_CLA_GetContactRunState(ContactId);
-    if (RunState == BPLIB_CLA_STOPPED)
-    { /* Contact has been stopped */
-        Status = BPLIB_SUCCESS;
+
+    if (RunState == BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_EXITED)
+    {
         BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
+        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN);
     }
     else
     {
-        Status = BPLIB_ERROR;
+        Status = BPLIB_CLA_INCORRECT_STATE;
         BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact with ID %d needs to be stopped first",
@@ -244,10 +242,13 @@ BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
 
     Status = BPLIB_SUCCESS;
 
-    if (RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED  ||
-        RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
+    if (RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
         RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
-        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED)
+        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED  ||
+        RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
+        RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
+        RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
+        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)
     {
         Status = BPLIB_CLA_INCORRECT_STATE;
     }

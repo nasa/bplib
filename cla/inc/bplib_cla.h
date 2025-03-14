@@ -204,7 +204,10 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId);
  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to start
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_CLA_ERROR: TODO
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
  */
 BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
 
@@ -213,7 +216,10 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to stop
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_CLA_ERROR: TODO
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
  */
 BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
 
@@ -222,7 +228,10 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to teardown
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BPLIB_CLA_CONTACT_RUNNING: Contact has not been stopped
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
  */
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
 
