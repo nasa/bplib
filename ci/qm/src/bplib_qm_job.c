@@ -20,6 +20,7 @@
 
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
+#include "bplib_as.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,7 +94,9 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
     if (QueuePushReturnStatus == false)
     {
-        printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
+
+        //printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
     }
 
     return NO_NEXT_STATE;
