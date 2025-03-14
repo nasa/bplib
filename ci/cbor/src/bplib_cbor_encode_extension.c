@@ -180,7 +180,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         BPLib_CBOR_EncodeCrcValue(&Context, CurrExtBlock->Header.CrcVal, CurrExtBlock->Header.CrcType);
 
         /*
-        ** Open Definite Array
+        ** Close Definite Array
         */
         QCBOREncode_CloseArray(&Context);
 
