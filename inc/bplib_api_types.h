@@ -260,6 +260,9 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR      ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
 #define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR      ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
 
+/* More PI Errors */
+#define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
+
 
 // TODO TIME Helpers
 

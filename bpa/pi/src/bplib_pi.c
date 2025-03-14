@@ -75,9 +75,15 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     BPLib_PI_CanBlkConfig_t* CurrCanonConfigSrc;
     BPLib_CanBlockHeader_t* CurrCanonConfigDest;
 
-    if ((Inst == NULL) || (AduPtr == NULL))
+    if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* Channel ID must be within array index limits */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_PI_CHAN_ID_INPUT_ERR;
     }
 
     /* Allocate Bundle based on AduSize */
@@ -116,39 +122,36 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
 
     /* Fill out the canonical block configs */
-    if ((BPLib_NC_ConfigPtrs.ChanConfigPtr != NULL) && (ChanId < BPLIB_MAX_NUM_CHANNELS))
+    NextExtensionBlockIndex = 0;
+    for (CanonBlockIndex = 0; CanonBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonBlockIndex++)
     {
-        NextExtensionBlockIndex = 0;
-        for (CanonBlockIndex = 0; CanonBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonBlockIndex++)
-        {
-            /* Set the source (table) config pointer */
-            CurrCanonConfigSrc = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CanBlkConfig[CanonBlockIndex];
+        /* Set the source (table) config pointer */
+        CurrCanonConfigSrc = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CanBlkConfig[CanonBlockIndex];
 
-            /* Set the destination (bundle metadata) config pointer */
-            if (CurrCanonConfigSrc->BlockType == BPLib_BlockType_Payload)
+        /* Set the destination (bundle metadata) config pointer */
+        if (CurrCanonConfigSrc->BlockType == BPLib_BlockType_Payload)
+        {
+            CurrCanonConfigDest = &NewBundle->blocks.PayloadHeader;
+        }
+        else
+        {
+            /* quick array index sanity check (this could happen if the src config didn't have a payload config) */
+            if (NextExtensionBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
             {
-                CurrCanonConfigDest = &NewBundle->blocks.PayloadHeader;
+                break;
             }
             else
             {
-                /* quick array index sanity check (this could happen if the src config didn't have a payload config) */
-                if (NextExtensionBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
-                {
-                    break;
-                }
-                else
-                {
-                    CurrCanonConfigDest = &NewBundle->blocks.ExtBlocks[NextExtensionBlockIndex].Header;
-                    NextExtensionBlockIndex++;
-                }
+                CurrCanonConfigDest = &NewBundle->blocks.ExtBlocks[NextExtensionBlockIndex].Header;
+                NextExtensionBlockIndex++;
             }
-
-            /* Copy the configs from source to destination */
-            CurrCanonConfigDest->BlockType = CurrCanonConfigSrc->BlockType;
-            CurrCanonConfigDest->CrcType = CurrCanonConfigSrc->CrcType;
-            CurrCanonConfigDest->BlockNum = CurrCanonConfigSrc->BlockNum;
-            CurrCanonConfigDest->BlockProcFlags = CurrCanonConfigSrc->BlockProcFlags;
         }
+
+        /* Copy the configs from source to destination */
+        CurrCanonConfigDest->BlockType = CurrCanonConfigSrc->BlockType;
+        CurrCanonConfigDest->CrcType = CurrCanonConfigSrc->CrcType;
+        CurrCanonConfigDest->BlockNum = CurrCanonConfigSrc->BlockNum;
+        CurrCanonConfigDest->BlockProcFlags = CurrCanonConfigSrc->BlockProcFlags;
     }
 
     /* Fill out the rest of the payload block fields */
