@@ -25,7 +25,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
                                         size_t OutputBufferSize,
                                         size_t* NumBytesCopied)
 {
-    BPLib_Status_t ReturnStatus;
     BPLib_Status_t PrimaryBlockReturnStatus;
     BPLib_Status_t ExtensionBlockReturnStatus = BPLIB_SUCCESS; // start with success, in case no ext blocks
     BPLib_Status_t PayloadBlockReturnStatus;
