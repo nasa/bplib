@@ -282,7 +282,7 @@ BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
         CurrentBlock = CurrentBlock->next;
         if (CurrentBlock == NULL)
         {
-            return BPLIB_ERROR;
+            return BPLIB_BUF_LEN_ERROR;
         }
     }
 
