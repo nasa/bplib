@@ -31,7 +31,6 @@
 #include "bplib_as.h"
 #include "bplib_stor.h"
 
-
 /*
 ** Function Definitions
 */
@@ -47,8 +46,6 @@ int64_t BPA_TIMEP_GetHostTime(void);
 BPLib_Status_t BPA_EVP_Init(void);
 
 BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
-
-int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle);
 
 void BPA_PERFLOGP_Entry(uint32_t PerfLogID);
 
@@ -73,5 +70,7 @@ BPLib_Status_t BPA_TLMP_SendPerSourceMibCounterPkt(BPLib_SourceMibCountersHkTlm_
 BPLib_Status_t BPA_TLMP_SendChannelContactPkt(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
 
 BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);
+
+BPLib_Status_t BPA_TABLEP_TableUpdate(uint8_t TableType, void** TblPtr);
 
 #endif /* BPA_FWP_STUBS_H */

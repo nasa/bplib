@@ -142,6 +142,8 @@
 #define BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID  (602u)
 #define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
 
+#define BPLIB_NC_TBL_UPDATE_INF_EID                     (604u)
+#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (605u)
 
 /* ============ */
 /* BI event IDs */

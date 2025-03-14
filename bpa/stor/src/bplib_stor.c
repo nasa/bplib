@@ -124,7 +124,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                         ** this bundle's destination EID
                         */
                         if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
-                            BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[AvailChans[i]].LocalServiceNumber)
+                            BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[AvailChans[i]].LocalServiceNumber)
                         {
                             QueuedBundle->Meta.EgressID = AvailChans[i];
                             NextJobState = CHANNEL_OUT_STOR_TO_CT;
@@ -146,7 +146,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                         {
                             if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                                BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
+                                BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
                             {
                                 QueuedBundle->Meta.EgressID = AvailConts[i];
                                 NextJobState = CONTACT_OUT_STOR_TO_CT;

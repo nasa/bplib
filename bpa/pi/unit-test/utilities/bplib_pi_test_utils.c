@@ -24,6 +24,7 @@
 
 #include "bplib_pi_test_utils.h"
 #include "bplib_fwp.h"
+#include "bplib_nc.h"
 
 /*
 ** Global Data
@@ -41,7 +42,7 @@ void BPLib_PI_Test_Setup(void)
 {
     memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
 
-    BPLib_FWP_ConfigPtrs.ChanTblPtr = &TestChanTbl;
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
 
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);

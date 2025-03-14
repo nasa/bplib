@@ -29,10 +29,30 @@
 #include "bplib_nc_payloads.h"
 #include "bplib_nc_directives.h"
 #include "bplib_as.h"
+#include "bplib_pi.h"
+#include "bplib_cla.h"
+#include "bplib_arp.h"
+#include "bplib_pdb.h"
+#include "bplib_fwp.h"
 
 /* ======== */
 /* Typedefs */
 /* ======== */
+
+typedef struct
+{
+    BPLib_PI_ChannelTable_t*     ChanConfigPtr;
+    BPLib_CLA_ContactsTable_t*   ContactsConfigPtr;
+    BPLib_ARP_CRSTable_t*        CrsConfigPtr;
+    BPLib_PDB_CustodianTable_t*  CustodianConfigPtr;
+    BPLib_PDB_CustodyTable_t*    CustodyConfigPtr;
+    BPLib_NC_MIBConfigPNTable_t* MibPnConfigPtr;
+    BPLib_NC_MIBConfigPSTable_t* MibPsConfigPtr;
+    BPLib_PDB_ReportToTable_t*   ReportConfigPtr;
+    BPLib_PDB_SrcAuthTable_t*    AuthConfigPtr;
+    BPLib_PDB_SrcLatencyTable_t* LatConfigPtr;
+    BPLib_STOR_StorageTable_t*   StorConfigPtr;
+} BPLib_NC_ConfigPtrs_t;
 
 /**
   * \brief Channel application state
@@ -45,6 +65,31 @@ typedef enum
     BPLIB_NC_APP_STATE_STARTED = 3,
 } BPLib_NC_ApplicationState_t;
 
+/**
+  * \brief Indicator for type of configuration
+  */
+typedef enum
+{
+    BPLIB_CHANNEL                   =  0, /* Channel configuration */
+    BPLIB_CONTACTS                  =  1, /* Contacts configuration */
+    BPLIB_COMPRESSED_REPORTING      =  2, /* Compressed Reporting configuration */
+    BPLIB_CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy configuration */
+    BPLIB_CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy configuration */
+    BPLIB_MIB_PER_NODE              =  5, /* MIB per Node configuration */
+    BPLIB_MIB_PER_SRC               =  6, /* MIB per Source configuration */
+    BPLIB_REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy configuration */
+    BPLIB_SRC_AUTH_POLICY           =  8, /* Source Authorization Policy configuration */
+    BPLIB_SRC_LATENCY_POLICY        =  9, /* Source Latency Policy configuration */
+    BPLIB_STORAGE                   = 10, /* Storage configuration */
+    BPLIB_ADU_PROXY                 = 11, /* FWP's ADU Proxy configuration; confined to BPNode */
+} BPLib_NC_ConfigType_t;
+
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
+
 /* =================== */
 /* Function Prototypes */
 /* =================== */
@@ -52,30 +97,29 @@ typedef enum
 /**
   * \brief     Initialize NC
   * \details   Node Configuration initialization
-  * \note      As of right now, this function always returns BPLIB_SUCCESS
-  * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
+  * \param[in] ConfigPtrs (BPLib_NC_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Initialization was successful
-  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
+  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration is NULL
   */
-BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
+BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs);
 
 /**
  * \brief Validate MIB Per Node Configuration Table configurations
  *
- *  \par Description
+ * \par Description
  *       Validate configuration table parameters
  *
- *  \par Assumptions, External Events, and Notes:
+ * \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management.
  *         Every time a new MIB Configuration Per Node table is loaded, this function should be called to
  *         validate its parameters.
  *
- *  \param[in] TblData Pointer to the config table
+ * \param[in] TblData Pointer to the config table
  *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Validation was successful
- *  \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Validation was successful
+ * \retval BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
 */
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
 
@@ -83,24 +127,38 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
 /**
  * \brief Validate MIB Per Source Table configurations
  *
- *  \par Description
- *       Validate configuration table parameters
+ * \par Description
+ *      Validate configuration table parameters
  *
- *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management.
- *         Every time a new MIB Configuration Per Source table is loaded, this function should be called to
- *         validate its parameters.
+ * \par Assumptions, External Events, and Notes:
+ *      - This function is called by whatever external task handles table management.
+ *        Every time a new MIB Configuration Per Source table is loaded, this function should be called to
+ *        validate its parameters.
  *
- *  \param[in] TblData Pointer to the config table
+ * \param[in] TblData Pointer to the config table
  *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Validation was successful
- * \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Validation was successful
+ * \retval BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
 
 void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State);
 
 BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
+
+/**
+  * \brief     Pass updated configurations to corresponding modules
+  * \details   Uses FWP to update the BPLib configuration pointers, then pass those updated pointer
+  *            configurations to the module that controls that configuration
+  * \note      As of right now, the API calls to modules that will update configurations are commented out, since
+  *            some of those functions are not implemented yet
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Successful execution without updates to configurations
+  * \retval    BPLIB_TBL_UPDATED: Successful execution with configuration updates
+  * \retval    BPLIB_ERROR: An error occured while attempting to refresh/update configurations
+  */
+BPLib_Status_t BPLib_NC_ConfigUpdate(void);
 
 #endif // BPLIB_NC_H

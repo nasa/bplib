@@ -125,7 +125,7 @@ void Test_BPLib_STOR_ScanCache_OneChannelEgress(void)
 
     Bundle.Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
     Bundle.blocks.PrimaryBlock.DestEID.Service = 10;
-    BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanID].LocalServiceNumber = 10;
+    BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanID].LocalServiceNumber = 10;
     
     UT_SetDeferredRetcode(UT_KEY(BPLib_NC_GetAppState), ChanID + 1, BPLIB_NC_APP_STATE_STARTED);
     UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
@@ -148,7 +148,7 @@ void Test_BPLib_STOR_ScanCache_NoChannel(void)
 
     Bundle.Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
     Bundle.blocks.PrimaryBlock.DestEID.Service = 10;
-    BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanID].LocalServiceNumber = 20;
+    BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanID].LocalServiceNumber = 20;
 
     UT_SetDeferredRetcode(UT_KEY(BPLib_NC_GetAppState), ChanID + 1, BPLIB_NC_APP_STATE_STARTED);    
     UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
