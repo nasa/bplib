@@ -31,7 +31,6 @@
 #include "bplib_eid.h"
 #include "bplib_qm.h"
 
-
 /*
 ** Type Definitions
 */
