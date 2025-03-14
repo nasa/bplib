@@ -182,9 +182,10 @@ typedef struct BPLib_IpnAddr
 
 /* MEM Errors */
 #define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
+#define BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR     ((BPLib_Status_t) -57) /* BPLib_MEM_CopyOutFromOffset: bytes copied != requested */
 
-
-#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -57)
+/* Node Config Errors */
+#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -80)
 
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */

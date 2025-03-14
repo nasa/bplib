@@ -323,7 +323,7 @@ BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
 
     if (TotalBytesCopied != NumBytesToCopy)
     {
-        ReturnStatus = BPLIB_ERROR;
+        ReturnStatus = BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR;
     }
     else
     {
