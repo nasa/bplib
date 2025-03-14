@@ -45,6 +45,16 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     }
 
     /*
+    ** The output buffer should at least have room for the CBOR indefinite array
+    ** (meaning `0x9F` at the front, and `0xFF` at the end).
+    ** We don't have a good way to predict the encoded block sizes.
+    */
+    if (OutputBufferSize <= 2)
+    {
+        return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_TO_SMALL_ERR;
+    }
+
+    /*
     ** Jam in an "open indefinite array" character
     ** Major Type: 4 (array)
     ** Additional Info: indefinite length (31, or 0x1F)
