@@ -116,19 +116,10 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     UsefulBuf CurrentContextPlace;
     size_t SizeOfEncodedBlockSpecificData;
 
-    if (StoredBundle == NULL)
-    {
-        ReturnStatus = BPLIB_NULL_PTR_ERROR;
-    }
-    else if (StoredBundle->blob == NULL)
-    {
-        ReturnStatus = BPLIB_NULL_PTR_ERROR;
-    }
-    else if (OutputBuffer == NULL)
-    {
-        ReturnStatus = BPLIB_NULL_PTR_ERROR;
-    }
-    else if (NumBytesCopied == NULL)
+    if ((StoredBundle == NULL) ||
+        (StoredBundle->blob == NULL) ||
+        (OutputBuffer == NULL) ||
+        (NumBytesCopied == NULL))
     {
         ReturnStatus = BPLIB_NULL_PTR_ERROR;
     }
