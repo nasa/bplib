@@ -107,10 +107,6 @@ static size_t BPLib_CBOR_AddByteStringHead(uint64_t DataSize,
 }
 
 
-
-
-
-
 BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
                                         void* OutputBuffer,
                                         size_t OutputBufferSize,
@@ -211,7 +207,6 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
             return BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR;
         }
 
-
         /*
         ** Add the ADU data
         */
@@ -232,7 +227,6 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
             *NumBytesCopied = 0;
             return PayloadDataCopyStatus;
         }
-
 
         /*
         ** Initialize the encoder (to encode the CRC)
