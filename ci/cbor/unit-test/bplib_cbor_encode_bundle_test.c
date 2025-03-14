@@ -120,6 +120,22 @@ void Test_BPLib_CBOR_EncodeBundle_OutputSizeBufNullError(void)
 }
 
 
+void Test_BPLib_CBOR_EncodeBundle_OutputBufLen1(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t InputBundle;
+    uint8_t OutputBuffer[2];
+    size_t OutputSize;
+
+    ReturnStatus = BPLib_CBOR_EncodeBundle(&InputBundle,
+                                        OutputBuffer,
+                                        sizeof(OutputBuffer),
+                                        &OutputSize);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR);
+}
+
+
 void Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError(void)
 {
     BPLib_Status_t ReturnStatus;
@@ -429,6 +445,8 @@ void TestBplibCborEncode_Register(void)
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_InputBundleBlobNullError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_InputBundleBlobNullError");
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_OutputBundleBufNullError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_OutputBundleBufNullError");
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_OutputSizeBufNullError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_OutputSizeBufNullError");
+
+    UtTest_Add(Test_BPLib_CBOR_EncodeBundle_OutputBufLen1, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_OutputBufLen1");
 
     UtTest_Add(Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeBundle_PrimaryCopySizeGtOutputError");
 
