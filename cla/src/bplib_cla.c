@@ -23,6 +23,8 @@
 /* ======== */
 
 #include "bplib_cla.h"
+#include "bplib_cla_internal.h"
+#include "bplib_bi.h"
 
 /* ==================== */
 /* Function Definitions */

@@ -32,8 +32,6 @@
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_qm.h"
-#include "bplib_cla_internal.h"
-#include "bplib_bi.h"
 #include "bplib_em.h"
 #include "bplib_fwp.h"
 
