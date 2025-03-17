@@ -26,11 +26,7 @@
 */
 
 #include "bplib_api_types.h"
-#include "bplib_as.h"
-#include "bplib_nc_payloads.h"
 #include "bplib_stor.h"
-#include "bplib_time.h"
-#include "bplib_em.h"
 #include "bplib_nc.h"
 
 /* ====== */
@@ -77,7 +73,7 @@ typedef struct
     BPLib_Status_t (*BPA_ADUP_RemoveApplication)(uint8_t ChanId);
 
     /* CLA Proxy function callbacks */
-    BPLib_Status_t (*BPA_CLAP_ContactSetup)(BPLib_CLA_ContactsSet_t ContactInfo, uint32_t ContactId);
+    BPLib_Status_t (*BPA_CLAP_ContactSetup)(int32_t PortNum, char* CLAddr, uint32_t ContactId);
     BPLib_Status_t (*BPA_CLAP_ContactStart)(uint32_t ContactId);
     BPLib_Status_t (*BPA_CLAP_ContactStop)(uint32_t ContactId);
     BPLib_Status_t (*BPA_CLAP_ContactTeardown)(uint32_t ContactId);

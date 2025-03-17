@@ -25,6 +25,7 @@
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
+#include "bplib_fwp.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -129,12 +130,12 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr.ContactSet[ContactId];
+        ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
         RunState    = BPLib_CLA_GetContactRunState(ContactId);
 
         if (RunState == BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
         { /* Contact has been not been setup if the state is anything other than torn down */
-            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo, ContactId);
+            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo.PortNum, ContactInfo.CLAddr, ContactId);
 
             if (Status == BPLIB_SUCCESS)
             {

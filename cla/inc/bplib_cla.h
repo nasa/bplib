@@ -33,7 +33,6 @@
 #include "bplib_eid.h"
 #include "bplib_qm.h"
 #include "bplib_em.h"
-#include "bplib_fwp.h"
 
 /* ======== */
 /* Typedefs */
@@ -97,12 +96,10 @@ typedef struct
     uint32_t            CSSizeTrigger;
 } BPLib_CLA_ContactsSet_t;
 
-struct BPLib_CLA_ContactsTable
+typedef struct
 {
     BPLib_CLA_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
-};
-
-typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;
+} BPLib_CLA_ContactsTable_t;
 
 /* =================== */
 /* Function Prototypes */
