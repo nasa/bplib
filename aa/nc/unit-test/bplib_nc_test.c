@@ -1032,7 +1032,9 @@ void Test_BPLib_NC_ContactSetup_Nominal(void)
 {
     BPLib_ContactSetup_Payload_t Payload;
 
-    Payload.ExampleParameter = 16;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactSetup), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactSetup(Payload);
 
     // Verify directive counter was incremented
@@ -1040,27 +1042,33 @@ void Test_BPLib_NC_ContactSetup_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
-                                "Contact setup directive not implemented, received %d in payload");
+                                "Successful contact-setup directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactSetup_Error(void)
 {
-    /*
     BPLib_ContactSetup_Payload_t Payload;
 
-    Payload.ExampleParameter = 16;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactSetup), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactSetup(Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
+                                "Failed contact-setup directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactStart_Nominal(void)
 {
     BPLib_ContactStart_Payload_t Payload;
 
-    Payload.ExampleParameter = 17;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStart), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactStart(Payload);
 
     // Verify directive counter was incremented
@@ -1068,27 +1076,33 @@ void Test_BPLib_NC_ContactStart_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_SUCCESS_EID,
-                                "Contact start directive not implemented, received %d in payload");
+                                "Successful contact-start directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactStart_Error(void)
 {
-    /*
     BPLib_ContactStart_Payload_t Payload;
 
-    Payload.ExampleParameter = 17;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStart), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactStart(Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_SUCCESS_EID,
+                                "Failed contact-start directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactStop_Nominal(void)
 {
     BPLib_ContactStop_Payload_t Payload;
 
-    Payload.ExampleParameter = 18;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStop), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactStop(Payload);
 
     // Verify directive counter was incremented
@@ -1096,27 +1110,33 @@ void Test_BPLib_NC_ContactStop_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
-                                "Contact stop directive not implemented, received %d in payload");
+                                "Successful contact-stop directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactStop_Error(void)
 {
-    /*
     BPLib_ContactStop_Payload_t Payload;
 
-    Payload.ExampleParameter = 18;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStop), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactStop(Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
+                                "Failed contact-stop directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactTeardown_Nominal(void)
 {
     BPLib_ContactTeardown_Payload_t Payload;
 
-    Payload.ExampleParameter = 19;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactTeardown(Payload);
 
     // Verify directive counter was incremented
@@ -1124,20 +1144,24 @@ void Test_BPLib_NC_ContactTeardown_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
-                                "Contact teardown directive not implemented, received %d in payload");
+                                "Successful contact-teardown directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_ContactTeardown_Error(void)
 {
-    /*
     BPLib_ContactTeardown_Payload_t Payload;
 
-    Payload.ExampleParameter = 19;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
     BPLib_NC_ContactTeardown(Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
+                                "Failed contact-teardown directive for contact ID = %d");
 }
 
 void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
