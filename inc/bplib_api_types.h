@@ -250,8 +250,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR            ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
-
-#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_TO_SMALL_ERR  ((BPLib_Status_t) -181) /* BPLib_CBOR_EncodeBundle: Output buffer too small */
+/* CBOR Encode Errors */
 #define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
 #define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
 #define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR           ((BPLib_Status_t) -184) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
@@ -260,6 +259,12 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR      ((BPLib_Status_t) -187) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
 #define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR      ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
 #define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR      ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR     ((BPLib_Status_t) -190) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 1) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR     ((BPLib_Status_t) -191) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR     ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR     ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
+
 
 /* More PI Errors */
 #define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)

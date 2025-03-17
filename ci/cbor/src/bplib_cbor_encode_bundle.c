@@ -25,9 +25,8 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
                                         size_t OutputBufferSize,
                                         size_t* NumBytesCopied)
 {
-    BPLib_Status_t ReturnStatus;
     BPLib_Status_t PrimaryBlockReturnStatus;
-    BPLib_Status_t ExtensionBlockReturnStatus = BPLIB_SUCCESS; // start with success, in case no ext blocks
+    BPLib_Status_t ExtensionBlockReturnStatus;
     BPLib_Status_t PayloadBlockReturnStatus;
     size_t PrimaryBlockBytesCopied;
     size_t ExtBlockBytesCopied;
@@ -51,7 +50,7 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     */
     if (OutputBufferSize <= 2)
     {
-        return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_TO_SMALL_ERR;
+        return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR;
     }
 
     /*
@@ -65,7 +64,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     CurrentOutputBufferAddr++;
     BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
 
-
     /*
     ** Begin encode
     */
@@ -76,59 +74,72 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
 
     if (PrimaryBlockReturnStatus != BPLIB_SUCCESS)
     {
-        ReturnStatus = PrimaryBlockReturnStatus;
+        *NumBytesCopied = 0;
+        return PrimaryBlockReturnStatus;
     }
-    else
+
+    /* start accumulating the total bytes copied */
+    TotalBytesCopied += PrimaryBlockBytesCopied;
+
+    /* Copy or encode the canonical blocks */
+    NumberOfExtensionBlocks = BPLib_CBOR_GetNumExtensionBlocks(StoredBundle);
+    for (CurrExtBlockIndex = 0; CurrExtBlockIndex < NumberOfExtensionBlocks; CurrExtBlockIndex++)
     {
-        /* start accumulating the total bytes copied */
-        TotalBytesCopied += PrimaryBlockBytesCopied;
-
-        /* Copy or encode the canonical blocks */
-        NumberOfExtensionBlocks = BPLib_CBOR_GetNumExtensionBlocks(StoredBundle);
-        for (CurrExtBlockIndex = 0; CurrExtBlockIndex < NumberOfExtensionBlocks; CurrExtBlockIndex++)
+        if (OutputBufferSize <= TotalBytesCopied)
         {
-            CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
-            BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
-
-            /* Encode extension block */
-            ExtensionBlockReturnStatus = BPLib_CBOR_EncodeExtensionBlock(StoredBundle,
-                                                                         CurrExtBlockIndex,
-                                                                         (void*)CurrentOutputBufferAddr,
-                                                                         BytesLeftInOutputBuffer,
-                                                                         &ExtBlockBytesCopied);
-            if (ExtensionBlockReturnStatus != BPLIB_SUCCESS)
-            {
-                break;
-            }
-            else
-            {
-                TotalBytesCopied += ExtBlockBytesCopied;
-            }
+            *NumBytesCopied = 0;
+            return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR;
         }
 
+        CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+        BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
+
+        /* Encode extension block */
+        ExtensionBlockReturnStatus = BPLib_CBOR_EncodeExtensionBlock(StoredBundle,
+                                                                        CurrExtBlockIndex,
+                                                                        (void*)CurrentOutputBufferAddr,
+                                                                        BytesLeftInOutputBuffer,
+                                                                        &ExtBlockBytesCopied);
         if (ExtensionBlockReturnStatus != BPLIB_SUCCESS)
         {
-            ReturnStatus = ExtensionBlockReturnStatus;
+            *NumBytesCopied = 0;
+            return ExtensionBlockReturnStatus;
         }
         else
         {
-            CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
-            BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
-
-            PayloadBlockReturnStatus = BPLib_CBOR_CopyOrEncodePayload(StoredBundle,
-                                                                      (void*)CurrentOutputBufferAddr,
-                                                                      BytesLeftInOutputBuffer,
-                                                                      &PayloadBytesCopied);
-            if (PayloadBlockReturnStatus == BPLIB_SUCCESS)
-            {
-                TotalBytesCopied += PayloadBytesCopied;
-            }
-
-            /*
-            ** Inform the caller of the successful number of bytes copied
-            */
-            ReturnStatus = PayloadBlockReturnStatus;
+            TotalBytesCopied += ExtBlockBytesCopied;
         }
+    }
+
+    /* make sure we have more room in our output buffer, before we try to add the payload */
+    if (OutputBufferSize <= TotalBytesCopied)
+    {
+        *NumBytesCopied = 0;
+        return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR;
+    }
+
+    CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer) + TotalBytesCopied;
+    BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
+
+    PayloadBlockReturnStatus = BPLib_CBOR_CopyOrEncodePayload(StoredBundle,
+                                                                (void*)CurrentOutputBufferAddr,
+                                                                BytesLeftInOutputBuffer,
+                                                                &PayloadBytesCopied);
+    if (PayloadBlockReturnStatus != BPLIB_SUCCESS)
+    {
+        *NumBytesCopied = 0;
+        return PayloadBlockReturnStatus;
+    }
+
+    /*
+    ** keep accumulating the total
+    ** making sure we have room for the last byte
+    */
+    TotalBytesCopied += PayloadBytesCopied;
+    if (OutputBufferSize <= TotalBytesCopied)
+    {
+        *NumBytesCopied = 0;
+        return BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR;
     }
 
     /*
@@ -157,6 +168,6 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     printf("\n");
     #endif
 
-    return ReturnStatus;
+    return BPLIB_SUCCESS;
 }
 
