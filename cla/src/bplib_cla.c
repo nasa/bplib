@@ -244,13 +244,13 @@ BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
 
     Status = BPLIB_SUCCESS;
 
-    if (RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
-        RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN ||
-        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED  ||
-        RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
-        RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
-        RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED   ||
-        RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)
+    if ((RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
+        (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
+        (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED)  ||
+        (RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+        (RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+        (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+        (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED))
     {
         Status = BPLIB_CLA_INCORRECT_STATE;
     }
