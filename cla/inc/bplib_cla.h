@@ -95,20 +95,6 @@ struct BPLib_CLA_ContactsTable
 ** Exported Functions
 */
 
-/**
- * \brief Convergence Layer Adaptor initialization
- *
- *  \par Description
- *       CLA initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_CLA_Init(void);
-
 /* CLA I/O (bundle data units) */
 
 /**

@@ -46,4 +46,20 @@
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t *bundle);
 
 
+/**
+ * \brief Encodes the stored bundle, putting the output in the provided buffer
+ *
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the stored source bundle info
+ * \param[out] OutputBuffer (void*) An output buffer to store the encoded bundle.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes to output.
+ * \param[out] NumBytesCopied The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+
 #endif /* BPLIB_CBOR_H */

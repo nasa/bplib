@@ -85,17 +85,3 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t *Inst, uint8_t ContId, const v
 
     return UT_GenStub_GetReturnValue(BPLib_CLA_Ingress, BPLib_Status_t);
 }
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CLA_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_CLA_Init(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CLA_Init, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_CLA_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CLA_Init, BPLib_Status_t);
-}

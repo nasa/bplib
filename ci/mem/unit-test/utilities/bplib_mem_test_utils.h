@@ -18,30 +18,28 @@
  *
  */
 
+#ifndef BPLIB_MEM_TEST_UTILS_H
+#define BPLIB_MEM_TEST_UTILS_H
+
 /*
 ** Include
 */
 
-#include "bplib_cbor_test_utils.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib_api_types.h"
+#include "bplib_cbor.h"
+
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CBOR_Test_Setup(void)
-{
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
-}
+void BPLib_MEM_Test_Setup(void);
+void BPLib_MEM_Test_Teardown(void);
 
-void BPLib_CBOR_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
+void TestBplibMem_Register(void);
 
-void UtTest_Setup(void)
-{
-    TestBplibCbor_Register();
-    TestBplibCborEncode_Register();
-    TestBplibCborEncodePrevNode_Register();
-}
+#endif /* BPLIB_MEM_TEST_UTILS_H */

@@ -77,7 +77,7 @@ typedef struct
     BPLib_EID_t             DestEID;
     BPLib_EID_t             ReportToEID;
     uint64_t                Lifetime;
-    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1];
+    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_CANONICAL_BLOCKS];
 } BPLib_PI_Config_t;
 
 /**

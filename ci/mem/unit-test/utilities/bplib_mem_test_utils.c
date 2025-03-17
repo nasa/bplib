@@ -22,26 +22,24 @@
 ** Include
 */
 
-#include "bplib_cbor_test_utils.h"
+#include "bplib_mem_test_utils.h"
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CBOR_Test_Setup(void)
+void BPLib_MEM_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }
 
-void BPLib_CBOR_Test_Teardown(void)
+void BPLib_MEM_Test_Teardown(void)
 {
     /* Clean up test environment */
 }
 
 void UtTest_Setup(void)
 {
-    TestBplibCbor_Register();
-    TestBplibCborEncode_Register();
-    TestBplibCborEncodePrevNode_Register();
+    TestBplibMem_Register();
 }
