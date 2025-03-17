@@ -27,7 +27,7 @@
 #include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID  0x7F
-#define BPLIB_QM_JOBWAIT_TIMEOUT 1L
+#define BPLIB_QM_JOBWAIT_TIMEOUT 10L
 
 BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 {
@@ -39,10 +39,16 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
         return BPLIB_ERROR;
     }
 
+    QueueInit = true;
+
+    /* Initialize the free workers queue */
     inst->NumWorkers = 0;
+    if (!BPLib_QM_IntegerQueueInit(&inst->FreeWorkers, QM_MAX_GEN_WORKERS))
+    {
+        QueueInit = false;
+    }
 
     /* Initialize the jobs and unsorted jobs queue */
-    QueueInit = true;
     if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), sizeof(BPLib_QM_Job_t), MaxJobs))
     {
         QueueInit = false;
@@ -120,8 +126,8 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
     }
 
     NewWorkerID = inst->NumWorkers;
-    Status = BPLib_QM_WorkerState_Init(&inst->RegisteredWorkers[NewWorkerID], NewWorkerID,
-        &inst->FreeWorkers);
+    Status = BPLib_QM_WorkerState_Init(&inst->RegisteredWorkers[NewWorkerID],
+        NewWorkerID, &inst->FreeWorkers);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
@@ -218,11 +224,11 @@ void BPLib_QM_ScheduleJobs(BPLib_Instance_t* inst, size_t MaxJobs)
                     if (BPLib_QM_IntegerQueueTryPush(&(inst->FreeWorkers), CurrWorkerID, QM_NO_WAIT) == false)
                     {
                         /* This is a fatal condition: The worker queue should always be able to
-                        ** hold a worker because it's been sized for MAX_WORKERS
+                        ** hold a worker because it's been sized for QM_MAX_GEN_WORKERS
                         */
                         fprintf(stderr, "Failed to return idle worker to free queue\n");
-                        return;
                     }
+                    return;
                 }
             }
             else

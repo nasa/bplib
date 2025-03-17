@@ -57,6 +57,10 @@ BPLib_Status_t BPLib_QM_WorkerState_Init(BPLib_QM_WorkerState_t* WorkerState, in
     memset(&WorkerState->Job, 0, sizeof(BPLib_QM_Job_t));
     WorkerState->JobResult = NO_NEXT_STATE;
 
+    if (!BPLib_QM_IntegerQueueTryPush(WorkerState->FreeWorkerQueue, WorkerState->WorkerID, QM_NO_WAIT))
+    {
+        return BPLIB_QM_PUSH_ERROR;
+    }
     return BPLIB_SUCCESS;
 }
 
@@ -80,8 +84,6 @@ BPLib_Status_t BPLib_QM_WorkerState_GiveNewJob(BPLib_QM_WorkerState_t* WorkerSta
 BPLib_Status_t BPLib_QM_WorkerState_MarkJobDone(BPLib_QM_WorkerState_t* WorkerState,
     BPLib_QM_JobState_t JobResult)
 {
-    BPLib_Status_t Status;
-
     if (WorkerState == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
@@ -92,8 +94,11 @@ BPLib_Status_t BPLib_QM_WorkerState_MarkJobDone(BPLib_QM_WorkerState_t* WorkerSt
     WorkerState->JobResult = JobResult;
     pthread_mutex_unlock(&WorkerState->Lock);
 
-    Status = BPLib_QM_IntegerQueueTryPush(WorkerState->FreeWorkerQueue, WorkerState->WorkerID, QM_NO_WAIT);
-    return Status;
+    if (!BPLib_QM_IntegerQueueTryPush(WorkerState->FreeWorkerQueue, WorkerState->WorkerID, QM_NO_WAIT))
+    {
+        return BPLIB_QM_PUSH_ERROR;
+    }
+    return BPLIB_SUCCESS;
 }
 
 bool BPLib_QM_WorkerState_WaitForNewJob(BPLib_QM_WorkerState_t* WorkerState, int TimeoutMs)
