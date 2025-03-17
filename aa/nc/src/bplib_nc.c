@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc.h"
+#include "bplib_fwp.h"
 
 /* ======= */
 /* Globals */
