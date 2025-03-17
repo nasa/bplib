@@ -11,6 +11,7 @@ add_library(bplib_qm OBJECT
     src/bplib_qm.c
     src/bplib_qm_job.c
     src/bplib_qm_waitqueue.c
+    src/bplib_qm_workerstate.c
 )
 
 target_include_directories(bplib_qm PUBLIC

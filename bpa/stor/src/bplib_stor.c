@@ -163,7 +163,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 /* Egress bundle if a route exists */
                 if (QueuedBundle->Meta.EgressID != BPLIB_UNKNOWN_ROUTE_ID)
                 {
-                    Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
+                    Status = BPLib_QM_CreateJob(Inst, QueuedBundle, NextJobState,
                                                     QM_PRI_NORMAL, QM_WAIT_FOREVER);
                     if (Status != BPLIB_SUCCESS)
                     {

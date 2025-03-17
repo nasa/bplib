@@ -21,6 +21,7 @@
 #include "bplib_qm_waitqueue.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include <errno.h>
@@ -43,19 +44,25 @@ static void ms_to_abstimeout(uint32_t ms, struct timespec *ts)
 /*******************************************************************************
 * Exported Functions
 */
-bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity)
+bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, size_t el_size, size_t capacity)
 {
-    if ((q == NULL) || (storage == NULL) || (el_size == 0) || (capacity < 2))
+    if ((q == NULL) || (el_size == 0) || (capacity < 2))
     {
         return false;
     }
 
-    q->storage = storage;
     q->el_size = el_size;
     q->capacity = capacity;
     q->front = 0;
     q->rear = capacity - 1;
     q->size = 0;
+
+    q->storage = calloc(capacity, el_size);
+    if (q->storage == NULL)
+    {
+        fprintf(stderr, "calloc() for WaitQueue backing failed\n");
+        return false;
+    }
 
     // TODO: move to bplib_OS module
     pthread_mutex_init(&q->lock, NULL);
@@ -71,6 +78,7 @@ void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t* q)
         return;
     }
 
+    free(q->storage);
     q->storage = NULL;
     q->el_size = 0;
     q->capacity = 0;
@@ -84,7 +92,7 @@ void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t* q)
     pthread_cond_destroy(&q->cv_pull);
 }
 
-bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, void* item, int timeout_ms)
+bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, const void* item, int timeout_ms)
 {
     struct timespec deadline;
     int rc;

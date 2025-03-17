@@ -17,9 +17,9 @@
  * limitations under the License.
  *
  */
-
 #include "bplib_qm_job.h"
-#include "bplib_bi.h"
+#include "bplib_qm.h"
+#include "bplib_qm_waitqueue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,7 +51,6 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
-
     return NO_NEXT_STATE;
 }
 
@@ -78,7 +77,6 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     BPLib_QM_WaitQueueTryPush(&(Inst->ChannelEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
-
     return NO_NEXT_STATE;
 }
 
@@ -117,7 +115,7 @@ static const BPLib_QM_JobFunc_t job_funcs[NUM_GENWORKER_STATES] =
     [CHANNEL_OUT_EBP_TO_PI] = ChannelOut_PI,
 };
 
-BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state)
+BPLib_QM_JobFunc_t BPLib_QM_JobLookup(BPLib_QM_JobState_t job_state)
 {
     if ((job_state >= 0) && (job_state < NUM_GENWORKER_STATES))
     {

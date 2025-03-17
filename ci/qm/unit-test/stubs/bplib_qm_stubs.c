@@ -29,23 +29,23 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_QM_AddUnsortedJob()
+ * Generated stub function for BPLib_QM_CreateJob()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t *inst, BPLib_Bundle_t *bundle, BPLib_QM_JobState_t state,
-                                       BPLib_QM_Priority_t priority, int timeout_ms)
+BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t *inst, BPLib_Bundle_t *bundle, BPLib_QM_JobState_t state,
+                                  BPLib_QM_Priority_t priority, int TimeoutMs)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_QM_AddUnsortedJob, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_CreateJob, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_Bundle_t *, bundle);
-    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_QM_JobState_t, state);
-    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_QM_Priority_t, priority);
-    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, int, timeout_ms);
+    UT_GenStub_AddParam(BPLib_QM_CreateJob, BPLib_Instance_t *, inst);
+    UT_GenStub_AddParam(BPLib_QM_CreateJob, BPLib_Bundle_t *, bundle);
+    UT_GenStub_AddParam(BPLib_QM_CreateJob, BPLib_QM_JobState_t, state);
+    UT_GenStub_AddParam(BPLib_QM_CreateJob, BPLib_QM_Priority_t, priority);
+    UT_GenStub_AddParam(BPLib_QM_CreateJob, int, TimeoutMs);
 
-    UT_GenStub_Execute(BPLib_QM_AddUnsortedJob, Basic, NULL);
+    UT_GenStub_Execute(BPLib_QM_CreateJob, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_QM_AddUnsortedJob, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_QM_CreateJob, BPLib_Status_t);
 }
 
 /*
@@ -65,12 +65,12 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t *inst)
  * Generated stub function for BPLib_QM_QueueTableInit()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t *inst, size_t max_jobs)
+BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t *inst, size_t MaxJobs)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_QueueTableInit, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_QM_QueueTableInit, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_QueueTableInit, size_t, max_jobs);
+    UT_GenStub_AddParam(BPLib_QM_QueueTableInit, size_t, MaxJobs);
 
     UT_GenStub_Execute(BPLib_QM_QueueTableInit, Basic, NULL);
 
@@ -79,26 +79,27 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t *inst, size_t max_jobs)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_QM_RunJob()
+ * Generated stub function for BPLib_QM_ScheduleJobs()
  * ----------------------------------------------------
  */
-void BPLib_QM_RunJob(BPLib_Instance_t *inst, int timeout_ms)
+void BPLib_QM_ScheduleJobs(BPLib_Instance_t *inst, size_t NumJobs)
 {
-    UT_GenStub_AddParam(BPLib_QM_RunJob, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_RunJob, int, timeout_ms);
+    UT_GenStub_AddParam(BPLib_QM_ScheduleJobs, BPLib_Instance_t *, inst);
+    UT_GenStub_AddParam(BPLib_QM_ScheduleJobs, size_t, NumJobs);
 
-    UT_GenStub_Execute(BPLib_QM_RunJob, Basic, NULL);
+    UT_GenStub_Execute(BPLib_QM_ScheduleJobs, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_QM_SortJobs()
+ * Generated stub function for BPLib_QM_WorkerRunJob()
  * ----------------------------------------------------
  */
-void BPLib_QM_SortJobs(BPLib_Instance_t *inst, size_t num_jobs)
+void BPLib_QM_WorkerRunJob(BPLib_Instance_t *inst, int WorkerID, int TimeoutMs)
 {
-    UT_GenStub_AddParam(BPLib_QM_SortJobs, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_SortJobs, size_t, num_jobs);
+    UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, BPLib_Instance_t *, inst);
+    UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, WorkerID);
+    UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, TimeoutMs);
 
-    UT_GenStub_Execute(BPLib_QM_SortJobs, Basic, NULL);
+    UT_GenStub_Execute(BPLib_QM_WorkerRunJob, Basic, NULL);
 }
