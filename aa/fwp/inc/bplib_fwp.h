@@ -74,9 +74,9 @@ typedef struct
 
     /* CLA Proxy function callbacks */
     BPLib_Status_t (*BPA_CLAP_ContactSetup)(int32_t PortNum, char* CLAddr, uint32_t ContactId);
-    BPLib_Status_t (*BPA_CLAP_ContactStart)(uint32_t ContactId);
-    BPLib_Status_t (*BPA_CLAP_ContactStop)(uint32_t ContactId);
-    BPLib_Status_t (*BPA_CLAP_ContactTeardown)(uint32_t ContactId);
+    void           (*BPA_CLAP_ContactStart)(uint32_t ContactId);
+    void           (*BPA_CLAP_ContactStop)(uint32_t ContactId);
+    void           (*BPA_CLAP_ContactTeardown)(uint32_t ContactId);
 
     /* Add other proxies' function callbacks here: TODO */
 
