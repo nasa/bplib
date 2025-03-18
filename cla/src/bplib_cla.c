@@ -34,10 +34,6 @@
 ** Function Definitions
 */
 
-BPLib_Status_t BPLib_CLA_Init(void) {
-    return BPLIB_SUCCESS;
-}
-
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
 BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
@@ -80,7 +76,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
     {
         /* Copy the bundle to the CLA buffer */
-        Status = BPLib_MEM_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
+        Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
             BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,

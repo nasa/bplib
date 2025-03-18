@@ -27,6 +27,32 @@
 #include "bplib_mem.h"
 #include "utgenstub.h"
 
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_MEM_CopyOutFromOffset()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
+                                            uint64_t Offset,
+                                            uint64_t NumBytesToCopy,
+                                            void* OutputBuffer,
+                                            size_t OutputBufferSize)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_CopyOutFromOffset, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_MEM_CopyOutFromOffset, BPLib_Bundle_t *, Bundle);
+    UT_GenStub_AddParam(BPLib_MEM_CopyOutFromOffset, uint64_t, Offset);
+    UT_GenStub_AddParam(BPLib_MEM_CopyOutFromOffset, uint64_t, NumBytesToCopy);
+    UT_GenStub_AddParam(BPLib_MEM_CopyOutFromOffset, void *, OutputBuffer);
+    UT_GenStub_AddParam(BPLib_MEM_CopyOutFromOffset, size_t, OutputBufferSize);
+
+    UT_GenStub_Execute(BPLib_MEM_CopyOutFromOffset, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_MEM_CopyOutFromOffset, BPLib_Status_t);
+}
+
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_BlobCopyOut()

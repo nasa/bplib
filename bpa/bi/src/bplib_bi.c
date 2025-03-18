@@ -34,10 +34,6 @@
 ** Function Definitions
 */
 
-int BPLib_BI_Init(void) {
-    return BPLIB_SUCCESS;
-}
-
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
@@ -111,4 +107,24 @@ BPLib_Status_t BPLib_BI_ValidateBundle(void)
     /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
     
     return BPLIB_SUCCESS;
+}
+
+
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
+                                    void* OutputBuffer,
+                                    size_t OutputBufferSize,
+                                    size_t* NumBytesCopied)
+{
+    BPLib_Status_t ReturnStatus;
+
+    if ((StoredBundle == NULL) || (StoredBundle->blob == NULL) || (OutputBuffer == NULL) || (NumBytesCopied == NULL))
+    {
+        ReturnStatus = BPLIB_NULL_PTR_ERROR;
+    }
+    else
+    {
+        ReturnStatus = BPLib_CBOR_EncodeBundle(StoredBundle, OutputBuffer, OutputBufferSize, NumBytesCopied);
+    }
+
+    return ReturnStatus;
 }
