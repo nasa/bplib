@@ -180,7 +180,7 @@ void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                "Contact with ID %d is already set up or has exited");
+                                "Contact with ID %d must be torndown");
 }
 
 void Test_BPLib_CLA_ContactSetup_CallbackError(void)
@@ -282,7 +282,7 @@ void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                "Contact with ID %d needs to be setup first");
+                                "Contact with ID %d cannot be torndown or exited before starting");
 }
 
 void Test_BPLib_CLA_ContactStop_Nominal(void)
@@ -355,7 +355,7 @@ void Test_BPLib_CLA_ContactStop_InvalidRunState(void)
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                "Contact with ID %d needs to be started first");
+                                "Contact with ID %d must be started first");
 }
 
 void Test_BPLib_CLA_ContactTeardown_Nominal(void)
@@ -428,7 +428,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                "Contact with ID %d needs to be stopped first");
+                                "Contact with ID %d needs to be stopped or set up first");
 }
 
 void TestBplibCla_Register(void)
