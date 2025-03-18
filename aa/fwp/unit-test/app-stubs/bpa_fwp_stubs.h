@@ -73,4 +73,12 @@ BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* StorTlmPayl
 
 BPLib_Status_t BPA_TABLEP_TableUpdate(uint8_t TableType, void** TblPtr);
 
+BPLib_Status_t BPA_CLAP_ContactSetup(int32_t PortNum, char* CLAddr, uint32_t ContactId);
+
+void BPA_CLAP_ContactStart(uint32_t ContactId);
+
+void BPA_CLAP_ContactStop(uint32_t ContactId);
+
+void BPA_CLAP_ContactTeardown(uint32_t ContactId);
+
 #endif /* BPA_FWP_STUBS_H */
