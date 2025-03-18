@@ -202,7 +202,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     if (Status == BPLIB_SUCCESS)
     {
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
-        if (RunState == BPLIB_CLA_STARTED && RunState != BPLIB_CLA_EXITED)
+        if (RunState == BPLIB_CLA_STARTED)
         {
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
             (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED); /* Ignore return since pre-call run state is valid */
@@ -236,7 +236,7 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
-        if (RunState == BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_EXITED)
+        if (RunState == BPLIB_CLA_STOPPED || RunState == BPLIB_CLA_SETUP)
         {
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
             (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
