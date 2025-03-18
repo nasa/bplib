@@ -127,7 +127,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
-        RunState    = BPLib_CLA_GetContactRunState(ContactId);
+        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return since ContactId is already valid */
 
         if (RunState == BPLIB_CLA_TORNDOWN)
         { /* Contact has been not been setup if the state is anything other than torn down */
@@ -135,7 +135,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
             if (Status == BPLIB_SUCCESS)
             {
-                (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP);
+                (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP); /* Ignore return since pre-call run state is valid */
             }
         }
         else
@@ -166,12 +166,11 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        RunState = BPLib_CLA_GetContactRunState(ContactId);
-
+        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
         if (RunState != BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
         { /* Contact must be set up before running */
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
-            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
+            (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED); /* Ignore return since pre-call run state is valid */
         }
         else
         {
@@ -199,14 +198,13 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    if (Status == BPLIB_SUCCESS)
     {
-        RunState = BPLib_CLA_GetContactRunState(ContactId);
-
+        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
         if (RunState == BPLIB_CLA_STARTED && RunState != BPLIB_CLA_EXITED)
         {
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
-            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED);
+            (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED); /* Ignore return since pre-call run state is valid */
         }
         else
         {
@@ -236,12 +234,11 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        RunState = BPLib_CLA_GetContactRunState(ContactId);
-
+        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
         if (RunState == BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_EXITED)
         {
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
-            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN);
+            (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
         }
         else
         {
@@ -264,30 +261,48 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
     return Status;
 }
 
-BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint32_t ContactId)
+BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState)
 {
-    return BPLib_CLA_ContactRunStates[ContactId];
+    BPLib_Status_t Status;
+
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    {
+        *ReturnState = BPLib_CLA_ContactRunStates[ContactId];
+        Status = BPLIB_SUCCESS;
+    }
+    else
+    {
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+    }
+
+    return Status;
 }
 
 BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    if ((RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
-        (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
-        (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED)  ||
-        (RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
-        (RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
-        (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
-        (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED))
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        Status = BPLIB_CLA_INCORRECT_STATE;
+        if ((RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
+            (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_TORNDOWN) ||
+            (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_STARTED)  ||
+            (RunState == BPLIB_CLA_TORNDOWN && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+            (RunState == BPLIB_CLA_STOPPED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+            (RunState == BPLIB_CLA_STARTED  && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED)   ||
+            (RunState == BPLIB_CLA_SETUP    && BPLib_CLA_ContactRunStates[ContactId] == BPLIB_CLA_EXITED))
+        {
+            Status = BPLIB_CLA_INCORRECT_STATE;
+        }
+        else
+        {
+            BPLib_CLA_ContactRunStates[ContactId] = RunState;
+            Status = BPLIB_SUCCESS;
+        }
     }
     else
     {
-        BPLib_CLA_ContactRunStates[ContactId] = RunState;
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
     }
 
     return Status;
