@@ -143,7 +143,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
             Status = BPLIB_CLA_INCORRECT_STATE;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "Contact with ID %d is already set up or has exited",
+                                "Contact with ID %d must be torndown",
                                 ContactId);
         }
     }
@@ -178,7 +178,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
             Status = BPLIB_CLA_INCORRECT_STATE;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "Contact with ID %d needs to be setup first",
+                                "Contact with ID %d cannot be torndown or exited before starting",
                                 ContactId);
         }
     }
@@ -212,7 +212,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
             Status = BPLIB_CLA_INCORRECT_STATE;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "Contact with ID %d needs to be started first",
+                                "Contact with ID %d must be started first",
                                 ContactId);
         }
     }
@@ -246,7 +246,7 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
             Status = BPLIB_CLA_INCORRECT_STATE;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "Contact with ID %d needs to be stopped first",
+                                "Contact with ID %d needs to be stopped or set up first",
                                 ContactId);
         }
     }
