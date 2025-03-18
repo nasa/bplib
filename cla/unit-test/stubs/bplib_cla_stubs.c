@@ -24,8 +24,18 @@
  * Auto-Generated stub implementations for functions defined in bplib_cla header
  */
 
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include "bplib_cla.h"
 #include "utgenstub.h"
+
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
 
 /*
  * ----------------------------------------------------
