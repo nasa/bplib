@@ -105,20 +105,6 @@ typedef struct
 /* Function Prototypes */
 /* =================== */
 
-/**
- * \brief Convergence Layer Adaptor initialization
- *
- *  \par Description
- *       CLA initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_CLA_Init(void);
-
 /* CLA I/O (bundle data units) */
 
 /**
@@ -203,6 +189,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
  */
 BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
 
@@ -215,6 +202,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
  */
 BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
 
@@ -227,16 +215,22 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
  */
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
 
 /**
-  * \brief     Get access to the run state of a particular contact
-  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration of whose run
-  *                                 state should be returned
-  * \return    Contact run state
+  * \brief      Get access to the run state of a particular contact
+  * \param[in]  ContactId (uint32_t) Contact ID from the Contacts Configuration of whose run
+  *                                  state should be returned
+  * \param[out] ReturnState (BPLib_CLA_ContactRunState_t*) If the contact ID is deemed valid,
+  *                                                        this will be the state of the request
+  *                                                        contact at the contact ID
+  * \return     Execution Status
+  * \retval     BPLIB_SUCCESS: Successful execution
+  * \retval     BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
   */
-BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint32_t ContactId);
+BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState);
 
 /**
   * \brief     Set the run state of the provided contact
@@ -244,10 +238,10 @@ BPLib_CLA_ContactRunState_t BPLib_CLA_GetContactRunState(uint32_t ContactId);
   * \param[in] RunState  (BPLib_CLA_ContactRunState_t) Requested run state of the provided contact ID from the Contacts Configuration
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
-  * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in the Contacts Configuration
+  * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID does not match a contact ID in the Contacts Configuration
   * \retval    BPLIB_CLA_INCORRECT_STATE: The intended run state for the contact with the provided contact ID was incompatible with the
   *                                       current run state of the contact
   */
- BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState);
+BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState);
 
 #endif /* BPLIB_CLA_H */
