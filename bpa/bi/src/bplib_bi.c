@@ -77,13 +77,13 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     Status = BPLib_BI_ValidateBundle();
     /* TODO check this return once validate is actually implemented */
 
-    // printf("Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.\n",
-    //     (unsigned long)Size,
-    //     CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
-    //     CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
-    //     CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
-    //     CandidateBundle->blocks.PrimaryBlock.SrcEID.Service
-    // );
+    BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.\n",
+                (unsigned long) Size,
+                CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
+                CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
+                CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
+                CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
 
     Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_NO_WAIT);
     return Status;

@@ -141,16 +141,20 @@
 #define BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID       (600u)
 #define BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID  (602u)
 #define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
+#define BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID           (604u)
+#define BPLIB_STOR_CACHE_QUEUE_ERR_EID                  (605u)
 
-#define BPLIB_NC_TBL_UPDATE_INF_EID                     (604u)
-#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (605u)
+#define BPLIB_NC_TBL_UPDATE_INF_EID                     (606u)
+#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (607u)
 
 /* ============ */
 /* BI event IDs */
 /* ============ */
 #define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
+#define BPLIB_BI_INGRESS_DBG_EID             (651u)
 
 #define BPLIB_MEM_NO_BLKS_ERR_EID            (660u)
 
+#define BPLIB_CLA_EGRESS_DBG_EID             (670u)
 
 #endif /* BPLIB_EVENTIDS_H */

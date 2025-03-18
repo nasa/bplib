@@ -169,9 +169,15 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                     {
                         /* Something's wrong with the queues, bundle got dropped */
                         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
-                        // BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
-                        //     "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
-                        //     Status);
+
+                        /* 
+                        ** Mapping this error to debug since it really only shows up when 
+                        ** the queues are overwhelmed and then it starts spamming the
+                        ** system
+                        */
+                        BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
+                            Status);
                     }
 
                     /*

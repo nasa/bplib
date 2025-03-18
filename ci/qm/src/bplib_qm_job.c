@@ -87,16 +87,18 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
 {
    bool QueuePushReturnStatus;
 
-    // printf("STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
-    //     Bundle->blocks.PrimaryBlock.DestEID.Node,
-    //     Bundle->blocks.PrimaryBlock.DestEID.Service);
+   BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                        "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
+                        Bundle->blocks.PrimaryBlock.DestEID.Node,
+                        Bundle->blocks.PrimaryBlock.DestEID.Service);
 
     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
     if (QueuePushReturnStatus == false)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
 
-        //printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
+        BPLib_EM_SendEvent(BPLIB_STOR_CACHE_QUEUE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Failed to push bundle onto Cache Queue");
     }
 
     return NO_NEXT_STATE;
