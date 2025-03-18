@@ -121,8 +121,6 @@ void Test_BPLib_CLA_ContactSetup_Nominal(void)
 
     /* Prime the Contacts Configuration to return valid values */
     memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
-    strncpy(ContactInfo.CLAddr, "0.0.0.0", sizeof(char) * 7); // I know a char is a byte, it's just robust this way...
-    ContactInfo.PortNum = 1;
     BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId] = ContactInfo;
 
     /* Set a valid run state */
@@ -190,7 +188,31 @@ void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
 
 void Test_BPLib_CLA_ContactSetup_CallbackError(void)
 {
+    BPLib_Status_t          Status;
+    uint32_t                ContactId;
+    BPLib_CLA_ContactsSet_t ContactInfo;
 
+    /* Set the ContactId to a valid value */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    /* Prime the Contacts Configuration to return valid values */
+    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId] = ContactInfo;
+
+    /* Set a valid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
+
+    /* Force BPA_CLAP_ContactSetup to return a success value */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_CLAP_ContactSetup), BPLIB_CLA_IO_ERROR);
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactSetup(ContactId);
+
+    /* Verify that Status is success */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_IO_ERROR);
+
+    /* Verify that run state is setup */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
 }
 
 void Test_BPLib_CLA_ContactSetup_SetContactStateError(void)
