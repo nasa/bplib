@@ -145,7 +145,7 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
     uint32_t                ContactId;
     BPLib_CLA_ContactsSet_t ContactInfo;
 
-    /* Set the ContactId to a valid value */
+    /* Set the ContactId to an invalid value */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
 
     /* Set a valid run state */
@@ -154,7 +154,7 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
     /* Run the function under test */
     Status = BPLib_CLA_ContactSetup(ContactId);
 
-    /* Verify that Status is success */
+    /* Verify that Status is as expected */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_CONTACTS_MAX_REACHED);
 
     /* Verify that run state is unchanged */
@@ -202,22 +202,17 @@ void Test_BPLib_CLA_ContactSetup_CallbackError(void)
     /* Set a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
 
-    /* Force BPA_CLAP_ContactSetup to return a success value */
+    /* Force BPA_CLAP_ContactSetup to return an error value */
     UT_SetDefaultReturnValue(UT_KEY(BPA_CLAP_ContactSetup), BPLIB_CLA_IO_ERROR);
 
     /* Run the function under test */
     Status = BPLib_CLA_ContactSetup(ContactId);
 
-    /* Verify that Status is success */
+    /* Verify that Status is as expected */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_IO_ERROR);
 
     /* Verify that run state is setup */
     UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
-}
-
-void Test_BPLib_CLA_ContactSetup_SetContactStateError(void)
-{
-
 }
 
 void TestBplibCla_Register(void)
@@ -237,5 +232,4 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_ContactSetup_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_InvalidContactId");
     UtTest_Add(Test_BPLib_CLA_ContactSetup_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_InvalidRunState");
     UtTest_Add(Test_BPLib_CLA_ContactSetup_CallbackError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_CallbackError");
-    UtTest_Add(Test_BPLib_CLA_ContactSetup_SetContactStateError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_SetContactStateError");
 }

@@ -135,7 +135,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
             if (Status == BPLIB_SUCCESS)
             {
-                Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP);
+                (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP);
             }
         }
         else
