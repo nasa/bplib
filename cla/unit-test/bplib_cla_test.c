@@ -38,7 +38,7 @@ void Test_BPLib_CLA_Ingress_Nominal(void)
     uint8_t Bundle[5]= {0x9F, 0x0, 0x0, 0x0, 0x0};
     size_t Size = 10;
     uint32_t Timeout = 0;
-    
+
     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 }
 
@@ -67,7 +67,7 @@ void Test_BPLib_CLA_Ingress_NonControlMsg(void)
     size_t Size = 10;
     uint32_t Timeout = 0;
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 0);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_ERROR);    
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_ERROR);
     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 }
 
@@ -94,7 +94,7 @@ void Test_BPLib_CLA_ContactsTblValidateFunc_Nominal(void)
     BPLib_CLA_ContactsTable_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
     TestTblData.ContactSet[0].PortNum = 10;
-    UtAssert_INT32_EQ((int32) BPLib_CLA_ContactsTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+    UtAssert_INT32_EQ((int32) BPLib_CLA_ContactsTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
 }
 
 void Test_BPLib_CLA_ContactsTblValidateFunc_Invalid(void)
@@ -105,7 +105,7 @@ void Test_BPLib_CLA_ContactsTblValidateFunc_Invalid(void)
     // Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE
     TestTblData.ContactSet[0].PortNum = 0;
 
-    UtAssert_INT32_EQ(BPLib_CLA_ContactsTblValidateFunc(&TestTblData), 
+    UtAssert_INT32_EQ(BPLib_CLA_ContactsTblValidateFunc(&TestTblData),
                                                 BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
 }
 */
@@ -131,6 +131,7 @@ void Test_BPLib_CLA_ContactSetup_Nominal(void)
     /* Force BPA_CLAP_ContactSetup to return a success value */
     UT_SetDefaultReturnValue(UT_KEY(BPA_CLAP_ContactSetup), BPLIB_SUCCESS);
 
+    /* Run the function under test */
     Status = BPLib_CLA_ContactSetup(ContactId);
 
     /* Verify that Status is success */
@@ -152,6 +153,7 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
     /* Set a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
 
+    /* Run the function under test */
     Status = BPLib_CLA_ContactSetup(ContactId);
 
     /* Verify that Status is success */
@@ -168,7 +170,22 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
 
 void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
 {
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
 
+    /* Set a invalid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STARTED;
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactSetup(ContactId);
+
+    /* Verify that run state is unchanged */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_STARTED);
+
+    /* Verify that the correct event was issued */
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID %d is already set up or has exited");
 }
 
 void Test_BPLib_CLA_ContactSetup_CallbackError(void)
@@ -190,7 +207,7 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_Ingress_MsgData, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_MsgData");
     UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMsg, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMsg");
     UtTest_Add(Test_BPLib_CLA_Ingress_NULLBundle, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NULLBundle");
-    UtTest_Add(Test_BPLib_CLA_Egress_NULLBundle, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NULLBundle");    
+    UtTest_Add(Test_BPLib_CLA_Egress_NULLBundle, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NULLBundle");
     UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Nominal");
     UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Invalid, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Invalid");
     */
