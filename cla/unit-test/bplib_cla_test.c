@@ -358,6 +358,18 @@ void Test_BPLib_CLA_ContactStop_InvalidRunState(void)
                                 "Contact with ID %d needs to be started first");
 }
 
+void Test_BPLib_CLA_ContactTeardown_Nominal(void)
+{
+}
+
+void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
+{
+}
+
+void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
+{
+}
+
 void TestBplibCla_Register(void)
 {
     /*
@@ -383,4 +395,8 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_ContactStop_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_Nominal");
     UtTest_Add(Test_BPLib_CLA_ContactStop_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_InvalidContactId");
     UtTest_Add(Test_BPLib_CLA_ContactStop_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_InvalidRunState");
+
+    UtTest_Add(Test_BPLib_CLA_ContactTeardown_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_Nominal");
+    UtTest_Add(Test_BPLib_CLA_ContactTeardown_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_InvalidContactId");
+    UtTest_Add(Test_BPLib_CLA_ContactTeardown_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_InvalidRunState");
 }
