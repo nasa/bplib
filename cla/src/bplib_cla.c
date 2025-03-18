@@ -26,6 +26,7 @@
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
 #include "bplib_fwp.h"
+#include "bplib_nc.h"
 
 /* ==================== */
 /* Function Definitions */
