@@ -164,19 +164,30 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    RunState = BPLib_CLA_GetContactRunState(ContactId);
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    {
+        RunState = BPLib_CLA_GetContactRunState(ContactId);
 
-    if (RunState != BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
-    { /* Contact must be set up before running */
-        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
-        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
+        if (RunState != BPLIB_CLA_TORNDOWN && RunState != BPLIB_CLA_EXITED)
+        { /* Contact must be set up before running */
+            BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
+            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED);
+        }
+        else
+        {
+            Status = BPLIB_CLA_INCORRECT_STATE;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "Contact with ID %d needs to be setup first",
+                                ContactId);
+        }
     }
     else
     {
-        Status = BPLIB_CLA_INCORRECT_STATE;
-        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
-                            "Contact with ID %d needs to be setup first",
+                            "Contact ID %d is invalid",
                             ContactId);
     }
 
@@ -188,19 +199,30 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    RunState = BPLib_CLA_GetContactRunState(ContactId);
-
-    if (RunState == BPLIB_CLA_STARTED && RunState != BPLIB_CLA_EXITED)
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
-        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED);
+        RunState = BPLib_CLA_GetContactRunState(ContactId);
+
+        if (RunState == BPLIB_CLA_STARTED && RunState != BPLIB_CLA_EXITED)
+        {
+            BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop(ContactId);
+            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED);
+        }
+        else
+        {
+            Status = BPLIB_CLA_INCORRECT_STATE;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "Contact with ID %d needs to be started first",
+                                ContactId);
+        }
     }
     else
     {
-        Status = BPLIB_CLA_INCORRECT_STATE;
-        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
-                            "Contact with ID %d needs to be started first",
+                            "Contact ID %d is invalid",
                             ContactId);
     }
 
@@ -212,19 +234,30 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    RunState = BPLib_CLA_GetContactRunState(ContactId);
-
-    if (RunState == BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_EXITED)
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
-        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
-        Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN);
+        RunState = BPLib_CLA_GetContactRunState(ContactId);
+
+        if (RunState == BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_EXITED)
+        {
+            BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
+            Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN);
+        }
+        else
+        {
+            Status = BPLIB_CLA_INCORRECT_STATE;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "Contact with ID %d needs to be stopped first",
+                                ContactId);
+        }
     }
     else
     {
-        Status = BPLIB_CLA_INCORRECT_STATE;
-        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
-                            "Contact with ID %d needs to be stopped first",
+                            "Contact ID %d is invalid",
                             ContactId);
     }
 

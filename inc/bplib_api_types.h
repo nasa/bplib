@@ -252,10 +252,11 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CLA_CONTACTS_MAX_REACHED                  ((BPLib_Status_t) -179) /* Max number of contacts active */
 #define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -180) /* Contact is in the incorrect state to be modified */
 #define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -181) /* PSP IO driver API call failed */
-#define BPLIB_CLA_INIT_SEM_ERROR                        ((BPLib_Status_t) -182) /* Error occured with CLA initializing sempahore */
-#define BPLIB_CLA_WAKEUP_SEM_ERROR                      ((BPLib_Status_t) -183) /* Error occured with CLA wakeup sempahore */
-#define BPLIB_CLA_EXIT_SEM_ERROR                        ((BPLib_Status_t) -184) /* Error occured with CLA exit sempahore */
-#define BPLIB_CLA_TASK_CREATE_ERROR                     ((BPLib_Status_t) -185) /* Error occured while creating task */
+#define BPLIB_CLA_INVALID_CONTACT_ID                    ((BPLib_Status_t) -182)
+#define BPLIB_CLA_INIT_SEM_ERROR                        ((BPLib_Status_t) -183) /* Error occured with CLA initializing sempahore */
+#define BPLIB_CLA_WAKEUP_SEM_ERROR                      ((BPLib_Status_t) -184) /* Error occured with CLA wakeup sempahore */
+#define BPLIB_CLA_EXIT_SEM_ERROR                        ((BPLib_Status_t) -185) /* Error occured with CLA exit sempahore */
+#define BPLIB_CLA_TASK_CREATE_ERROR                     ((BPLib_Status_t) -186) /* Error occured while creating task */
 
 // TODO TIME Helpers
 
