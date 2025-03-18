@@ -228,6 +228,9 @@ void Test_BPLib_CLA_ContactStart_Nominal(void)
 
     /* Show that the contact was started successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
 }
 
 void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
@@ -238,11 +241,17 @@ void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
 
+    /* Initialize the contact run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_SETUP;
+
     /* Run the function under test */
     Status = BPLib_CLA_ContactStart(ContactId);
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INVALID_CONTACT_ID);
+
+    /* Show that the run state did not transition */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
 
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
@@ -267,6 +276,9 @@ void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INCORRECT_STATE);
 
+    /* Show that the run state did not transition */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
     /* Verify that the correct event was issued */
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
@@ -275,17 +287,75 @@ void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
 
 void Test_BPLib_CLA_ContactStop_Nominal(void)
 {
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
 
+    /* Assign a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    /* Put the contact in a valid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STARTED;
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactStop(ContactId);
+
+    /* Show that the contact was started successfully */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_STOPPED);
 }
 
 void Test_BPLib_CLA_ContactStop_InvalidContactId(void)
 {
+    BPLib_Status_t Status;
+    uint32_t ContactId;
 
+    /* Create an invalid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
+
+    /* Initialize the contact run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_SETUP;
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactStop(ContactId);
+
+    /* Show that the function failed */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INVALID_CONTACT_ID);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
+
+    /* Verify that the correct event was issued */
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
+                                "Contact ID %d is invalid");
 }
 
 void Test_BPLib_CLA_ContactStop_InvalidRunState(void)
 {
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
 
+    /* Create a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    /* Put the contact in an invalid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactStop(ContactId);
+
+    /* Show that the function failed */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INCORRECT_STATE);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    /* Verify that the correct event was issued */
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID %d needs to be started first");
 }
 
 void TestBplibCla_Register(void)
