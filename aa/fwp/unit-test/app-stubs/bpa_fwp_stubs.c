@@ -93,6 +93,60 @@ BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactSetup()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_CLAP_ContactSetup(int32_t PortNum, char *CLAddr, uint32_t ContactId)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactSetup, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, int32_t, PortNum);
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, char *, CLAddr);
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactSetup, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_CLAP_ContactSetup, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactStart()
+ * ----------------------------------------------------
+ */
+void BPA_CLAP_ContactStart(uint32_t ContactId)
+{
+    UT_GenStub_AddParam(BPA_CLAP_ContactStart, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactStart, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactStop()
+ * ----------------------------------------------------
+ */
+void BPA_CLAP_ContactStop(uint32_t ContactId)
+{
+    UT_GenStub_AddParam(BPA_CLAP_ContactStop, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactStop, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactTeardown()
+ * ----------------------------------------------------
+ */
+void BPA_CLAP_ContactTeardown(uint32_t ContactId)
+{
+    UT_GenStub_AddParam(BPA_CLAP_ContactTeardown, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactTeardown, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPA_EVP_Init()
  * ----------------------------------------------------
  */
