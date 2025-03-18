@@ -53,11 +53,13 @@ target_include_directories(coverage-bplib_mem-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_mem-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_em_stubs
 )
 
 add_test(coverage-bplib_mem-testrunner coverage-bplib_mem-testrunner)

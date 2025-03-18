@@ -108,7 +108,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
     UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
 }
