@@ -152,7 +152,8 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
         Status = BPLIB_CLA_CONTACTS_MAX_REACHED;
         BPLib_EM_SendEvent(BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
-                            "Max simultaneous contacts allowed has been reached");
+                            "Max simultaneous contacts allowed (%d) has been reached",
+                            BPLIB_MAX_NUM_CONTACTS);
     }
 
     return Status;

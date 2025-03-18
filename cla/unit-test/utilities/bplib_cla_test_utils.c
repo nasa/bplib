@@ -18,15 +18,24 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_cla_test_utils.h"
+#include "bplib_em_handlers.h" /* For BPLib_EM_SendEvent handler */
 
-/*
-** Function Definitions
-*/
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+void BPLib_CLA_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
+{
+    /* Check the string */
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
+    UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
 
 void BPLib_CLA_Test_Setup(void)
 {

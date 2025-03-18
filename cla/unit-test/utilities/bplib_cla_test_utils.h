@@ -21,9 +21,9 @@
 #ifndef BPLIB_CLA_TEST_UTILS_H
 #define BPLIB_CLA_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
@@ -33,9 +33,11 @@
 #include "bplib_api_types.h"
 #include "bplib_cla_internal.h"
 
-/*
-** Function Definitions
-*/
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+void BPLib_CLA_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
 void BPLib_CLA_Test_Setup(void);
 void BPLib_CLA_Test_Teardown(void);

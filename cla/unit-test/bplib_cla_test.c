@@ -142,7 +142,28 @@ void Test_BPLib_CLA_ContactSetup_Nominal(void)
 
 void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
 {
+    BPLib_Status_t          Status;
+    uint32_t                ContactId;
+    BPLib_CLA_ContactsSet_t ContactInfo;
 
+    /* Set the ContactId to a valid value */
+    ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
+
+    /* Set a valid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
+
+    Status = BPLib_CLA_ContactSetup(ContactId);
+
+    /* Verify that Status is success */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_CONTACTS_MAX_REACHED);
+
+    /* Verify that run state is unchanged */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    /* Verify that the event was issued */
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID,
+                                "Max simultaneous contacts allowed (%d) has been reached");
 }
 
 void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
