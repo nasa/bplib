@@ -199,7 +199,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
 
-    if (Status == BPLIB_SUCCESS)
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
         if (RunState == BPLIB_CLA_STARTED)
