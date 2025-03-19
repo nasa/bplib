@@ -61,6 +61,8 @@ target_include_directories(coverage-bplib_pi-testrunner PRIVATE
 )
 
 target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
+    ut_coverage_link
+    ut_assert
     bplib_as_stubs
     bplib_mem_stubs
     bplib_qm_stubs
@@ -69,8 +71,6 @@ target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
     bplib_time_stubs
     bplib_nc_stubs
     bplib_em_stubs
-    ut_coverage_link
-    ut_assert
 )
 
 add_test(coverage-bplib_pi-testrunner coverage-bplib_pi-testrunner)
