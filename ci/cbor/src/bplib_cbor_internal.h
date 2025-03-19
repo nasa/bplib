@@ -31,7 +31,9 @@
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
 
-#define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (0)
+// Only uncomment locally, shouldn't be included in the main branch
+// #define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (1)
+
 #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
 #include <stdio.h>
 #endif
@@ -209,6 +211,160 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
 BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
+
+
+
+
+/**
+ * \brief Encodes the primary block data into the output buffer
+ *
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
+ * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+/**
+ * \brief Copies the Primary Block out of a stored bundle,
+ *        or encodes the primary (if never previously encoded)
+ *
+ * This function copies the Primary Block from the specified bundle into the provided buffer.
+ * If the bundle has more Primary Block than OutputBufferSize, this function returns BPLIB_BUF_LEN_ERROR
+ *
+ * \param[in] StoredBundle Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer A buffer to store the copied data.
+ * \param[in] OutputBufferSize The maximum number of bytes to copy.
+ * \param[out] NumBytesCopied The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+
+/**
+ * \brief Returns the number of extension blocks populated in bundle metadata
+ *
+ * \param[in] StoredBundle Pointer to the bundle
+ *
+ * \return (uint32_t) number of extension blocks populated in bundle metadata
+ */
+uint32_t BPLib_CBOR_GetNumExtensionBlocks(BPLib_Bundle_t* StoredBundle);
+
+
+/**
+ * \brief Encodes the extension block's block-specific data, putting the output in the provided buffer
+ *
+ * \param[in] CurrExtBlock (BPLib_ExtensionBlock_t*) Pointer to the extension block to be encoded
+ * \param[in] ExtensionBlockIndex (UsefulBuf*) Pointer to the output buffer info (ptr and len)
+ *
+ * \return Number of bytes encoded and output to the buffer.
+ */
+size_t BPLib_CBOR_EncodeBlockSpecificData(BPLib_ExtensionBlock_t* CurrExtBlock,
+    UsefulBuf* CurrentContextPlace);
+
+/**
+ * \brief Encodes the specified extension block data into the output buffer
+ *
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
+ * \param[in] ExtensionBlockIndex (uint32_t) Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
+ * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
+    uint32_t ExtensionBlockIndex,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+/**
+ * \brief Encodes the payload into the output buffer
+ *
+ * Note that this function effectively re-implements parts of the QCBOR library,
+ * to prevent an additional memory copy of the payload data.
+ * Specifically, instead of adding the ADU data using QCBOREncode_OpenBytes,
+ * we build our own CBOR byte array head info before copying in the data from our memory blocks.
+ * The use of QCBOREncode_OpenBytes and QCBOREncode_CloseBytes would result in an extra copy of the ADU,
+ * since QCBOR doesn't know the ADU size until QCBOREncode_CloseBytes is called.
+ *
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer (void*) Destination buffer, to put the copied data.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes than can be copied to OutputBuffer.
+ * \param[out] NumBytesCopied (size_t*) The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+
+/**
+ * \brief Copies the Payload Block out of a stored bundle,
+ *        or encodes the primary (if never previously encoded)
+ *
+ * This function copies the Payload Block from the specified bundle into the provided buffer.
+ * If the bundle has more Payload Block than OutputBufferSize, this function returns BPLIB_BUF_LEN_ERROR
+ *
+ * \param[in] StoredBundle Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer A buffer to store the copied data.
+ * \param[in] OutputBufferSize The maximum number of bytes to copy.
+ * \param[out] NumBytesCopied The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
+    void* OutputBuffer,
+    size_t OutputBufferSize,
+    size_t* NumBytesCopied);
+
+
+/**
+ * \brief     Encodes a BPLib_EID_t type
+ * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
+ * \param[in] SourceData (BPLib_EID_t*) pointer to the field that needs to be encoded
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ */
+BPLib_Status_t BPLib_CBOR_EncodeEID(QCBOREncodeContext* Context, BPLib_EID_t* SourceData);
+
+
+
+/**
+ * \brief     Encodes a BPLib_CreationTimeStamp_t
+ * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
+ * \param[in] TimeStamp (BPLib_CreationTimeStamp_t*) pointer to the field that needs to be encoded
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ */
+BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, BPLib_CreationTimeStamp_t* TimeStamp);
+
+
+
+/**
+ * \brief     Encodes a CRC value
+ * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
+ * \param[in] CrcValue (uint64_t) CRC Value to be encoded
+ * \param[in] CrcType (uint64_t) specifies the expected CRC type (None, CRC16, or CRC32C)
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ */
+BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t CrcValue, uint64_t CrcType);
 
 
 #endif /* BPLIB_CBOR_INTERNAL_H */

@@ -34,20 +34,6 @@
 */
 
 /**
- * \brief Bundle Interface initialization
- *
- *  \par Description
- *       BI initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_BI_Init(void);
-
-/**
  * \brief Function for Receiving Bundle from CLA
  *
  *  \par Description
@@ -95,5 +81,23 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* CtrlMsg);
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_BI_ValidateBundle(void);
+
+/**
+ * \brief Copies the blob data out of a bundle, re-encoding anything necessary
+ *
+ * This function copies the blob data from the specified bundle into the provided buffer.
+ * If the bundle has more blob data than max_len, this function returns BPLIB_BUF_LEN_ERROR
+ *
+ * \param[in] StoredBundle (BPLib_Bundle_t*) Pointer to the bundle from which to copy the data.
+ * \param[out] OutputBuffer (void*) A buffer to store the copied data.
+ * \param[in] OutputBufferSize (size_t) The maximum number of bytes to copy.
+ * \param[out] NumBytesCopied The actual number of bytes copied.
+ *
+ * \return Status of the operation.
+ */
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
+                                    void* OutputBuffer,
+                                    size_t OutputBufferSize,
+                                    size_t* NumBytesCopied);
 
 #endif /* BPLIB_BI_H */

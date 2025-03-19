@@ -1,3 +1,23 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include <stdio.h>
 
 #include "bplib_cbor_internal.h"
@@ -77,7 +97,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     size_t HopCountBlockDataArrayLen;
     QCBORError QStatus;
     uint64_t BlockType;
-    uint32_t CurrentTraversalOffset;
+    uint32_t HeaderStartOffset;
     UsefulBufC CanonBlockDataByteStrInfo;
 
     if ((ctx == NULL) || (bundle == NULL))
@@ -91,7 +111,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Grab the current offset, to be kept in the canonical block's metadata */
-    CurrentTraversalOffset = QCBORDecode_Tell(ctx);
+    HeaderStartOffset = QCBORDecode_Tell(ctx);
 
     /* Enter the canonical block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &ArrayLen);
@@ -130,7 +150,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         }
     }
     CanonicalBlockHdr->BlockType = BlockType;
-    CanonicalBlockHdr->HeaderOffset = CurrentTraversalOffset;
+    CanonicalBlockHdr->BlockOffsetStart = HeaderStartOffset;
 
     /* Block Number */
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);
@@ -140,7 +160,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* Flags */
-    Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BundleProcFlags);
+    Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BlockProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
@@ -164,8 +184,13 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_ENTER_BYTE_STR_ERR;
     }
 
-    /* Grab the current offset, to be kept in the canonical block's metadata */
-    CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
+    /*
+    ** Grab the current offset, to be kept in the canonical block's metadata
+    ** this should be after we enter the byte string
+    ** This will be used for ADU delivery
+    */
+    CanonicalBlockHdr->DataOffsetStart = QCBORDecode_Tell(ctx);
+    CanonicalBlockHdr->DataSize = CanonBlockDataByteStrInfo.len;
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
@@ -216,7 +241,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
-        bundle->blocks.PrimaryBlock.TotalAduLength = CanonBlockDataByteStrInfo.len;
+        /* payload blocks shouldn't need to be re-encoded */
+        CanonicalBlockHdr->RequiresEncode = false;
+        /* TODO: Should we do anything with this data? */
     }
     else
     {
@@ -245,14 +272,30 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
         return BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR;
     }
 
+    /*
+    ** Grab the end-of-block offset
+    ** TODO: Figure out why we have to subtract 2 if the block is a payload block!
+    */
+    if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
+    {
+        CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 2;
+    }
+    else
+    {
+        CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+    }
+
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
     printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
     printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
-    printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
+    printf("\t Flags: %lu\n", CanonicalBlockHdr->BlockProcFlags);
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
-    printf("\t Header Offset: %lu\n", CanonicalBlockHdr->HeaderOffset);
-    printf("\t Data Offset: %lu\n", CanonicalBlockHdr->DataOffset);
+    printf("\t Block Offset Start: %lu\n", CanonicalBlockHdr->BlockOffsetStart);
+    printf("\t Data Offset Start: %lu\n", CanonicalBlockHdr->DataOffsetStart);
+    printf("\t Data Size: %lu\n", CanonicalBlockHdr->DataSize);
+    printf("\t Block Offset End: %lu\n", CanonicalBlockHdr->BlockOffsetEnd);
+    printf("\t Block Size: %lu\n", CanonicalBlockHdr->BlockOffsetEnd - CanonicalBlockHdr->BlockOffsetStart + 1);
     switch (CanonicalBlockHdr->BlockType)
     {
         case BPLib_BlockType_PrevNode:
@@ -285,8 +328,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
             printf("\t CREB Block Data Parsing Skipped!\n");
             break;
         case BPLib_BlockType_Payload:
-            printf("\t Payload Block Data Length: %lu bytes\n",
-                bundle->blocks.PrimaryBlock.TotalAduLength);
+            printf("\t Payload Data Length: %lu bytes\n",
+                CanonicalBlockHdr->DataSize);
             break;
         default:
             printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);
