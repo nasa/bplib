@@ -27,7 +27,8 @@
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
 #include "bplib_qm.h"
-
+#include "bplib_em.h"
+#include "bplib_eventids.h"
 
 /*
 ** Function Definitions
@@ -78,7 +79,8 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
-            printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
+            BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
         }
     
         /* Free the bundle blocks */
