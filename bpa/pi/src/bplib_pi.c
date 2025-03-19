@@ -159,7 +159,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
     NewBundle->blocks.PayloadHeader.DataSize = AduSize;
 
-    printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
+    BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+        "Ingressing ADU of %lu bytes via channel #%d.", AduSize, ChanId);
 
     return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
@@ -168,7 +169,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
-    BPLib_Bundle_t    *Bundle;
+    BPLib_Bundle_t    *Bundle = NULL;
     BPLib_Status_t     Status;
 
     /* Null checks */
@@ -176,19 +177,25 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     {
         Status = BPLIB_NULL_PTR_ERROR;
     }
+    else if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        *AduSize = 0;
+        Status = BPLIB_PI_CHAN_ID_INPUT_ERR;
+    }
     /* Get the next bundle in the channel egress queue */
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout)
+             && Bundle != NULL)
     {
         /* Copy out the contents of the bundle payload to the return pointer */
         Status = BPLib_MEM_CopyOutFromOffset(Bundle,
-            Bundle->blocks.PayloadHeader.DataOffsetStart,
-            Bundle->blocks.PayloadHeader.DataSize,
-            AduPtr,
-            BufLen);
+                                Bundle->blocks.PayloadHeader.DataOffsetStart,
+                                Bundle->blocks.PayloadHeader.DataSize, AduPtr, BufLen);
 
         if (Status != BPLIB_SUCCESS)
         {
-            printf("BPLib_PI_Egress hit BPLib_MEM_CopyOutFromOffset error: %d\n", Status);
+            *AduSize = 0;
+            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Error copying ADU out for egress, Status = %d.", Status); 
         }
         else
         {
@@ -204,6 +211,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     /* No packet was pulled, presumably queue is empty */
     else 
     {
+        *AduSize = 0;
         Status = BPLIB_PI_TIMEOUT;
     }
 
