@@ -86,8 +86,10 @@ typedef struct
       * .CLAddr = "127.0.0.1"
       * which makes it a string containing an IP address, not an EID.
       */
-    char                CLAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t             PortNum;
+    char                ClaInAddr[BPLIB_MAX_EID_LENGTH];
+    char                ClaOutAddr[BPLIB_MAX_EID_LENGTH];
+    int32_t             ClaInPortNum;
+    int32_t             ClaOutPortNum;
     uint32_t            DestLTPEngineID;
     uint32_t            SendBytePerCycle;
     uint32_t            ReceiveBytePerCycle;
