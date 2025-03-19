@@ -193,7 +193,9 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         else
         {
             *AduSize = Bundle->blocks.PayloadHeader.DataSize;
-            printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
+            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                    "Egressing packet of %lu bytes to ADU via channel #%d.", 
+                    *AduSize, ChanId);
         }
 
         /* Free the bundle */

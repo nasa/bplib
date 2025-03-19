@@ -74,7 +74,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     /* TODO check this return once validate is actually implemented */
 
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.\n",
+                "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
                 (unsigned long) Size,
                 CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
                 CandidateBundle->blocks.PrimaryBlock.DestEID.Service,

@@ -157,4 +157,6 @@
 
 #define BPLIB_CLA_EGRESS_DBG_EID             (670u)
 
+#define BPLIB_PI_EGRESS_DBG_EID              (680u)
+
 #endif /* BPLIB_EVENTIDS_H */
