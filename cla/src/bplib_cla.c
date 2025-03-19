@@ -142,6 +142,14 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
                 (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_SETUP); /* Ignore return since pre-call run state is valid */
             }
         }
+        else if (RunState == BPLIB_CLA_SETUP)
+        {
+            Status = BPLIB_SUCCESS;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "[Contact ID #%d] Contact is already set up",
+                                ContactId);
+        }
         else
         {
             Status = BPLIB_CLA_INCORRECT_STATE;
@@ -176,6 +184,14 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
             (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED); /* Ignore return since pre-call run state is valid */
             Status = BPLIB_SUCCESS;
+        }
+        else if (RunState == BPLIB_CLA_STARTED)
+        {
+            Status = BPLIB_SUCCESS;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "[Contact ID #%d] Contact is already started",
+                                ContactId);
         }
         else
         {
@@ -212,6 +228,14 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
             (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STOPPED); /* Ignore return since pre-call run state is valid */
             Status = BPLIB_SUCCESS;
         }
+        else if (RunState == BPLIB_CLA_STOPPED)
+        {
+            Status = BPLIB_SUCCESS;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "[Contact ID #%d] Contact is already stopped",
+                                ContactId);
+        }
         else
         {
             Status = BPLIB_CLA_INCORRECT_STATE;
@@ -246,6 +270,14 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
             BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
             (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
             Status = BPLIB_SUCCESS;
+        }
+        else if (RunState == BPLIB_CLA_TORNDOWN)
+        {
+            Status = BPLIB_SUCCESS;
+            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "[Contact ID #%d] Contact is already torn down",
+                                ContactId);
         }
         else
         {
