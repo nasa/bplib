@@ -32,6 +32,7 @@
 #include "bplib_cla.h"
 #include "bplib_api_types.h"
 #include "bplib_cla_internal.h"
+#include "bplib_qm_handlers.h"
 
 /*
 ** Function Definitions

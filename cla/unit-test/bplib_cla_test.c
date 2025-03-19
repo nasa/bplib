@@ -42,7 +42,7 @@ void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
                                      sizeof(InputBundleBuffer),
                                      Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
     UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
     UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
@@ -63,7 +63,7 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
                                      sizeof(InputBundleBuffer),
                                      Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
     UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
     UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
@@ -248,9 +248,12 @@ void Test_BPLib_CLA_Egress_Nominal(void)
     size_t NumBytesCopiedToOutputBuf;
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
