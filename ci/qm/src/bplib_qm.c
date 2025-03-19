@@ -26,21 +26,26 @@
 #include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID  0x7F
-#define BPLIB_QM_JOBWAIT_TIMEOUT 10L
 
 BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 {
     bool QueueInit;
-    uint16_t i;
+    int i;
 
     if (inst == NULL)
     {
         return BPLIB_ERROR;
     }
 
-    if (pthread_mutex_init(&inst->WorkerStateLock, NULL) != 0)
+    /* Initialize worker registration state */
+    if (pthread_mutex_init(&inst->RegisteredWorkersLock, NULL) != 0)
     {
         return BPLIB_ERROR;
+    }
+    for (i = 0; i < QM_MAX_GEN_WORKERS; i++)
+    {
+        memset(&inst->RegisteredWorkers[i].CurrJob, 0, sizeof(BPLib_QM_Job_t));
+        inst->RegisteredWorkers[i].CurrJob.NextState = NO_NEXT_STATE;
     }
 
     QueueInit = true;
@@ -93,16 +98,17 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
         return;
     }
 
-    pthread_mutex_destroy(&inst->WorkerStateLock);
+    /* Worker State Cleanup */
+    pthread_mutex_destroy(&inst->RegisteredWorkersLock);
+    inst->NumWorkers = 0;
 
+    /* Queue Cleanup */
     BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
-
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         BPLib_QM_WaitQueueDestroy(&(inst->ChannelEgressJobs[i]));
     }
-
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
         BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs[i]));
@@ -120,7 +126,7 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    pthread_mutex_lock(&inst->WorkerStateLock);
+    pthread_mutex_lock(&inst->RegisteredWorkersLock);
     if (inst->NumWorkers == QM_MAX_GEN_WORKERS)
     {
         *WorkerID = -1;
@@ -133,7 +139,7 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
         *WorkerID = NewWorkerID;
         Status = BPLIB_SUCCESS;
     }
-    pthread_mutex_unlock(&inst->WorkerStateLock);
+    pthread_mutex_unlock(&inst->RegisteredWorkersLock);
 
     return Status;
 }
@@ -158,8 +164,8 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle
 
 void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
 {
+    // REFACTOR TO RETURN SUCCESS, TIMEOUT, ERROR
     BPLib_QM_WorkerState_t* WorkerState;
-    //BPLib_QM_JobState_t JobResult;
     BPLib_QM_JobFunc_t JobFunc;
 
     if (inst == NULL)
@@ -173,11 +179,19 @@ void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
     }
 
     WorkerState = &inst->RegisteredWorkers[WorkerID];
-    if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &WorkerState->CurrJob, BPLIB_QM_JOBWAIT_TIMEOUT))
+    if (WorkerState->CurrJob.NextState == NO_NEXT_STATE)
+    {
+        if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &WorkerState->CurrJob, TimeoutMs))
+        {
+            JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
+            assert(JobFunc != NULL); // REMOVE BEFORE MERGE
+            WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
+        }
+    }
+    else
     {
         JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
         assert(JobFunc != NULL); // REMOVE BEFORE MERGE
-        //JobResult = JobFunc(inst, WorkerState->Job.Bundle);
-        JobFunc(inst, WorkerState->CurrJob.Bundle);
+        WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
     }
 }

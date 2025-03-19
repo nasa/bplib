@@ -32,7 +32,6 @@
 typedef struct BPLib_QM_WorkerState
 {
     BPLib_QM_Job_t CurrJob;
-    int WorkerID;
 } BPLib_QM_WorkerState_t;
 
 /**
@@ -47,7 +46,7 @@ struct BPLib_Instance
     BPLib_MEM_Pool_t pool; /**< Memory pool for this BPLib Instance */
 
     /* Worker Management */
-    pthread_mutex_t WorkerStateLock;
+    pthread_mutex_t RegisteredWorkersLock;
     BPLib_QM_WorkerState_t RegisteredWorkers[QM_MAX_GEN_WORKERS];
     size_t NumWorkers;
 
