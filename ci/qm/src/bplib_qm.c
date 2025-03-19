@@ -21,7 +21,6 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
-#include "bplib_qm_workerstate.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -39,16 +38,13 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
         return BPLIB_ERROR;
     }
 
-    QueueInit = true;
-
-    /* Initialize the free workers queue */
-    inst->NumWorkers = 0;
-    if (!BPLib_QM_IntegerQueueInit(&inst->FreeWorkers, QM_MAX_GEN_WORKERS))
+    if (pthread_mutex_init(&inst->WorkerStateLock, NULL) != 0)
     {
-        QueueInit = false;
+        return BPLIB_ERROR;
     }
 
-    /* Initialize the jobs and unsorted jobs queue */
+    QueueInit = true;
+    /* Initialize the job queue */
     if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), sizeof(BPLib_QM_Job_t), MaxJobs))
     {
         QueueInit = false;
@@ -62,6 +58,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
         QueueInit = false;
     }
 
+    /* TODO: Use Bundle Queue */
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
@@ -96,6 +93,8 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
         return;
     }
 
+    pthread_mutex_destroy(&inst->WorkerStateLock);
+
     BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
 
@@ -112,30 +111,31 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 
 BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
 {
-    BPLib_Status_t Status;
     int NewWorkerID;
+    BPLib_Status_t Status;
 
     if ((inst == NULL) || (WorkerID == NULL))
     {
+        *WorkerID = -1;
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    pthread_mutex_lock(&inst->WorkerStateLock);
     if (inst->NumWorkers == QM_MAX_GEN_WORKERS)
     {
-        return BPLIB_ERROR;
+        *WorkerID = -1;
+        Status = BPLIB_ERROR;
     }
-
-    NewWorkerID = inst->NumWorkers;
-    Status = BPLib_QM_WorkerState_Init(&inst->RegisteredWorkers[NewWorkerID],
-        NewWorkerID, &inst->FreeWorkers);
-    if (Status != BPLIB_SUCCESS)
+    else
     {
-        return Status;
+        NewWorkerID = inst->NumWorkers;
+        inst->NumWorkers++;
+        *WorkerID = NewWorkerID;
+        Status = BPLIB_SUCCESS;
     }
+    pthread_mutex_unlock(&inst->WorkerStateLock);
 
-    inst->NumWorkers++;
-    *WorkerID = NewWorkerID;
-    return BPLIB_SUCCESS;
+    return Status;
 }
 
 BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
@@ -159,9 +159,8 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle
 void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
 {
     BPLib_QM_WorkerState_t* WorkerState;
-    BPLib_QM_JobState_t JobResult;
+    //BPLib_QM_JobState_t JobResult;
     BPLib_QM_JobFunc_t JobFunc;
-    BPLib_Status_t Status;
 
     if (inst == NULL)
     {
@@ -174,74 +173,11 @@ void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
     }
 
     WorkerState = &inst->RegisteredWorkers[WorkerID];
-    if (BPLib_QM_WorkerState_WaitForNewJob(WorkerState, TimeoutMs))
+    if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &WorkerState->CurrJob, BPLIB_QM_JOBWAIT_TIMEOUT))
     {
-        JobFunc = BPLib_QM_JobLookup(WorkerState->Job.NextState);
+        JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
         assert(JobFunc != NULL); // REMOVE BEFORE MERGE
-        JobResult = JobFunc(inst, WorkerState->Job.Bundle);
-        Status = BPLib_QM_WorkerState_MarkJobDone(WorkerState, JobResult);
-        if (Status != BPLIB_SUCCESS)
-        {
-            fprintf(stderr, "Worker Failed to MarkJobDone\n");
-        }
+        //JobResult = JobFunc(inst, WorkerState->Job.Bundle);
+        JobFunc(inst, WorkerState->CurrJob.Bundle);
     }
-}
-
-void BPLib_QM_ScheduleJobs(BPLib_Instance_t* inst, size_t MaxJobs)
-{
-    size_t JobsScheduled;
-    int CurrWorkerID;
-    BPLib_QM_Job_t CurrJob;
-    BPLib_QM_WorkerState_t* WorkerState;
-    BPLib_Status_t Status;
-
-    if (inst == NULL)
-    {
-        return;
-    }
-
-    JobsScheduled = 0;
-    while (JobsScheduled < MaxJobs)
-    {
-        /* Wait for a free worker */
-        if (BPLib_QM_IntegerQueueTryPull(&(inst->FreeWorkers), &CurrWorkerID, BPLIB_QM_JOBWAIT_TIMEOUT))
-        {
-            /* Lookup the worker state associated with the CurrWorkerID */
-            WorkerState = &inst->RegisteredWorkers[CurrWorkerID];
-            assert(WorkerState->HasJob == false); // REMOVE BEFORE MERGE
-            if (WorkerState->JobResult == NO_NEXT_STATE)
-            {
-                /* The worker has NO_NEXT_STATE, it can be given a new job */
-                if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &CurrJob, BPLIB_QM_JOBWAIT_TIMEOUT))
-                {
-                    Status = BPLib_QM_WorkerState_GiveNewJob(WorkerState, &CurrJob);
-                    assert(Status == BPLIB_SUCCESS); // REMOVE BEFORE MERGE
-                    JobsScheduled++;
-                }
-                else
-                {
-                    /* No job was available, return the worker ID to the free worker queue */
-                    if (BPLib_QM_IntegerQueueTryPush(&(inst->FreeWorkers), CurrWorkerID, QM_NO_WAIT) == false)
-                    {
-                        /* This is a fatal condition: The worker queue should always be able to
-                        ** hold a worker because it's been sized for QM_MAX_GEN_WORKERS
-                        */
-                        fprintf(stderr, "Failed to return idle worker to free queue\n");
-                    }
-                    return;
-                }
-            }
-            else
-            {
-                /* The worker has a next state, update the job with the next hop. */
-                /* Give the worker the same job with the next state advanced */
-                WorkerState->Job.NextState = WorkerState->JobResult;
-                Status = BPLib_QM_WorkerState_GiveNewJob(WorkerState, &WorkerState->Job);
-                assert(Status == BPLIB_SUCCESS); // REMOVE BEFORE MERGE
-                JobsScheduled++;
-            }
-        }
-    }
-
-    /* Consider returning JobsScheduled here */
 }

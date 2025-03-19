@@ -24,11 +24,16 @@
 #include "bplib_api_types.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_qm_job.h"
-#include "bplib_qm_workerstate.h"
 
 #define QM_NO_WAIT          0L  /**< Constant representing no wait */
 #define QM_WAIT_FOREVER    -1L /**< Constant representing an indefinite wait */
 #define QM_MAX_GEN_WORKERS  8L /**< Constant representing maximum allowed generic workers */
+
+typedef struct BPLib_QM_WorkerState
+{
+    BPLib_QM_Job_t CurrJob;
+    int WorkerID;
+} BPLib_QM_WorkerState_t;
 
 /**
  * @struct BPLib_Instance
@@ -40,10 +45,13 @@
 struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool; /**< Memory pool for this BPLib Instance */
-    size_t NumWorkers;
-    /* Queues */
+
+    /* Worker Management */
+    pthread_mutex_t WorkerStateLock;
     BPLib_QM_WorkerState_t RegisteredWorkers[QM_MAX_GEN_WORKERS];
-    BPLib_QM_IntegerQueue_t FreeWorkers; /**< Queue of free GenericWorkers */
+    size_t NumWorkers;
+
+    /* Queues */
     BPLib_QM_WaitQueue_t GenericWorkerJobs; /**< Queue of jobs */
     BPLib_QM_WaitQueue_t BundleCacheList; /**< Queue of bundles in cache */
     BPLib_QM_WaitQueue_t ContactEgressJobs[BPLIB_MAX_NUM_CONTACTS]; /**< Queue of contact egress jobs */
