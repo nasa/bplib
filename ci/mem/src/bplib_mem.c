@@ -245,11 +245,8 @@ BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, s
 }
 
 
-BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
-    uint64_t Offset,
-    uint64_t NumBytesToCopy,
-    void* OutputBuffer,
-    size_t OutputBufferSize)
+BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle, uint64_t Offset,
+                    uint64_t NumBytesToCopy, void* OutputBuffer, size_t OutputBufferSize)
 {
     BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
     BPLib_MEM_Block_t *CurrentBlock;
@@ -263,13 +260,13 @@ BPLib_Status_t BPLib_MEM_CopyOutFromOffset(BPLib_Bundle_t* Bundle,
     uint64_t ExpectedMemBlockNumber;
     uint64_t CurrentMemBlockNumber;
 
-    if ((Bundle == NULL) || (OutputBuffer == NULL))
+    if ((Bundle == NULL) || (OutputBuffer == NULL) || (Bundle->blob == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
-    if (Bundle->blob == NULL)
+    if (NumBytesToCopy > OutputBufferSize)
     {
-        return BPLIB_NULL_PTR_ERROR;
+        return BPLIB_BUF_LEN_ERROR;
     }
 
     /* find the first blob that contains data after the offset */

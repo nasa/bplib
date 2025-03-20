@@ -31,6 +31,10 @@
 
 #include "bplib_api_types.h"
 #include "bplib_pi.h"
+#include "bplib_fwp.h"
+#include "bplib_nc.h"
+#include "bplib_qm_handlers.h"
+#include "bplib_em_handlers.h"
 
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_PI_Test_Setup, BPLib_PI_Test_Teardown, #test)
