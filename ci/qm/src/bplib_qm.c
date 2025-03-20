@@ -162,20 +162,19 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle
     return Status;
 }
 
-void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
 {
-    // REFACTOR TO RETURN SUCCESS, TIMEOUT, ERROR
     BPLib_QM_WorkerState_t* WorkerState;
     BPLib_QM_JobFunc_t JobFunc;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
 
     if (inst == NULL)
     {
-        return;
+        return BPLIB_NULL_PTR_ERROR;
     }
     if ((WorkerID < 0) || (WorkerID >= inst->NumWorkers))
     {
-        printf("Invalid Worker ID\n"); // REMOVE BEFORE MERGE
-        return;
+        return BPLIB_ERROR;
     }
 
     WorkerState = &inst->RegisteredWorkers[WorkerID];
@@ -184,14 +183,20 @@ void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
         if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &WorkerState->CurrJob, TimeoutMs))
         {
             JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
-            assert(JobFunc != NULL); // REMOVE BEFORE MERGE
             WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
+            Status = BPLIB_SUCCESS;
+        }
+        else
+        {
+            Status = BPLIB_TIMEOUT;
         }
     }
     else
     {
         JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
-        assert(JobFunc != NULL); // REMOVE BEFORE MERGE
         WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
+        Status = BPLIB_SUCCESS;
     }
+
+    return Status;
 }

@@ -46,7 +46,7 @@ struct BPLib_Instance
     BPLib_MEM_Pool_t pool; /**< Memory pool for this BPLib Instance */
 
     /* Worker Management */
-    pthread_mutex_t RegisteredWorkersLock;
+    pthread_mutex_t RegisteredWorkersLock; // Move to bplib_os
     BPLib_QM_WorkerState_t RegisteredWorkers[QM_MAX_GEN_WORKERS];
     size_t NumWorkers;
 
@@ -79,14 +79,17 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs);
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
 
 /**
- * @brief Run the jobs in the queue based on their priority.
+ * @brief Executes a single job in the Queue Manager.
  * 
- * This function rearranges the jobs in the queue according to their priority.
+ * This function runs a job, potentially blocking until the specified timeout.
+ * This function is intended to be called from a generic worker thread.
  * 
- * @param[in] inst The instance containing the jobs to be scheduled.
- * @param[in] NumJobs The number of jobs to be scheduled.
+ * @param[in] inst The instance where the job is to be run.
+ * @param[out] WorkerID The returned ID of this worker, which should be passed to WorkerRunJob
+ * 
+ * @return Status of worker registration
  */
-void BPLib_QM_ScheduleJobs(BPLib_Instance_t* inst, size_t NumJobs);
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID);
 
 /**
  * @brief Executes a single job in the Queue Manager.
@@ -97,10 +100,10 @@ void BPLib_QM_ScheduleJobs(BPLib_Instance_t* inst, size_t NumJobs);
  * @param[in] inst The instance where the job is to be run.
  * @param[in] WorkerID The ID of the worker, give at init by BPLIB_QM_RegisterWorker();
  * @param[in] TimeoutMs Timeout in milliseconds to wait for a new job to be available.
+ * 
+ * @return Status of running the job
  */
-void BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs);
-
-BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID);
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs);
 
 /**
  * @brief Adds a job to the queue.

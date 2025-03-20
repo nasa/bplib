@@ -22,6 +22,7 @@
 #define BPLIB_QM_WAITQUEUE_H
 
 #include "bplib_mem.h"
+#include "bplib_qm_job.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -136,59 +137,31 @@ static inline bool BPLib_QM_BundleQueueTryPull(BPLib_QM_BundleQueue_t* q, BPLib_
 }
 
 /*******************************************************************************
-** Integer Queue Wrapper 
+** Job Queue Wrapper 
 */
-typedef struct BPLib_QM_IntegerQueue
+typedef struct BPLib_QM_JobQueue
 {
     BPLib_QM_WaitQueue_t BaseQueue;
-} BPLib_QM_IntegerQueue_t;
+} BPLib_QM_JobQueue_t;
 
-static inline bool BPLib_QM_IntegerQueueInit(BPLib_QM_IntegerQueue_t* q, size_t Capacity)
+static inline bool BPLib_QM_JobQueueInit(BPLib_QM_JobQueue_t* q, size_t Capacity)
 {
-    return BPLib_QM_WaitQueueInit(&q->BaseQueue, sizeof(int), Capacity);
+    return BPLib_QM_WaitQueueInit(&q->BaseQueue, sizeof(BPLib_QM_Job_t), Capacity);
 }
 
-static inline void BPLib_QM_IntegerQueueDestroy(BPLib_QM_IntegerQueue_t* q)
+static inline void BPLib_QM_JobQueueDestroy(BPLib_QM_JobQueue_t* q)
 {
     BPLib_QM_WaitQueueDestroy(&q->BaseQueue);
 }
 
-static inline bool BPLib_QM_IntegerQueueTryPush(BPLib_QM_IntegerQueue_t* q, int data, int TimeoutMs)
+static inline bool BPLib_QM_JobQueueTryPush(BPLib_QM_JobQueue_t* q, const BPLib_QM_Job_t* Job, int TimeoutMs)
 {
-    return BPLib_QM_WaitQueueTryPush(&q->BaseQueue, (const void*)&data, TimeoutMs);
+    return BPLib_QM_WaitQueueTryPush(&q->BaseQueue, (const void*)Job, TimeoutMs);
 }
 
-static inline bool BPLib_QM_IntegerQueueTryPull(BPLib_QM_IntegerQueue_t* q, int* data, int TimeoutMs)
+static inline bool BPLib_QM_JobQueueTryPull(BPLib_QM_JobQueue_t* q, BPLib_QM_Job_t* Job, int TimeoutMs)
 {
-    return BPLib_QM_WaitQueueTryPull(&q->BaseQueue, (void*)data, TimeoutMs);
+    return BPLib_QM_WaitQueueTryPull(&q->BaseQueue, (void*)&Job, TimeoutMs);
 }
-
-/*******************************************************************************
-** Job Queue Wrapper 
-*/
-// typedef struct BPLib_QM_JobQueue
-// {
-//     BPLib_QM_WaitQueue_t BaseQueue;
-// } BPLib_QM_JobQueue_t;
-
-// static inline bool BPLib_QM_JobQueueInit(BPLib_QM_JobQueue_t* q, size_t Capacity)
-// {
-//     return BPLib_QM_WaitQueueInit(&q->BaseQueue, sizeof(int), Capacity);
-// }
-
-// static inline void BPLib_QM_JobQueueDestroy(BPLib_QM_JobQueue_t* q)
-// {
-//     return BPLib_QM_WaitQueueDestroy(&q->BaseQueue);
-// }
-
-// static inline bool BPLib_QM_JobQueueTryPush(BPLib_QM_JobQueue_t* q, int data, int TimeoutMs)
-// {
-//     return BPLib_QM_WaitQueueTryPush(&q->BaseQueue, (const void*)&data, TimeoutMs);
-// }
-
-// static inline bool BPLib_QM_JobQueueTryPull(BPLib_QM_JobQueue_t* q, int* data, int TimeoutMs)
-// {
-//     return BPLib_QM_WaitQueueTryPull(&q->BaseQueue, (void*)data, TimeoutMs);
-// }
 
 #endif /* BPLIB_QM_WAITQUEUE_H */

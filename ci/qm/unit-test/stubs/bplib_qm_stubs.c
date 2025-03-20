@@ -79,15 +79,19 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t *inst, size_t MaxJobs)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_QM_ScheduleJobs()
+ * Generated stub function for BPLib_QM_RegisterWorker()
  * ----------------------------------------------------
  */
-void BPLib_QM_ScheduleJobs(BPLib_Instance_t *inst, size_t NumJobs)
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t *inst, int *WorkerID)
 {
-    UT_GenStub_AddParam(BPLib_QM_ScheduleJobs, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_ScheduleJobs, size_t, NumJobs);
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_RegisterWorker, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_QM_ScheduleJobs, Basic, NULL);
+    UT_GenStub_AddParam(BPLib_QM_RegisterWorker, BPLib_Instance_t *, inst);
+    UT_GenStub_AddParam(BPLib_QM_RegisterWorker, int *, WorkerID);
+
+    UT_GenStub_Execute(BPLib_QM_RegisterWorker, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_QM_RegisterWorker, BPLib_Status_t);
 }
 
 /*
@@ -95,11 +99,15 @@ void BPLib_QM_ScheduleJobs(BPLib_Instance_t *inst, size_t NumJobs)
  * Generated stub function for BPLib_QM_WorkerRunJob()
  * ----------------------------------------------------
  */
-void BPLib_QM_WorkerRunJob(BPLib_Instance_t *inst, int WorkerID, int TimeoutMs)
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t *inst, int WorkerID, int TimeoutMs)
 {
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_WorkerRunJob, BPLib_Status_t);
+
     UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, BPLib_Instance_t *, inst);
     UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, WorkerID);
     UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, TimeoutMs);
 
     UT_GenStub_Execute(BPLib_QM_WorkerRunJob, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_QM_WorkerRunJob, BPLib_Status_t);
 }
