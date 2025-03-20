@@ -131,11 +131,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
         if (RunState == BPLIB_CLA_TORNDOWN)
         { /* Contact has been not been setup if the state is anything other than torn down */
-            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactInfo.ClaInPortNum,
-                                                                    ContactInfo.ClaInAddr,
-                                                                    ContactInfo.ClaOutPortNum,
-                                                                    ContactInfo.ClaOutAddr,
-                                                                    ContactId);
+            Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup(ContactId, ContactInfo);
 
             if (Status == BPLIB_SUCCESS)
             {
