@@ -25,6 +25,8 @@
 #include "bplib_crc.h"
 #include "bplib_crc_private.h"
 
+#include <stdio.h>
+
 /******************************************************************************
  FILE DATA
  ******************************************************************************/
@@ -88,12 +90,16 @@ BPLib_CRC_Parameters_t BPLIB_CRC32_CASTAGNOLI = {.name                  = "CRC-3
 static uint16_t BPLib_CRCGeneric16Impl(const uint8_t *input_table, const uint16_t *xor_table, uint16_t crc,
                                          const uint8_t *ptr, size_t size)
 {
+    printf("Calculating CRC\n");
     while (size > 0)
     {
+        printf("0x%02x ", *ptr);
         crc = xor_table[((crc >> 8) ^ input_table[*ptr]) & 0xFF] ^ (crc << 8);
         ++ptr;
         --size;
     }
+
+    printf("\nCRC = 0x%x\n", crc);
 
     return crc;
 }

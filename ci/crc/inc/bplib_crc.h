@@ -77,8 +77,8 @@ typedef const struct BPLib_CRC_Parameters BPLib_CRC_Parameters_t;
  * These definitions are always fixed/const
  */
 extern BPLib_CRC_Parameters_t BPLIB_CRC_NONE;
-extern BPLib_CRC_Parameters_t BPLIB_CRC_16_X25;
-extern BPLib_CRC_Parameters_t BPLIB_CRC_32_CASTAGNOLI;
+extern BPLib_CRC_Parameters_t BPLIB_CRC16_X25;
+extern BPLib_CRC_Parameters_t BPLIB_CRC32_CASTAGNOLI;
 
 /******************************************************************************
  PROTOTYPES

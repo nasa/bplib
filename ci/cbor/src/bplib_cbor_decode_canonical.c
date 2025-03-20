@@ -259,7 +259,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* CRC Value */
-    Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
+    Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, 
+                                CanonicalBlockHdr->CrcType, &CanonicalBlockHdr->CrcValOffset);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;

@@ -151,12 +151,10 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR;
     }
 
-    /* Store CRC location for future CRC calculations */
-    bundle->blocks.PrimaryBlock.CrcValOffset = QCBORDecode_Tell(ctx);
-
     /* CRC Value */
     Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal,
-                                                bundle->blocks.PrimaryBlock.CrcType);
+                                                bundle->blocks.PrimaryBlock.CrcType,
+                                            &bundle->blocks.PrimaryBlock.CrcValOffset);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
@@ -194,9 +192,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
     printf("\t Requires Encode: %u\n", bundle->blocks.PrimaryBlock.RequiresEncode);
-    printf("\t Block Offset Start: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
-    printf("\t Block Offset End: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
-    printf("\t Block Size: %u\n",
+    printf("\t Block Offset Start: %lu\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
+    printf("\t Block Offset End: %lu\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    printf("\t Block Size: %lu\n",
         bundle->blocks.PrimaryBlock.BlockOffsetEnd - bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     #endif
 
