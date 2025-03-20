@@ -27,6 +27,7 @@
 #include "bplib_as.h"
 #include "bplib_eid.h"
 #include "bplib_bblocks.h"
+#include "bplib_crc.h"
 
 #include <stdio.h>
 
@@ -37,8 +38,7 @@
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_Status_t DecodeStatus;
+    BPLib_Status_t Status;
     BPLib_Bundle_t* CandidateBundle;
 
     if ((inst == NULL) || (BundleIn == NULL))
@@ -53,25 +53,30 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    DecodeStatus = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
-    if (DecodeStatus != BPLIB_SUCCESS)
+    Status = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
+    if (Status != BPLIB_SUCCESS)
     {
         /* cease bundle processing and free the memory */
         BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
 
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID,
-            BPLib_EM_EventType_ERROR,
-            "Error decoding bundle, RC = %d", DecodeStatus);
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Error decoding bundle, RC = %d", Status);
 
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
 
-        return DecodeStatus;
+        return Status;
     }
 
-    /* Validate the deserialized bundle (this does nothing right now) */
-    Status = BPLib_BI_ValidateBundle();
-    /* TODO check this return once validate is actually implemented */
+    /* Validate the deserialized bundle */
+    Status = BPLib_BI_ValidateBundle(CandidateBundle);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
+    }
+
+    Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    // TODO should this free a bundle if it fails?
 
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                 "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
@@ -81,8 +86,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
                 CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
                 CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
 
-    Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-    return Status;
+    return BPLIB_SUCCESS;
 }
 
 /* Receive Control Messages from CLA, pass them to CT*/
@@ -98,15 +102,57 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
 }
 
 /* Validate deserialized bundle after CBOR decoding*/
-BPLib_Status_t BPLib_BI_ValidateBundle(void)
+BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 {
-    /* Check bundle version = 7 */
+    BPLib_Status_t  Status = BPLIB_SUCCESS;
+    BPLib_CRC_Val_t CalculatedCrc;
+    BPLib_CRC_Val_t ExpectedCrc;
+    uint32_t        CrcOffset;
+    size_t          BlockLength;
+
+    /* Bundle version was already verified by CBOR Decode to be v7 */
+
+    /* move me */
+    BPLib_CRCInit();
     
+    /* Verify primary block CRC */
+    if (CandidateBundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_None)
+    {
+        ExpectedCrc = CandidateBundle->blocks.PrimaryBlock.CrcVal;
+        CrcOffset = CandidateBundle->blocks.PrimaryBlock.CrcValOffset;
+
+        /* Zero out the 64 bytes of the CRC for calculation purposes */
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset]     = 0;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 1] = 0;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 2] = 0;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 3] = 0;
+
+        BlockLength = CandidateBundle->blocks.PrimaryBlock.BlockOffsetEnd - 
+                      CandidateBundle->blocks.PrimaryBlock.BlockOffsetStart;
+
+        /* Calculate the CRC of the primary block */
+        CalculatedCrc = BPLib_CRCGet((void *) CandidateBundle->blob->user_data.raw_bytes + 
+                                              CandidateBundle->blocks.PrimaryBlock.BlockOffsetStart,
+                                      BlockLength, &BPLIB_CRC16_X25);
+
+
+        /* Verify the calculated CRC matches the expected CRC */
+        if (CalculatedCrc != ExpectedCrc)
+        {
+            Status = BPLIB_INVALID_CRC_ERROR;
+        }
+
+        /* Repopulate the byte array with the CRC value */
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset]     = (ExpectedCrc & 0xFF000000) >> 24;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 1] = (ExpectedCrc & 0x00FF0000) >> 16;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 2] = (ExpectedCrc & 0x0000FF00) >> 8;
+        CandidateBundle->blob->user_data.raw_bytes[CrcOffset + 3] = (ExpectedCrc & 0x000000FF);
+    }
+
     /* Check against Policy Database for authorized source EID */
-    
     /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
     
-    return BPLIB_SUCCESS;
+    return Status;
 }
 
 

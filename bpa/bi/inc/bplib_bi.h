@@ -80,7 +80,7 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* CtrlMsg);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-BPLib_Status_t BPLib_BI_ValidateBundle(void);
+BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle);
 
 /**
  * \brief Copies the blob data out of a bundle, re-encoding anything necessary

@@ -151,6 +151,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR;
     }
 
+    /* Store CRC location for future CRC calculations */
+    bundle->blocks.PrimaryBlock.CrcValOffset = QCBORDecode_Tell(ctx);
+
     /* CRC Value */
     Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal,
                                                 bundle->blocks.PrimaryBlock.CrcType);

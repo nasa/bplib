@@ -87,10 +87,12 @@ typedef struct
     uint64_t                  FragmentOffset;
     uint64_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
+
     /* Metadata */
     bool                      RequiresEncode;
     uint32_t                  BlockOffsetStart;
     uint32_t                  BlockOffsetEnd;
+    uint32_t                  CrcValOffset;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -114,6 +116,7 @@ typedef struct
     uint64_t        BlockProcFlags;
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;
+
     /* Metadata */
     uint64_t        BlockOffsetStart; // Used when skipping re-encoding
     uint64_t        BlockOffsetEnd; // Used when skipping re-encoding
