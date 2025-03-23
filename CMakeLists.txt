@@ -77,7 +77,7 @@ endif()
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation -g)
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
 endif()
 
 # If standalone build and not cross compile, then enable creation of the "make test" target
@@ -176,11 +176,10 @@ else()
 
   endif()
 
-  target_compile_definitions(bplib_time PRIVATE 
-    BPLIB_TIME_FILE_NAME="/bplib_time.dat"
-  )
-  add_subdirectory(app)
-
+  # Build the test tools, if directed
+  if (BPLIB_BUILD_TEST_TOOLS)
+    add_subdirectory(app)
+  endif()
 
 endif()
 
