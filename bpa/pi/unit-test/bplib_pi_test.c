@@ -90,32 +90,65 @@ void Test_BPLib_PI_Ingress_Null(void)
     /* Null ADU pointer */
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, NULL, AduSize), BPLIB_NULL_PTR_ERROR);
 
+    /* Null channel configuration */
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = NULL;
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
+
     /* The block allocation function returns null by default */
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
+}
+
+/* Test ingress function channel ID check */
+void Test_BPLib_PI_Ingress_BadChanId(void)
+{
+    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint8_t AduPtr[10];
+    size_t AduSize = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_PI_CHAN_ID_INPUT_ERR);
 }
 
 /* Test nominal egress function */
 void Test_BPLib_PI_Egress_Nominal(void)
 {
-    // uint8_t ChanId = 0;
-    // uint8_t AduPtr[10];
-    // size_t BufLen = 10;
-    // size_t AduSize;
-    // uint32_t Timeout = 1000;
-    // BPLib_Bundle_t BundleBuf;
-    // BPLib_MEM_Block_t Block;
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t BufLen = 10;
+    size_t AduSize;
+    uint32_t Timeout = 1000;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
 
-    // memset(&BundleBuf, 0, sizeof(BPLib_Bundle_t));
-    // memset(&Block, 0, sizeof(BPLib_MEM_Block_t));
+    Bundle.blocks.PayloadHeader.DataSize = 10;
+    
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
 
-    // Block.chunk_len = 5;
-    // Block.next = NULL;
-    // BundleBuf.blob = &Block;
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(AduSize, Bundle.blocks.PayloadHeader.DataSize);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_EGRESS_DBG_EID);
+}
 
-    // UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundleBuf, sizeof(BundleBuf), false);
-    // UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+/* Test egress function when copy fails */
+void Test_BPLib_PI_Egress_BadCopy(void)
+{
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t BufLen = 10;
+    size_t AduSize;
+    uint32_t Timeout = 1000;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
 
-    // UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_SUCCESS);
+    Bundle.blocks.PayloadHeader.DataSize = 10;
+    
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_CopyOutFromOffset), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_ERROR);
+    UtAssert_INT32_EQ(AduSize, 0);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_EGRESS_ERR_EID);
 }
 
 /* Test egress function null checks */
@@ -135,6 +168,19 @@ void Test_BPLib_PI_Egress_Null(void)
 
     /* Null ADU size */
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, NULL, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
+}
+
+/* Test egress function invalid channel ID  */
+void Test_BPLib_PI_Egress_BadChanId(void)
+{
+    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint8_t AduPtr[10];
+    size_t BufLen = 10;
+    size_t AduSize = 10;
+    uint32_t Timeout = 1000;
+
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_PI_CHAN_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(AduSize, 0);
 }
 
 /* Test egress function timeout */
@@ -163,8 +209,11 @@ void TestBplibPi_Register(void)
 
     ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
     ADD_TEST(Test_BPLib_PI_Ingress_Null);
+    ADD_TEST(Test_BPLib_PI_Ingress_BadChanId);
 
     ADD_TEST(Test_BPLib_PI_Egress_Nominal);
     ADD_TEST(Test_BPLib_PI_Egress_Null);
     ADD_TEST(Test_BPLib_PI_Egress_Timeout);
+    ADD_TEST(Test_BPLib_PI_Egress_BadChanId);
+    ADD_TEST(Test_BPLib_PI_Egress_BadCopy);        
 }

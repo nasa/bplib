@@ -30,6 +30,8 @@
 */
 
 BPLib_Instance_t BplibInst;
+BPLib_PI_ChannelTable_t TestChanTbl;
+
 
 /*
 ** Function Definitions
@@ -37,10 +39,15 @@ BPLib_Instance_t BplibInst;
 
 void BPLib_PI_Test_Setup(void)
 {
-    memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
-
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
+
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }
 
 void BPLib_PI_Test_Teardown(void)

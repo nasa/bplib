@@ -29,20 +29,6 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_BI_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_BI_Init(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_BI_Init, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_BI_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_BI_Init, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_BI_RecvCtrlMsg()
  * ----------------------------------------------------
  */
@@ -87,4 +73,27 @@ BPLib_Status_t BPLib_BI_ValidateBundle(void)
     UT_GenStub_Execute(BPLib_BI_ValidateBundle, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_BI_ValidateBundle, BPLib_Status_t);
+}
+
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_BI_BlobCopyOut()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t *bundle,
+                                    void *out_buffer,
+                                    size_t max_len,
+                                    size_t *out_size)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_BI_BlobCopyOut, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_BI_BlobCopyOut, BPLib_Bundle_t *, bundle);
+    UT_GenStub_AddParam(BPLib_BI_BlobCopyOut, void *, out_buffer);
+    UT_GenStub_AddParam(BPLib_BI_BlobCopyOut, size_t, max_len);
+    UT_GenStub_AddParam(BPLib_BI_BlobCopyOut, size_t *, out_size);
+
+    UT_GenStub_Execute(BPLib_BI_BlobCopyOut, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_BI_BlobCopyOut, BPLib_Status_t);
 }

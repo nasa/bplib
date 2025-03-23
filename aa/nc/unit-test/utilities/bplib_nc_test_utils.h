@@ -30,22 +30,23 @@
 #include "uttest.h"
 
 #include "bplib_nc_directives.h"
-#include "bpa_fwp_stubs.h" /* For ADUP stubs */
-#include "bplib_em_handlers.h"  /* For BPLib_EM_SendEvent handler */
+#include "bpa_fwp_stubs.h"     /* For ADUP stubs */
+#include "bplib_em_handlers.h" /* For BPLib_EM_SendEvent handler */
 #include "bplib_as_handlers.h" /* For BPLib_AS_Increment and BPLib_AS_Decrement handler */
 
 /* ====== */
 /* Macros */
 /* ====== */
 
-// Add a test case
-#define ADD_TEST(test) UtTest_Add(test, BPLib_NC_Test_Setup, BPLib_NC_Test_Teardown, #test)
+#define ADD_TEST(test) UtTest_Add(test, BPLib_NC_Test_Setup, BPLib_NC_Test_Teardown, #test) /* Add a test case */
+#define UT_MAX_TABLE_TYPE_DEPTH 13 /* Max depth number of call details tracked for BPA_TABLEP_TableUpdate */
 
 /* =========== */
 /* Global Data */
 /* =========== */
 
-extern BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+extern BPLib_NC_ConfigPtrs_t TestConfigPtrs;
+extern uint8 Context_TableType[];
 
 /* =================== */
 /* Function Prototypes */
@@ -59,6 +60,9 @@ void Test_BPLib_NC_VerifyIncrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
 
 /* AS decrement argument verification */
 void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
+
+/* Verify values given to BPA_TABLEP_TableUpdate */
+void BPNode_Test_TABLEP_TableUpdate(uint8 CallNum, uint8 TableType);
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);

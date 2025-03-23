@@ -25,7 +25,7 @@
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_crc.h"
-
+#include "bplib_time.h"
 
 /*
 ** Macros
@@ -87,6 +87,10 @@ typedef struct
     uint64_t                  FragmentOffset;
     uint64_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
+    /* Metadata */
+    bool                      RequiresEncode;
+    uint32_t                  BlockOffsetStart;
+    uint32_t                  BlockOffsetEnd;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -107,12 +111,15 @@ typedef struct
     /* Header Data */
     uint64_t        BlockType;
     uint64_t        BlockNum;
-    uint64_t        BundleProcFlags;
+    uint64_t        BlockProcFlags;
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;
     /* Metadata */
-    uint64_t        HeaderOffset;
-    uint64_t        DataOffset;
+    uint64_t        BlockOffsetStart; // Used when skipping re-encoding
+    uint64_t        BlockOffsetEnd; // Used when skipping re-encoding
+    uint64_t        DataOffsetStart; // Used for ADU Delivery
+    uint64_t        DataSize; // Used for ADU Delivery
+    bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 
 /**
@@ -135,5 +142,17 @@ typedef struct
     BPLib_CanBlockHeader_t PayloadHeader;
 } BPLib_BBlocks_t;
 
+/**
+ * @brief Represents the metadata needed for bundle processing
+ */
+typedef struct 
+{
+    uint16_t EgressID;  /**< For egressing bundles, ID of channel/contact to send to */
+
+    BPLib_TIME_MonotonicTime_t MonoTime; /**< Creation *monotonic* time, will use for DTN timestamp later */
+
+    /* Additional metadata will likely get added here */
+
+} BPLib_BundleMetaData_t;
 
 #endif /* BPLIB_BBLOCKS_H */

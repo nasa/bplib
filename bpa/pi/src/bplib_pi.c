@@ -30,7 +30,8 @@
 
 #include "bplib_pi.h"
 #include "bplib_mem.h"
-
+#include "bplib_fwp.h"
+#include "bplib_nc.h"
 #include <stdio.h>
 
 
@@ -68,11 +69,21 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
-    BPLib_Bundle_t    *NewBundle;
+    BPLib_Bundle_t *NewBundle;
+    uint16_t CanonBlockIndex;
+    uint16_t NextExtensionBlockIndex;
+    BPLib_PI_CanBlkConfig_t* CurrCanonConfigSrc;
+    BPLib_CanBlockHeader_t* CurrCanonConfigDest;
 
-    if ((Inst == NULL) || (AduPtr == NULL))
+    if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* Channel ID must be within array index limits */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_PI_CHAN_ID_INPUT_ERR;
     }
 
     /* Allocate Bundle based on AduSize */
@@ -82,58 +93,124 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO fully fill out primary block fields */
+    /* Mark the primary block as "dirty" */
+    NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
 
-    /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
-    if (ChanId == 0)
+    /* Set primary block based on channel table configurations */
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID),
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID),
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].ReportToEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
+    NewBundle->blocks.PrimaryBlock.SrcEID.Service =
+                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
+
+    NewBundle->blocks.PrimaryBlock.BundleProcFlags =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].BundleProcFlags;
+    NewBundle->blocks.PrimaryBlock.CrcType =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CrcType;
+    NewBundle->blocks.PrimaryBlock.Lifetime =
+                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].Lifetime;
+
+    /* 
+    ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime
+    ** will be set to 0 and the MonoTime will be used for age block calculations and 
+    ** other time calculations later on
+    */
+    BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
+    NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+
+
+    /* Fill out the canonical block configs */
+    NextExtensionBlockIndex = 0;
+    for (CanonBlockIndex = 0; CanonBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonBlockIndex++)
     {
-        /* this will route it back to the contact egress, after cache */
-        NewBundle->blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES;
-        NewBundle->blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES;
-    }
-    else
-    {
-        /* this will route it back to the channel egress, after cache */
-        NewBundle->blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
-        /* this will route it back to the channel 1 */
-        NewBundle->blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES;
+        /* Set the source (table) config pointer */
+        CurrCanonConfigSrc = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CanBlkConfig[CanonBlockIndex];
+
+        /* Set the destination (bundle metadata) config pointer */
+        if (CurrCanonConfigSrc->BlockType == BPLib_BlockType_Payload)
+        {
+            CurrCanonConfigDest = &NewBundle->blocks.PayloadHeader;
+        }
+        else
+        {
+            /* quick array index sanity check (this could happen if the src config didn't have a payload config) */
+            if (NextExtensionBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
+            {
+                break;
+            }
+            else
+            {
+                CurrCanonConfigDest = &NewBundle->blocks.ExtBlocks[NextExtensionBlockIndex].Header;
+                NextExtensionBlockIndex++;
+            }
+        }
+
+        /* Copy the configs from source to destination */
+        CurrCanonConfigDest->BlockType = CurrCanonConfigSrc->BlockType;
+        CurrCanonConfigDest->CrcType = CurrCanonConfigSrc->CrcType;
+        CurrCanonConfigDest->BlockNum = CurrCanonConfigSrc->BlockNum;
+        CurrCanonConfigDest->BlockProcFlags = CurrCanonConfigSrc->BlockProcFlags;
     }
 
-    printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
+    /* Fill out the rest of the payload block fields */
+    NewBundle->blocks.PayloadHeader.RequiresEncode = true;
+    NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
+    NewBundle->blocks.PayloadHeader.DataSize = AduSize;
 
-    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, 
-                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+        "Ingressing ADU of %lu bytes via channel #%d.", AduSize, ChanId);
+
+    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
 
 /* Egress an ADU */
 BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
-    BPLib_Bundle_t    *Bundle;
-    BPLib_Status_t     Status = BPLIB_SUCCESS;
+    BPLib_Bundle_t    *Bundle = NULL;
+    BPLib_Status_t     Status;
 
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
     {
         Status = BPLIB_NULL_PTR_ERROR;
     }
+    else if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        *AduSize = 0;
+        Status = BPLIB_PI_CHAN_ID_INPUT_ERR;
+    }
     /* Get the next bundle in the channel egress queue */
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
     {
         /* Copy out the contents of the bundle payload to the return pointer */
-        Status = BPLib_MEM_BlobCopyOut(Bundle, AduPtr, BufLen, AduSize);
+        Status = BPLib_MEM_CopyOutFromOffset(Bundle,
+                                Bundle->blocks.PayloadHeader.DataOffsetStart,
+                                Bundle->blocks.PayloadHeader.DataSize, AduPtr, BufLen);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            *AduSize = 0;
+            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Error copying ADU out for egress, Status = %d.", Status); 
+        }
+        else
+        {
+            *AduSize = Bundle->blocks.PayloadHeader.DataSize;
+            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                    "Egressing packet of %lu bytes to ADU via channel #%d.", 
+                    *AduSize, ChanId);
+        }
 
         /* Free the bundle */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
-
-        if (Status == BPLIB_SUCCESS)
-        {
-            printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
-        }
     }
     /* No packet was pulled, presumably queue is empty */
     else 
     {
+        *AduSize = 0;
         Status = BPLIB_PI_TIMEOUT;
     }
 

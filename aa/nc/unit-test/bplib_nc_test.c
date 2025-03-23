@@ -38,17 +38,17 @@ void Test_BPLib_NC_Init_Nominal(void)
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UtAssert_True(BPLib_FWP_ConfigPtrs.ChanTblPtr      == TestConfigPtrs.ChanTblPtr,      "BPLib_FWP_ConfigPtrs ChanTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.ContactsTblPtr  == TestConfigPtrs.ContactsTblPtr,  "BPLib_FWP_ConfigPtrs ContactsTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.CrsTblPtr       == TestConfigPtrs.CrsTblPtr,       "BPLib_FWP_ConfigPtrs CrsTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.CustodianTblPtr == TestConfigPtrs.CustodianTblPtr, "BPLib_FWP_ConfigPtrs CustodianTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.CustodyTblPtr   == TestConfigPtrs.CustodyTblPtr,   "BPLib_FWP_ConfigPtrs CustodyTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.MibPnTblPtr     == TestConfigPtrs.MibPnTblPtr,     "BPLib_FWP_ConfigPtrs MibPnTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.MibPsTblPtr     == TestConfigPtrs.MibPsTblPtr,     "BPLib_FWP_ConfigPtrs MibPsTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.ReportTblPtr    == TestConfigPtrs.ReportTblPtr,    "BPLib_FWP_ConfigPtrs ReportTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.AuthTblPtr      == TestConfigPtrs.AuthTblPtr,      "BPLib_FWP_ConfigPtrs AuthTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.LatTblPtr       == TestConfigPtrs.LatTblPtr,       "BPLib_FWP_ConfigPtrs LatTblPtr successfully modified");
-    UtAssert_True(BPLib_FWP_ConfigPtrs.StorTblPtr      == TestConfigPtrs.StorTblPtr,      "BPLib_FWP_ConfigPtrs StorTblPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.ChanConfigPtr      == TestConfigPtrs.ChanConfigPtr,      "BPLib_NC_ConfigPtrs ChanConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.ContactsConfigPtr  == TestConfigPtrs.ContactsConfigPtr,  "BPLib_NC_ConfigPtrs ContactsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CrsConfigPtr       == TestConfigPtrs.CrsConfigPtr,       "BPLib_NC_ConfigPtrs CrsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CustodianConfigPtr == TestConfigPtrs.CustodianConfigPtr, "BPLib_NC_ConfigPtrs CustodianConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CustodyConfigPtr   == TestConfigPtrs.CustodyConfigPtr,   "BPLib_NC_ConfigPtrs CustodyConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.MibPnConfigPtr     == TestConfigPtrs.MibPnConfigPtr,     "BPLib_NC_ConfigPtrs MibPnConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.MibPsConfigPtr     == TestConfigPtrs.MibPsConfigPtr,     "BPLib_NC_ConfigPtrs MibPsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.ReportConfigPtr    == TestConfigPtrs.ReportConfigPtr,    "BPLib_NC_ConfigPtrs ReportConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.AuthConfigPtr      == TestConfigPtrs.AuthConfigPtr,      "BPLib_NC_ConfigPtrs AuthConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.LatConfigPtr       == TestConfigPtrs.LatConfigPtr,       "BPLib_NC_ConfigPtrs LatConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.StorConfigPtr      == TestConfigPtrs.StorConfigPtr,      "BPLib_NC_ConfigPtrs StorConfigPtr successfully modified");
 }
 
 void Test_BPLib_NC_Init_AS_Init_Error(void)
@@ -65,7 +65,7 @@ void Test_BPLib_NC_Init_AS_Init_Error(void)
 void Test_BPLib_NC_Init_NullConfigPtrs_Error(void)
 {
     BPLib_Status_t Status;
-    BPLib_FWP_ConfigPtrs_t* NullConfigPtr;
+    BPLib_NC_ConfigPtrs_t* NullConfigPtr;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
@@ -81,7 +81,7 @@ void Test_BPLib_NC_Init_NullChanTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.ChanTblPtr = NULL;
+    TestConfigPtrs.ChanConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -93,7 +93,7 @@ void Test_BPLib_NC_Init_NullContactsTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.ContactsTblPtr = NULL;
+    TestConfigPtrs.ContactsConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -105,7 +105,7 @@ void Test_BPLib_NC_Init_NullCrsTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.CrsTblPtr = NULL;
+    TestConfigPtrs.CrsConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -117,7 +117,7 @@ void Test_BPLib_NC_Init_NullCustodianTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.CustodianTblPtr = NULL;
+    TestConfigPtrs.CustodianConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -129,7 +129,7 @@ void Test_BPLib_NC_Init_NullCustodyTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.CustodyTblPtr = NULL;
+    TestConfigPtrs.CustodyConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -141,7 +141,7 @@ void Test_BPLib_NC_Init_NullMibPnTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.MibPnTblPtr = NULL;
+    TestConfigPtrs.MibPnConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -153,7 +153,7 @@ void Test_BPLib_NC_Init_NullMibPsTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.MibPsTblPtr = NULL;
+    TestConfigPtrs.MibPsConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -165,7 +165,7 @@ void Test_BPLib_NC_Init_NullReportTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.ReportTblPtr = NULL;
+    TestConfigPtrs.ReportConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -177,7 +177,7 @@ void Test_BPLib_NC_Init_NullAuthTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.AuthTblPtr = NULL;
+    TestConfigPtrs.AuthConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -189,7 +189,7 @@ void Test_BPLib_NC_Init_NullLatTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.LatTblPtr = NULL;
+    TestConfigPtrs.LatConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -201,7 +201,7 @@ void Test_BPLib_NC_Init_NullStorTblPtr_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
-    TestConfigPtrs.StorTblPtr = NULL;
+    TestConfigPtrs.StorConfigPtr = NULL;
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
@@ -1238,7 +1238,7 @@ void Test_BPLib_NC_SetMibItem_Error(void)
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 2);
 
-    // Table update failure return code test
+    // configuration update failure return code test
     Payload.ExampleParameter = 22;
     BPLib_NC_SetMibItem(Payload);
 
@@ -1274,7 +1274,7 @@ void Test_BPLib_NC_AddStorageAllocation_Error(void)
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
-    // Table update error
+    // configuration update error
     Payload.ExampleParameter = 23;
     BPLib_NC_AddStorageAllocation(Payload);
 
@@ -1540,6 +1540,109 @@ void Test_BPLib_NC_GetSetAppState_Nominal(void)
     UtAssert_EQ(BPLib_NC_ApplicationState_t, BPLIB_NC_APP_STATE_STARTED, State);
 }
 
+void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* Force configuration updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_SUCCESS);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    /* Show that the function returned success */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that 0 configuration update events were issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Show that an attempt to update all configurations was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
+void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* Force configuration updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Verify that every configuration update event was issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
+    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel configuration");
+    BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts configuration");
+    BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting configuration");
+    BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(4,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custody Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(5,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Node configuration");
+    BPLib_NC_Test_Verify_Event(6,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Source configuration");
+    BPLib_NC_Test_Verify_Event(7,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Report-to-EID Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy configuration");
+    BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage configuration");
+
+    /* Show that an attempt to update all configurations was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
+void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* Force configuration updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    /* Show that the function returned success */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
+
+    /* Show that 0 configuration update events were issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Show that upon table update error, table updates aborted */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 1);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
 void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
@@ -1649,4 +1752,7 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_GetSetAppState_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Success_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Update_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Error_Nominal);
 }

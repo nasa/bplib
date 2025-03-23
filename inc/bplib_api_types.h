@@ -29,6 +29,8 @@ extern "C" {
 ** Include Files
 */
 
+#include "bplib_cfg.h"
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -91,15 +93,21 @@ typedef struct BPLib_IpnAddr
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
 
+/**
+ * \brief Job egress ID to use before a bundle's route is known 
+*/
+#define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
+
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
+#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Configuration has been updated */
 #define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
 #define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
 #define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
 #define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Table validation error code */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Configuration validation error code */
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
 #define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
@@ -174,6 +182,10 @@ typedef struct BPLib_IpnAddr
 
 /* MEM Errors */
 #define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
+#define BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR     ((BPLib_Status_t) -57) /* BPLib_MEM_CopyOutFromOffset: bytes copied != requested */
+
+/* Node Config Errors */
+#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -80)
 
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
@@ -238,8 +250,27 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR            ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
+/* CBOR Encode Errors */
+#define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
+#define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
+#define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR           ((BPLib_Status_t) -184) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR       ((BPLib_Status_t) -185) /* BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error */
+#define BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR            ((BPLib_Status_t) -186) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR      ((BPLib_Status_t) -187) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR      ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR      ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR     ((BPLib_Status_t) -190) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 1) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR     ((BPLib_Status_t) -191) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR     ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR     ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
 
 
+/* More PI Errors */
+#define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
+
+// More CLA Errors */
+#define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
 
 // TODO TIME Helpers
 

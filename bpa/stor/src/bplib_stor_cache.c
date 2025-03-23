@@ -9,9 +9,9 @@
 /*******************************************************************************
 * Definitions and Types 
 */
-#define BPLIB_STOR_BATCH_SIZE   1
+#define BPLIB_STOR_BATCH_SIZE   100
 
-#define BPLIB_STOR_DBNAME       "bplib.db"
+#define BPLIB_STOR_DBNAME       "bplib-storage.db"
 /* Use this define to run SQLite3 entirely in RAM
 ** #define BPLIB_STOR_DBNAME       ":memory:"
 */
@@ -140,7 +140,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
     SQLStatus = sqlite3_step(MetadataStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        printf("Insert meta failed\n");
+        fprintf(stderr, "Insert meta failed\n");
         return SQLStatus;
     }
 
@@ -163,7 +163,7 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     SQLStatus = sqlite3_step(BlobStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        printf("Insert chunk failed\n");
+        fprintf(stderr, "Insert chunk failed\n");
         return SQLStatus;
     }
 
@@ -223,7 +223,7 @@ static BPLib_Status_t BPLib_STOR_StoreBatch()
     SQLStatus = sqlite3_exec(CacheInst.db, "BEGIN;", 0, 0, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        printf("Failed to start transaction\n");
+        fprintf(stderr, "Failed to start transaction\n");
         return BPLIB_ERROR;
     }
 
@@ -244,7 +244,7 @@ static BPLib_Status_t BPLib_STOR_StoreBatch()
         SQLStatus = sqlite3_exec(CacheInst.db, "COMMIT;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            printf("Failed to commit transaction\n");
+            fprintf(stderr, "Failed to commit transaction\n");
             Status = BPLIB_ERROR;
         }
     }
@@ -293,7 +293,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* bu
         Status = BPLib_STOR_StoreBatch(Inst);
         if (Status != BPLIB_SUCCESS)
         {
-            printf("STORBatch Failed\n");
+            fprintf(stderr, "STORBatch Failed\n");
         }
         CacheInst.CurrBatchSize = 0;
     }

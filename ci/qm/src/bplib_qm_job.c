@@ -20,6 +20,8 @@
 
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
+#include "bplib_as.h"
+#include "bplib_stor.h"
 #include "bplib_stor_cache.h"
 
 #include <stdio.h>
@@ -29,80 +31,77 @@
 /*******************************************************************************
  * Job Functions - These are the entry points to jobs being run within QM.
 */
-static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CONTACT_IN_EBP_TO_CT;
 }
 
-static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_STOR_StoreBundle(inst, bundle);
+    BPLib_STOR_StoreBundle(Inst, Bundle);
     return NO_NEXT_STATE;
 }
 
-static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CONTACT_OUT_CT_TO_EBP;
 }
 
-static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CONTACT_OUT_EBP_TO_BI;
 }
 
-static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_QM_WaitQueueTryPush(&(inst->ContactEgressJobs), &bundle, QM_WAIT_FOREVER);
+    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
+
     return NO_NEXT_STATE;
 }
 
-static BPLib_QM_JobState_t ChannelIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelIn_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CHANNEL_IN_EBP_TO_CT;
 }
 
-static BPLib_QM_JobState_t ChannelIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelIn_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CHANNEL_IN_CT_TO_STOR;
 }
 
-static BPLib_QM_JobState_t ChannelOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CHANNEL_OUT_CT_TO_EBP;
 }
 
-
-static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     return CHANNEL_OUT_EBP_TO_PI;
 }
 
-static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    /* Hacky attempt at routing just to prove concept, FIX ME */
-    if (bundle->blocks.PrimaryBlock.DestEID.Service == BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES)
-    {
-        BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[0]), &bundle, QM_WAIT_FOREVER);
-    }
-    else
-    {
-        BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[1]), &bundle, QM_WAIT_FOREVER);
-    }
-    
+    BPLib_QM_WaitQueueTryPush(&(Inst->ChannelEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
+
     return NO_NEXT_STATE;
 }
 
-static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    bool QueuePushReturnStatus;
-    printf("STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
-        bundle->blocks.PrimaryBlock.DestEID.Node,
-        bundle->blocks.PrimaryBlock.DestEID.Service);
+   bool QueuePushReturnStatus;
 
-    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), &bundle, QM_WAIT_FOREVER);
+   BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                        "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".",
+                        Bundle->blocks.PrimaryBlock.DestEID.Node,
+                        Bundle->blocks.PrimaryBlock.DestEID.Service);
+
+    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
     if (QueuePushReturnStatus == false)
     {
-        printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
+
+        BPLib_EM_SendEvent(BPLIB_STOR_CACHE_QUEUE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Failed to push bundle onto Cache Queue");
     }
 
     return NO_NEXT_STATE;

@@ -55,7 +55,9 @@ target_include_directories(coverage-bplib_cla-testrunner PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_bi,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_cla-testrunner PUBLIC
@@ -64,6 +66,7 @@ target_link_libraries(coverage-bplib_cla-testrunner PUBLIC
     bplib_bi_stubs
     bplib_mem_stubs
     bplib_qm_stubs
+    bplib_em_stubs
 )
 
 add_test(coverage-bplib_cla-testrunner coverage-bplib_cla-testrunner)

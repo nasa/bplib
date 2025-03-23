@@ -50,14 +50,8 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         mem_init = false;
     }
 
-    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_UnsortedJob_t));
+    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_JobContext_t));
     if (inst->unsorted_job_mem == NULL)
-    {
-        mem_init = false;
-    }
-
-    inst->contact_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-    if (inst->contact_egress_mem == NULL)
     {
         mem_init = false;
     }
@@ -68,9 +62,18 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         mem_init = false;
     }
 
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        inst->ContactEgressMem[i] = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+        if (inst->ContactEgressMem[i] == NULL)
+        {
+            mem_init = false;
+        }
+    }
+
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        inst->ChannelEgressMem[i] = calloc(max_jobs * BPLIB_MAX_NUM_CHANNELS, sizeof(BPLib_Bundle_t *));
+        inst->ChannelEgressMem[i] = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
         if (inst->ChannelEgressMem[i] == NULL)
         {
             mem_init = false;
@@ -81,12 +84,16 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
-        free(inst->contact_egress_mem);
         free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
             free(inst->ChannelEgressMem[i]);
+        }
+
+        for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+        {
+            free(inst->ContactEgressMem[i]);
         }
 
         return BPLIB_ERROR;
@@ -98,11 +105,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_UnsortedJob_t), max_jobs))
-    {
-        queue_init = false;
-    }
-    if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs), inst->contact_egress_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_JobContext_t), max_jobs))
     {
         queue_init = false;
     }
@@ -118,17 +121,28 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
             queue_init = false;
         }
     }
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), inst->ContactEgressMem[i], sizeof(BPLib_Bundle_t*), max_jobs))
+        {
+            queue_init = false;
+        }
+    }
 
     if (!queue_init)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
-        free(inst->contact_egress_mem);
         free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
             free(inst->ChannelEgressMem[i]);
+        }
+
+        for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+        {
+            free(inst->ContactEgressMem[i]);
         }
 
         return BPLIB_ERROR;
@@ -156,16 +170,21 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 
     BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->UnsortedJobs));
-    BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
     free(inst->job_mem);
     free(inst->unsorted_job_mem);
-    free(inst->contact_egress_mem);
     free(inst->BundleCacheListMem);
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
+        BPLib_QM_WaitQueueDestroy(&(inst->ChannelEgressJobs[i]));
         free(inst->ChannelEgressMem[i]);
+    }
+
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs[i]));
+        free(inst->ContactEgressMem[i]);
     }
 }
 
@@ -173,13 +192,13 @@ BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* b
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_QM_UnsortedJob_t unsorted_job;
+    BPLib_QM_JobContext_t UnsortedJob;
 
-    unsorted_job.bundle = bundle;
-    unsorted_job.next_state = state;
-    unsorted_job.priority = priority;
+    UnsortedJob.Bundle = bundle;
+    UnsortedJob.NextState = state;
+    UnsortedJob.Priority = priority;
     
-    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms))
+    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &UnsortedJob, timeout_ms))
     {
         Status = BPLIB_QM_PUSH_ERROR;
     }
@@ -196,7 +215,7 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.job_func(inst, curr_job.bundle);
+        next_state = curr_job.JobFunc(inst, curr_job.Context.Bundle);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
@@ -214,7 +233,8 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         */
         if (next_state != NO_NEXT_STATE)
         {
-           BPLib_QM_AddUnsortedJob(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+            BPLib_QM_AddUnsortedJob(inst, curr_job.Context.Bundle, next_state, 
+                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
         } 
     }    
 }
@@ -224,21 +244,21 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobFunc_t next_job_func;
-    BPLib_QM_UnsortedJob_t unsorted_job;
 
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, 100))
+        /* RECEIVING INTO curr_job.Context directly may be a quick fix. 
+        ** This prevents the previous segfault.  We're probably ok doing this
+        ** until our queue design and back-pressuring is developed.
+        */
+        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &curr_job.Context, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            next_job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
+            next_job_func = BPLib_QM_Job_Lookup(curr_job.Context.NextState);
             if (next_job_func)
             {
                 /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
-                curr_job.bundle = unsorted_job.bundle;
-                curr_job.state = unsorted_job.next_state;
-                curr_job.priority = unsorted_job.priority;
-                curr_job.job_func = next_job_func;
+                curr_job.JobFunc = next_job_func;
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
@@ -252,7 +272,7 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
             else
             {
                 /* I don't think this warrants an event message, but we should know if something got here */
-                printf("Invalid Bundle State Reached: %d\n", unsorted_job.next_state);
+                printf("Invalid Bundle State Reached: %d\n", curr_job.Context.NextState);
             }
         }
         else

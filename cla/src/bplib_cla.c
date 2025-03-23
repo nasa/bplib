@@ -27,15 +27,12 @@
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
 #include "bplib_qm.h"
-
+#include "bplib_em.h"
+#include "bplib_eventids.h"
 
 /*
 ** Function Definitions
 */
-
-BPLib_Status_t BPLib_CLA_Init(void) {
-    return BPLIB_SUCCESS;
-}
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
 BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
@@ -43,7 +40,12 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const v
 
     if ((Inst == NULL) || (Bundle == NULL))
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (ContId >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_CLA_CONT_ID_INPUT_ERR;
     }
 
     /* Not a RFC 9171 bundle. Can be a control message or junk*/
@@ -75,14 +77,25 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
     {
         Status = BPLIB_NULL_PTR_ERROR;
     }
+    else if (ContId >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        *Size = 0;
+        Status = BPLIB_CLA_CONT_ID_INPUT_ERR;
+    }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &Bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout)
+             && Bundle != NULL)
     {
         /* Copy the bundle to the CLA buffer */
-        Status = BPLib_MEM_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
+        Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
-            //printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
+            BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Egressing packet of %lu bytes to CLA #%d", *Size, ContId);
+        }
+        else
+        {
+            *Size = 0;
         }
     
         /* Free the bundle blocks */
@@ -91,11 +104,11 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
     /* No packet was pulled, presumably queue is empty */
     else
     {
+        *Size = 0;
         Status = BPLIB_CLA_TIMEOUT;
     }
 
     return Status;
-
 }
 
 /* Validate Contacts table data */
