@@ -373,4 +373,8 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
     BPLib_CRC_Type_t CrcType, size_t CrcOffset, BPLib_CRC_Val_t ExpectedCrc, 
     size_t BlockOffsetStart, size_t BlockOffsetEnd);
 
+void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, 
+                                BPLib_CRC_Type_t CrcType, size_t CrcOffset,
+                                size_t BlockOffsetStart, size_t BlockOffsetEnd);
+
 #endif /* BPLIB_CBOR_INTERNAL_H */

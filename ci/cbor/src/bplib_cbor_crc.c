@@ -42,7 +42,7 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
         return BPLIB_SUCCESS;
     }
 
-    /* Zero out the 64 bytes of the CRC for calculation purposes */
+    /* Zero out the CRC entry for calculation purposes */
     memset((void *) ((uintptr_t) EncodedBundle + CrcOffset), 0, CrcLen);
 
     /* Getting length of block, adding 1 to make last byte inclusive */
@@ -65,4 +65,44 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
     memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffset), &ExpectedCrc, CrcLen);
 
     return BPLIB_SUCCESS;
+}
+
+void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, 
+                                BPLib_CRC_Type_t CrcType, size_t CrcOffset,
+                                size_t BlockOffsetStart, size_t BlockOffsetEnd)
+{
+    BPLib_CRC_Val_t CalculatedCrc;
+    size_t          BlockLength;
+    uint8_t         CrcLen = 0;
+
+    if (CrcType == BPLib_CRC_Type_CRC16)
+    {
+        CrcLen = 2;
+    }
+    else if (CrcType == BPLib_CRC_Type_CRC32C)
+    {
+        CrcLen = 4;
+    }
+    else 
+    {
+        return;
+    }
+
+    /* Zero out the CRC entry for calculation purposes */
+    memset((void *) ((uintptr_t) EncodedBundle + CrcOffset), 0, CrcLen);
+
+    /* Getting length of block, adding 1 to make last byte inclusive */
+    BlockLength = BlockOffsetEnd - BlockOffsetStart + 1;
+
+    /* Calculate the CRC of the block */
+    CalculatedCrc = BPLib_CRC_Calculate((void *) ((uintptr_t) EncodedBundle + BlockOffsetStart), 
+                                BlockLength, CrcType);
+
+    printf("\nGenerated CRC is 0x%lx, blocklength is %ld, block offset start is %ld\n", 
+            CalculatedCrc, BlockLength, BlockOffsetStart);
+
+    /* Repopulate the byte array with the CRC value */
+    memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffset), &CalculatedCrc, CrcLen);
+
+    return;
 }
