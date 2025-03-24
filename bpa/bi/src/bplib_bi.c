@@ -103,71 +103,13 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
     return Status;
 }
 
-BPLib_Status_t BPLib_BI_ValidatePrimaryBlockCrc(BPLib_Bundle_t *CandidateBundle)
-{
-    BPLib_CRC_Val_t CalculatedCrc;
-    BPLib_CRC_Val_t ExpectedCrc;
-    uint32_t        CrcOffset;
-    size_t          BlockLength;
-    uint8_t         CrcLen = 2;
-    BPLib_CRC_Parameters_t *Params;
-
-    if (CandidateBundle->blocks.PrimaryBlock.CrcType == BPLib_CRC_Type_CRC16)
-    {
-        CrcLen = 2;
-        Params = &BPLIB_CRC16_X25;
-    }
-    else if (CandidateBundle->blocks.PrimaryBlock.CrcType == BPLib_CRC_Type_CRC32C)
-    {
-        CrcLen = 4;
-        Params = &BPLIB_CRC32_CASTAGNOLI;
-    }
-    else 
-    {
-        return BPLIB_SUCCESS;
-    }
-
-    ExpectedCrc = CandidateBundle->blocks.PrimaryBlock.CrcVal;
-    CrcOffset = CandidateBundle->blocks.PrimaryBlock.CrcValOffset;
-
-    /* Zero out the 64 bytes of the CRC for calculation purposes */
-    memset((void *) ((uintptr_t) CandidateBundle->blob->user_data.raw_bytes + CrcOffset),
-                    0, CrcLen);
-
-    /* Getting length of primary block, adding 1 to make last byte inclusive */
-    BlockLength = CandidateBundle->blocks.PrimaryBlock.BlockOffsetEnd - 
-                    CandidateBundle->blocks.PrimaryBlock.BlockOffsetStart + 1;
-
-    /* Calculate the CRC of the primary block */
-    CalculatedCrc = BPLib_CRCGet((void *) ((uintptr_t) CandidateBundle->blob->user_data.raw_bytes + 
-                                            CandidateBundle->blocks.PrimaryBlock.BlockOffsetStart),
-                                    BlockLength, Params);
-
-    printf("Calculated CRC is 0x%lx, blocklength is %ld, block offset start is %ld\n", 
-            CalculatedCrc, BlockLength, CandidateBundle->blocks.PrimaryBlock.BlockOffsetStart);
-
-    /* Verify the calculated CRC matches the expected CRC */
-    if (CalculatedCrc != ExpectedCrc)
-    {
-        return BPLIB_INVALID_CRC_ERROR;
-    }
-
-    /* Repopulate the byte array with the CRC value */
-    memcpy((void *) ((uintptr_t)CandidateBundle->blob->user_data.raw_bytes + CrcOffset),
-                &ExpectedCrc, CrcLen);
-
-    return BPLIB_SUCCESS;
-}
-
-/* Validate deserialized bundle after CBOR decoding*/
+/* Validate deserialized bundle after CBOR decoding */
 BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 {
     BPLib_Status_t  Status = BPLIB_SUCCESS;
 
     /* Bundle version was already verified by CBOR Decode to be v7 */
     
-    Status = BPLib_BI_ValidatePrimaryBlockCrc(CandidateBundle);
-
     /* Check against Policy Database for authorized source EID */
     /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
     

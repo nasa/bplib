@@ -54,7 +54,8 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
 * RFC-9171 Primary Block Parser (Implementation)
 */
 
-BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle)
+BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+                                                                const void *CandBundle)
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
@@ -173,6 +174,16 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;
 
+    /* Validate primary block CRC */
+    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, bundle->blocks.PrimaryBlock.CrcType,
+                                    bundle->blocks.PrimaryBlock.CrcValOffset,
+                                    bundle->blocks.PrimaryBlock.CrcVal,
+                                    bundle->blocks.PrimaryBlock.BlockOffsetStart,
+                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }  
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");

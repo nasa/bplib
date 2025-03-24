@@ -54,9 +54,8 @@
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  * \retval    BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR: index past max supported canonical blocks
  */
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
-                                          BPLib_Bundle_t* bundle,
-                                          uint32_t CanonicalBlockIndex);
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+    uint32_t CanonicalBlockIndex, const void *CandBundle);
 
 
 /**
@@ -81,7 +80,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
  * \retval    BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR: CBOR primary block decode error - decode lifetime field
  * \retval    BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR: CBOR primary block decode error - decode crc value field
  */
-BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle);
+BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+                                                            const void *CandBundle);
 
 
 
@@ -369,5 +369,8 @@ BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, B
  */
 BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t CrcValue, uint64_t CrcType);
 
+BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle, 
+    BPLib_CRC_Type_t CrcType, size_t CrcOffset, BPLib_CRC_Val_t ExpectedCrc, 
+    size_t BlockOffsetStart, size_t BlockOffsetEnd);
 
 #endif /* BPLIB_CBOR_INTERNAL_H */

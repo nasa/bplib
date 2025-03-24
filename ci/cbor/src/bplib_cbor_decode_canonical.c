@@ -86,9 +86,8 @@ static struct _HopCountBlockDataParser HopCountBlockDataParser = {
 /*******************************************************************************
 * RFC-9171 Canonical Block Parsers (Implementation)
 */
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
-                                          BPLib_Bundle_t* bundle,
-                                          uint32_t CanonicalBlockIndex)
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+                                    uint32_t CanonicalBlockIndex, const void *CandBundle)
 {
     BPLib_Status_t Status;
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
@@ -284,6 +283,15 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     else
     {
         CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+    }
+
+    /* Validate the block's CRC */
+    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, CanonicalBlockHdr->CrcType,
+                    CanonicalBlockHdr->CrcValOffset, CanonicalBlockHdr->CrcVal,
+                    CanonicalBlockHdr->BlockOffsetStart, CanonicalBlockHdr->BlockOffsetEnd);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
     }
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)

@@ -94,4 +94,6 @@ BPLib_CRC_Val_t BPLib_CRC_Finalize(BPLib_CRC_Parameters_t *params, BPLib_CRC_Val
 
 BPLib_CRC_Val_t BPLib_CRCGet(const void *data, const uint32_t length, BPLib_CRC_Parameters_t *params);
 
+BPLib_CRC_Val_t BPLib_CRC_Calculate(const void *Data, size_t DataLen, BPLib_CRC_Type_t CrcType);
+
 #endif /* BPLIB_CRC_H */
