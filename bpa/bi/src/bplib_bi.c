@@ -165,9 +165,6 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     BPLib_Status_t  Status = BPLIB_SUCCESS;
 
     /* Bundle version was already verified by CBOR Decode to be v7 */
-
-    /* TODO move me */
-    BPLib_CRCInit();
     
     Status = BPLib_BI_ValidatePrimaryBlockCrc(CandidateBundle);
 
