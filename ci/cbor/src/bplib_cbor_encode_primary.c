@@ -64,8 +64,11 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         BPLib_CBOR_EncodeCreationTimeStamp(&Context, &StoredBundle->blocks.PrimaryBlock.Timestamp);
 
         QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.Lifetime);
-        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.FragmentOffset);
-        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.TotalAduLength);
+
+        // TODO these fields are only present in fragmented bundles, will add logic to
+        // distinguish fragmented and unfragmented bundles later
+        // QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.FragmentOffset);
+        // QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.TotalAduLength);
 
         /* Set CRC value to 0, real value will be jammed in after encoding is done */
         StoredBundle->blocks.PrimaryBlock.CrcVal = 0;
