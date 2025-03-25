@@ -259,7 +259,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
 
     /* CRC Value */
     Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, 
-                                CanonicalBlockHdr->CrcType, &CanonicalBlockHdr->CrcValOffset);
+                                CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
@@ -286,9 +286,11 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     }
 
     /* Validate the block's CRC */
-    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, CanonicalBlockHdr->CrcType,
-                    CanonicalBlockHdr->CrcValOffset, CanonicalBlockHdr->CrcVal,
-                    CanonicalBlockHdr->BlockOffsetStart, CanonicalBlockHdr->BlockOffsetEnd);
+    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, 
+                    CanonicalBlockHdr->CrcType, CanonicalBlockHdr->CrcVal,
+                    CanonicalBlockHdr->BlockOffsetStart, 
+                    CanonicalBlockHdr->BlockOffsetEnd - 
+                    CanonicalBlockHdr->BlockOffsetStart + 1);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;

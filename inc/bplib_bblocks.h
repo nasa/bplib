@@ -92,7 +92,6 @@ typedef struct
     bool                      RequiresEncode;
     size_t                    BlockOffsetStart;
     size_t                    BlockOffsetEnd;
-    size_t                    CrcValOffset;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -122,7 +121,6 @@ typedef struct
     size_t          BlockOffsetEnd; // Used when skipping re-encoding
     size_t          DataOffsetStart; // Used for ADU Delivery
     size_t          DataSize; // Used for ADU Delivery
-    size_t          CrcValOffset; // Used for verifying CRC with encoded bundle
     bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 

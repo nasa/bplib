@@ -20,14 +20,34 @@
 
 #include "bplib_cbor_internal.h"
 #include "bplib_crc.h"
+#include "bplib_cfg.h"
+
+/* On little-endian systems, copy the CRC into the buffer by swapping the bytes properly */
+void BPLib_CBOR_CopyLittleEndianCrc(BPLib_CRC_Val_t CrcVal, BPLib_CRC_Type_t CrcType, uint8_t *Buf)
+{
+    if (CrcType == BPLib_CRC_Type_CRC16)
+    {
+        Buf[0] = (uint8_t) ((CrcVal >> 8)  & 0xFF);
+        Buf[1] = (uint8_t) ((CrcVal >> 0)  & 0xFF);  
+    }
+    else if (CrcType == BPLib_CRC_Type_CRC32C)
+    {
+        Buf[0] = (uint8_t) ((CrcVal >> 24) & 0xFF);
+        Buf[1] = (uint8_t) ((CrcVal >> 16) & 0xFF);
+        Buf[2] = (uint8_t) ((CrcVal >> 8)  & 0xFF);
+        Buf[3] = (uint8_t) ((CrcVal >> 0)  & 0xFF);
+    }
+
+    return;
+}
 
 BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle, 
-                    BPLib_CRC_Type_t CrcType, size_t CrcOffset, BPLib_CRC_Val_t ExpectedCrc, 
-                    size_t BlockOffsetStart, size_t BlockOffsetEnd)
+                    BPLib_CRC_Type_t CrcType, BPLib_CRC_Val_t ExpectedCrc, 
+                    size_t BlockOffsetStart, size_t BlockLength)
 {
     BPLib_CRC_Val_t CalculatedCrc;
-    size_t          BlockLength;
     uint8_t         CrcLen = 0;
+    size_t          CrcOffsetStart;
 
     if (CrcType == BPLib_CRC_Type_CRC16)
     {
@@ -42,18 +62,17 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
         return BPLIB_SUCCESS;
     }
 
-    /* Zero out the CRC entry for calculation purposes */
-    memset((void *) ((uintptr_t) EncodedBundle + CrcOffset), 0, CrcLen);
+    CrcOffsetStart = BlockOffsetStart + BlockLength - CrcLen;
 
-    /* Getting length of block, adding 1 to make last byte inclusive */
-    BlockLength = BlockOffsetEnd - BlockOffsetStart + 1;
+   /* Zero out the CRC entry for calculation purposes */
+    memset((void *) ((uintptr_t) EncodedBundle + CrcOffsetStart), 0, CrcLen);
 
     /* Calculate the CRC of the block */
     CalculatedCrc = BPLib_CRC_Calculate((void *) ((uintptr_t) EncodedBundle + BlockOffsetStart), 
                                 BlockLength, CrcType);
 
-    printf("\nCalculated CRC is 0x%lx, blocklength is %ld, block offset start is %ld\n", 
-            CalculatedCrc, BlockLength, BlockOffsetStart);
+    printf("\nCalculated CRC is 0x%lx, blocklength is %ld, block offset start is %ld, crc offset is %ld\n", 
+            CalculatedCrc, BlockLength, BlockOffsetStart, CrcOffsetStart);
 
     /* Verify the calculated CRC matches the expected CRC */
     if (CalculatedCrc != ExpectedCrc)
@@ -62,18 +81,21 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
     }
 
     /* Repopulate the byte array with the CRC value */
-    memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffset), &ExpectedCrc, CrcLen);
+    #if BPLIB_SYS_BIG_ENDIAN == true
+    memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffsetStart), &CalculatedCrc, CrcLen);
+    #else
+    BPLib_CBOR_CopyLittleEndianCrc(CalculatedCrc, CrcType, (uint8_t *) ((uintptr_t)EncodedBundle + CrcOffsetStart));
+    #endif
 
     return BPLIB_SUCCESS;
 }
 
-void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, 
-                                BPLib_CRC_Type_t CrcType, size_t CrcOffset,
-                                size_t BlockOffsetStart, size_t BlockOffsetEnd)
+void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t CrcType,
+                                size_t BlockOffsetStart, size_t BlockLength)
 {
     BPLib_CRC_Val_t CalculatedCrc;
-    size_t          BlockLength;
     uint8_t         CrcLen = 0;
+    size_t          CrcOffsetStart;
 
     if (CrcType == BPLib_CRC_Type_CRC16)
     {
@@ -88,21 +110,22 @@ void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle,
         return;
     }
 
-    /* Zero out the CRC entry for calculation purposes */
-    memset((void *) ((uintptr_t) EncodedBundle + CrcOffset), 0, CrcLen);
-
-    /* Getting length of block, adding 1 to make last byte inclusive */
-    BlockLength = BlockOffsetEnd - BlockOffsetStart + 1;
+    CrcOffsetStart = BlockOffsetStart + BlockLength - CrcLen;
 
     /* Calculate the CRC of the block */
     CalculatedCrc = BPLib_CRC_Calculate((void *) ((uintptr_t) EncodedBundle + BlockOffsetStart), 
                                 BlockLength, CrcType);
 
-    printf("\nGenerated CRC is 0x%lx, blocklength is %ld, block offset start is %ld\n", 
-            CalculatedCrc, BlockLength, BlockOffsetStart);
+    printf("\nGenerated CRC is 0x%lx, blocklength is %ld, block offset start is %ld, crc offset is %ld\n", 
+            CalculatedCrc, BlockLength, BlockOffsetStart, CrcOffsetStart);
 
     /* Repopulate the byte array with the CRC value */
-    memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffset), &CalculatedCrc, CrcLen);
-
+    /* Repopulate the byte array with the CRC value */
+    #if BPLIB_SYS_BIG_ENDIAN == true
+    memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffsetStart), &CalculatedCrc, CrcLen);
+    #else
+    BPLib_CBOR_CopyLittleEndianCrc(CalculatedCrc, CrcType, (uint8_t *) ((uintptr_t)EncodedBundle + CrcOffsetStart));
+    #endif
+    
     return;
 }

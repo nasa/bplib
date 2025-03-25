@@ -25,7 +25,7 @@
 #include "bplib_api_types.h"
 #include "bplib_crc.h"
 #include "bplib_crc_private.h"
-
+#include <stdio.h>
 
 /*
 ** Global data
@@ -73,12 +73,16 @@ uint16_t BPLib_CRC_GetCrc16X25(const uint8_t *DataPtr, size_t DataLen)
 {
     uint16_t CrcVal = 0xFFFF;
 
+    printf("\n Bundle to CRC:\n");
+
     while (DataLen > 0)
     {
+        printf("0x%x ", *DataPtr);
         CrcVal = BPLIB_CRC16_X25_TABLE[((CrcVal >> 8) ^ BPLIB_CRC_REFLECT_TABLE[*DataPtr]) & 0xFF] ^ (CrcVal << 8);
         DataPtr++;
         DataLen--;
     }
+    printf("\n");
 
     return CrcVal;
 }

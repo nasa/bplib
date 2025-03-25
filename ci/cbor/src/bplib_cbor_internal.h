@@ -133,7 +133,7 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
 typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed, 
-                                            uint64_t crc_type, size_t *crc_offset);
+                                            uint64_t crc_type);
 
 
 
@@ -212,8 +212,7 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
-BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, 
-                                                uint64_t crc_type, size_t *crc_offset);
+BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
 
 
@@ -370,11 +369,10 @@ BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, B
 BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t CrcValue, uint64_t CrcType);
 
 BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle, 
-    BPLib_CRC_Type_t CrcType, size_t CrcOffset, BPLib_CRC_Val_t ExpectedCrc, 
-    size_t BlockOffsetStart, size_t BlockOffsetEnd);
+    BPLib_CRC_Type_t CrcType, BPLib_CRC_Val_t ExpectedCrc, 
+    size_t BlockOffsetStart, size_t BlockLength);
 
-void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, 
-                                BPLib_CRC_Type_t CrcType, size_t CrcOffset,
-                                size_t BlockOffsetStart, size_t BlockOffsetEnd);
+void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t CrcType,
+                                size_t BlockOffsetStart, size_t BlockLength);
 
 #endif /* BPLIB_CBOR_INTERNAL_H */

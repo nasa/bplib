@@ -209,8 +209,7 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
     return QCBOR_SUCCESS;
 }
 
-BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, 
-                                        uint64_t crc_type, size_t *crc_offset)
+BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type)
 {
     UsefulBufC TemporaryByteStringBuffer;
     QCBORError QStatus;
@@ -242,10 +241,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
             return BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR;
         }
         else
-        {
-            /* Store location of the start of the CRC for future CRC calculations */
-            *crc_offset = QCBORDecode_Tell(ctx) - 2;
-            
+        {            
             /* unpack the network-byte-ordered 16-bit value, storing into the 64-bit destination */
             *parsed  = (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[0] <<  8u;
             *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[1];
@@ -261,9 +257,6 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
         }
         else
         {
-            /* Store location of the start of the CRC for future CRC calculations */
-            *crc_offset = QCBORDecode_Tell(ctx) - 4;
-
             /* unpack the network-byte-ordered 32-bit value, storing into the 64-bit destination */
             *parsed  = (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[0] << 24u;
             *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[1] << 16u;

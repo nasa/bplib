@@ -154,8 +154,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* CRC Value */
     Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal,
-                                                bundle->blocks.PrimaryBlock.CrcType,
-                                            &bundle->blocks.PrimaryBlock.CrcValOffset);
+                                                bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
@@ -176,10 +175,10 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Validate primary block CRC */
     Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, bundle->blocks.PrimaryBlock.CrcType,
-                                    bundle->blocks.PrimaryBlock.CrcValOffset,
                                     bundle->blocks.PrimaryBlock.CrcVal,
                                     bundle->blocks.PrimaryBlock.BlockOffsetStart,
-                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd - 
+                                    bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;

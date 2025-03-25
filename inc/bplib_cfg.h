@@ -113,6 +113,11 @@ extern "C" {
  */
 #define BPLIB_LOCAL_EID_SERVICE_NUM     0
 
+/**
+ * \brief This reflects whether the system bplib is running on is big endian. Note that
+ *        regardless of this, CBOR encoded bundles are big-endian
+ */
+#define BPLIB_SYS_BIG_ENDIAN            false
 
 #ifdef __cplusplus
 } // extern "C"
