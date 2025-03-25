@@ -40,30 +40,35 @@ Canonical Block [0]:
          Block Number: 6
          Flags: 0
          CRC Type: 1
+         CRC Value: 0x25d4
          Offset Into Encoded Bundle: 42
 Canonical Block [1]: 
          Block Type: 7 (age block)
          Block Number: 2
          Flags: 5
          CRC Type: 1
+         CRC Value: 0x3aed
          Offset Into Encoded Bundle: 58
 Canonical Block [2]: 
          Block Type: 10 (hop count)
          Block Number: 3
          Flags: 1
          CRC Type: 1
+         CRC Value: 0xf813
          Offset Into Encoded Bundle: 72
 Canonical Block [3]: 
          Block Type: 15 (CREB or CTEB ?)
          Block Number: 4
          Flags: 2
          CRC Type: 1
+         CRC Value: 0x25c7
          Offset Into Encoded Bundle: 84
 Canonical Block [4]: 
          Block Type: 16 (CREB or CTEB ?)
          Block Number: 5
          Flags: 0
          CRC Type: 1
+         CRC Value: 0x66ce
          Offset Into Encoded Bundle: 103
 */
 
@@ -113,6 +118,7 @@ Canonical Block [0]:
          Block Number: 1
          Flags: 0
          CRC Type: 1
+         CRC Value: 0xc68f
          Offset Into Encoded Bundle: 42
 */
 unsigned char bundle_primary_and_payload_with_aa_x_20[] = {
@@ -176,6 +182,10 @@ void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
     memset(&bundle, 0, sizeof(bundle));
     bundle.blob = NULL;
 
+    /* Set CRCs for primary and payload blocks */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xB19);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xc68f);
+
     ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_primary_and_payload_with_aa_x_20,
                                            sizeof(bundle_primary_and_payload_with_aa_x_20),
                                            &bundle);
@@ -223,6 +233,13 @@ void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
     BPLib_Status_t ReturnStatus;
     memset(&bundle, 0, sizeof(bundle));
     bundle.blob = NULL;
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x0B19);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x25D4);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x3AED);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xF813);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x25C7);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x66CE);
 
     ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks,
                                            sizeof(bundle_with_too_many_canonical_blocks),
@@ -370,6 +387,10 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
         0xaa, 0xaa, 0xaa, 0x44, 0x3c, 0x30, 0xc0, 0x58, 
         0xff,
     };
+
+    /* Set CRCs for primary and payload blocks */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x65315CD);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x3C30C058);
 
     ReturnStatus = BPLib_CBOR_DecodeBundle(primary_and_payload_with_crc_32,
                                            sizeof(primary_and_payload_with_crc_32),

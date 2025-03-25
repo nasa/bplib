@@ -122,7 +122,7 @@ void Test_BPLib_BI_RecvCtrlMsg_Nominal(void)
 
 void Test_BPLib_BI_ValidateBundle_Nominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(), BPLIB_SUCCESS);        
+    UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(NULL), BPLIB_SUCCESS);        
 }
 
 

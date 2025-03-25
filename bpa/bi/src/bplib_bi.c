@@ -28,7 +28,6 @@
 #include "bplib_as.h"
 #include "bplib_eid.h"
 #include "bplib_bblocks.h"
-#include "bplib_crc.h"
 
 #include <stdio.h>
 

@@ -355,8 +355,6 @@ BPLib_Status_t BPLib_CBOR_EncodeEID(QCBOREncodeContext* Context, BPLib_EID_t* So
  */
 BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, BPLib_CreationTimeStamp_t* TimeStamp);
 
-
-
 /**
  * \brief     Encodes a CRC value
  * \param[in] Context (QCBOREncodeContext*) QCBOR encode context instance pointer
@@ -368,10 +366,28 @@ BPLib_Status_t BPLib_CBOR_EncodeCreationTimeStamp(QCBOREncodeContext* Context, B
  */
 BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t CrcValue, uint64_t CrcType);
 
+/**
+ * \brief     Validates a block's CRC value
+ * \param[in] EncodedBundle (const void *) Pointer to the CBOR-encoded bundle buffer
+ * \param[in] CrcType (BPLib_CRC_Type_t) Specifies the expected CRC type (None, CRC16, or CRC32C)
+ * \param[in] ExpectedCrc (BPLib_CRC_Val_t) Value to check the calculated CRC against
+ * \param[in] BlockOffsetStart (size_t) Offset in EncodedBundle where the block starts
+ * \param[in] BlockLength (size_t) Length of the block in EncodedBundle
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_INVALID_CRC_ERROR: CRC was invalid
+ */
 BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle, 
     BPLib_CRC_Type_t CrcType, BPLib_CRC_Val_t ExpectedCrc, 
     size_t BlockOffsetStart, size_t BlockLength);
 
+/**
+ * \brief     Generates a block's CRC value
+ * \param[in] EncodedBundle (const void *) Pointer to the CBOR-encoded bundle buffer
+ * \param[in] CrcType (BPLib_CRC_Type_t) Specifies the expected CRC type (None, CRC16, or CRC32C)
+ * \param[in] BlockOffsetStart (size_t) Offset in EncodedBundle where the block starts
+ * \param[in] BlockLength (size_t) Length of the block in EncodedBundle
+ */
 void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t CrcType,
                                 size_t BlockOffsetStart, size_t BlockLength);
 
