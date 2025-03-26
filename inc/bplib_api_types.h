@@ -265,12 +265,18 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR     ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR     ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
 
-
 /* More PI Errors */
 #define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
 
 // More CLA Errors */
 #define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
+
+/* Storage Errors: SQL */
+#define BPLIB_STOR_SQL_INIT_ERR                         ((BPLib_Status_t) -240)
+#define BPLIB_STOR_SQL_STORAGE_ERR                      ((BPLib_Status_t) -241)
+#define BPLIB_STOR_SQL_LOAD_ERR                         ((BPLib_Status_t) -242)
+#define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
+#define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
 
 // TODO TIME Helpers
 
