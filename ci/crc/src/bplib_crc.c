@@ -25,7 +25,7 @@
 #include "bplib_api_types.h"
 #include "bplib_crc.h"
 #include "bplib_crc_private.h"
-#include <stdio.h>
+
 
 /*
 ** Global data
@@ -33,10 +33,7 @@
 
 /*
  * Various lookup and translation tables for CRC calculation
- * These can be mixed and matched for different algorithms
- * The direct table is not currently used
  */
-uint8_t BPLIB_CRC_DIRECT_TABLE[256];
 uint8_t BPLIB_CRC_REFLECT_TABLE[256];
 
 static uint16_t BPLIB_CRC16_X25_TABLE[256];
@@ -71,18 +68,14 @@ BPLib_CRC_Parameters_t BPLIB_CRC32_CASTAGNOLI = {
 /* Calculates the CRC-16/X.25 of the provided data */
 uint16_t BPLib_CRC_GetCrc16X25(const uint8_t *DataPtr, size_t DataLen)
 {
-    uint16_t CrcVal = 0xFFFF;
-
-    printf("\n Bundle to CRC:\n");
+    uint16_t CrcVal = 0xFFFF; /* Starting value */
 
     while (DataLen > 0)
     {
-        printf("0x%x ", *DataPtr);
         CrcVal = BPLIB_CRC16_X25_TABLE[((CrcVal >> 8) ^ BPLIB_CRC_REFLECT_TABLE[*DataPtr]) & 0xFF] ^ (CrcVal << 8);
         DataPtr++;
         DataLen--;
     }
-    printf("\n");
 
     return CrcVal;
 }
@@ -90,7 +83,7 @@ uint16_t BPLib_CRC_GetCrc16X25(const uint8_t *DataPtr, size_t DataLen)
 /* Calculates the CRC-32/Castagnoli value of the provided data */
 uint32_t BPLib_CRC_GetCrc32Castagnoli(const uint8_t *DataPtr, size_t DataLen)
 {
-    uint32_t CrcVal = 0xFFFFFFFF;
+    uint32_t CrcVal = 0xFFFFFFFF; /* Starting value */
 
     while (DataLen > 0)
     {
@@ -162,44 +155,23 @@ uint8_t BPLib_CRC_PrecomputeReflection(uint8_t Byte)
 /* Finalize the CRC value */
 BPLib_CRC_Val_t BPLib_CRC_Finalize(BPLib_CRC_Parameters_t *Params, BPLib_CRC_Val_t Crc)
 {
-    BPLib_CRC_Val_t FinalCrc;
+    BPLib_CRC_Val_t FinalCrc = 0;
     uint8_t     i;
 
-    if (Params->ShouldReflectOutput)
+    /* Reflect 8 bits at a time while possible */
+    i = Params->Length;
+    while (i >= 8)
     {
-        FinalCrc = 0;
-
-        /* Reflect 8 bits at a time while possible */
-        i = Params->Length;
-        while (i >= 8)
-        {
-            FinalCrc <<= 8;
-            FinalCrc |= BPLIB_CRC_REFLECT_TABLE[Crc & 0xFF];
-            Crc >>= 8;
-            i -= 8;
-        }
-
-        /* Reflect any more bits */
-        while (i > 0)
-        {
-            FinalCrc <<= 1;
-            FinalCrc |= (Crc & 1);
-            Crc >>= 1;
-            --i;
-        }
-    }
-    else
-    {
-        FinalCrc = Crc;
+        FinalCrc <<= 8;
+        FinalCrc |= BPLIB_CRC_REFLECT_TABLE[Crc & 0xFF];
+        Crc >>= 8;
+        i -= 8;
     }
 
     FinalCrc ^= Params->FinalXor;
 
     /* Return the CRC but mask out the significant bits */
-    if (Params->Length < sizeof(BPLib_CRC_Val_t) * 8)
-    {
-        FinalCrc &= ((BPLib_CRC_Val_t)1 << Params->Length) - 1;
-    }
+    FinalCrc &= ((BPLib_CRC_Val_t)1 << Params->Length) - 1;
 
     return FinalCrc;
 }
@@ -217,7 +189,6 @@ void BPLib_CRC_Init(void)
     Byte = 0;
     do
     {
-        BPLIB_CRC_DIRECT_TABLE[Byte]  = Byte;
         BPLIB_CRC_REFLECT_TABLE[Byte] = BPLib_CRC_PrecomputeReflection(Byte);
 
         /*
