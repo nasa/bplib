@@ -61,19 +61,19 @@ const char* InsertBlobSQL =
 static sqlite3_stmt* InsertBlobStmt;
 
 /* Find by Dest EID */
-// static const char* FindByDestNodeSQL = 
-// "SELECT id, action_timestamp, dest_node\n"
-// "FROM bundle_data\n"
-// "WHERE dest_node = ?\n"
-// "ORDER BY action_timestamp ASC\n"
-// "LIMIT ?;";
-// static sqlite3_stmt* FindByDestNodeStmt;
+static const char* FindByDestNodeSQL = 
+"SELECT id, action_timestamp, dest_node\n"
+"FROM bundle_data\n"
+"WHERE dest_node = ?\n"
+"ORDER BY action_timestamp ASC\n"
+"LIMIT ?;";
+static sqlite3_stmt* FindByDestNodeStmt;
 
-// static const char* FindBlobSQL = 
-// "SELECT blob_data\n"
-// "FROM bundle_blobs\n"
-// "WHERE bundle_id = ?;";
-// static sqlite3_stmt* FindBlobStmt;
+static const char* FindBlobSQL = 
+"SELECT blob_data\n"
+"FROM bundle_blobs\n"
+"WHERE bundle_id = ?;";
+static sqlite3_stmt* FindBlobStmt;
 
 /* Expire Bundles */
 static const char* ExpireBundlesSQL =
@@ -141,6 +141,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks) // pass metadata_st
         return SQLStatus;
     }
 
+    /* Expecting SQLITE_DONE */
     return SQLStatus;
 }
 
@@ -233,9 +234,11 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         fprintf(stderr, "Failed to discard bundles: %s\n", sqlite3_errmsg(db));  
         return SQLStatus;
     }
+    /* TODO: FINALIZE GOES HERE */
 
     /* Determine how many changes were made to the database */
     *NumDiscarded = sqlite3_changes(db);
+
     return SQLITE_OK;
 }
 
@@ -320,7 +323,24 @@ BPLib_Status_t BPLib_SQL_StoreBatch(sqlite3* db, BPLib_Bundle_t** BatchArr, size
 
 BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, size_t MaxBundles, size_t* NumEgressed)
 {
-    return BPLIB_ERROR;
+    // BPLib_Status_t Status;
+    int SQLStatus;
+
+    /* Prepare Queries for this batch transaction */
+    SQLStatus = sqlite3_prepare_v2(db, FindByDestNodeSQL, -1, &FindByDestNodeStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+    SQLStatus = sqlite3_prepare_v2(db, FindBlobSQL, -1, &FindBlobStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+
+    
+
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Status_t BPLib_SQL_DiscardExpired(sqlite3* db, size_t* NumDiscarded)
