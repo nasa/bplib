@@ -71,9 +71,6 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
     CalculatedCrc = BPLib_CRC_Calculate((void *) ((uintptr_t) EncodedBundle + BlockOffsetStart), 
                                 BlockLength, CrcType);
 
-    printf("\nCalculated CRC is 0x%lx, blocklength is %ld, block offset start is %ld, crc offset is %ld\n", 
-            CalculatedCrc, BlockLength, BlockOffsetStart, CrcOffsetStart);
-
     /* Verify the calculated CRC matches the expected CRC */
     if (CalculatedCrc != ExpectedCrc)
     {
@@ -116,10 +113,6 @@ void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t Crc
     CalculatedCrc = BPLib_CRC_Calculate((void *) ((uintptr_t) EncodedBundle + BlockOffsetStart), 
                                 BlockLength, CrcType);
 
-    printf("\nGenerated CRC is 0x%lx, blocklength is %ld, block offset start is %ld, crc offset is %ld\n", 
-            CalculatedCrc, BlockLength, BlockOffsetStart, CrcOffsetStart);
-
-    /* Repopulate the byte array with the CRC value */
     /* Repopulate the byte array with the CRC value */
     #if BPLIB_SYS_BIG_ENDIAN == true
     memcpy((void *) ((uintptr_t)EncodedBundle + CrcOffsetStart), &CalculatedCrc, CrcLen);

@@ -32,7 +32,7 @@
 #include "qcbor/qcbor_spiffy_decode.h"
 
 // Only uncomment locally, shouldn't be included in the main branch
-#define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (1)
+// #define BPLIB_CBOR_DEBUG_PRINTS_ENABLED (1)
 
 #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
 #include <stdio.h>
@@ -49,6 +49,7 @@
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
  * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
  * \param[in] CanonicalBlockIndex (uint32_t) which bundle extension block metadata to fill out
+ * \param[in] CandBundle (const void *) Candidate bundle to decode
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
@@ -63,6 +64,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
  * \details   Decode Primary Block Data and fill in related bundle metadata
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
  * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
+ * \param[in] CandBundle (const void *) Candidate bundle to decode
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
@@ -127,7 +129,6 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
  * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
  * \param[in] crc_type (uint64_t) specifies the expected CRC type (None, CRC16, or CRC32C)
- * \param[in] crc_offset (uint32_t*) pointer to set the offset of the CRC field to
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
