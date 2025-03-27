@@ -21,12 +21,11 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
-#include "bplib_stor_cache.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BPLIB_QM_RUNJOB_PERF_ID  0x7F
+#define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_JOBWAIT_TIMEOUT 1L
 
 BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
@@ -146,14 +145,6 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         }
 
         return BPLIB_ERROR;
-    }
-
-    /* StoreCache Init Probably not the right place for this */
-    BPLib_Status_t CacheInitSuccess = BPLib_STOR_CacheInit(inst);
-    if (CacheInitSuccess != BPLIB_SUCCESS)
-    {
-        printf("Failed to Init Cache\n");
-        return CacheInitSuccess;
     }
 
     return BPLIB_SUCCESS;

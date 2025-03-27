@@ -21,8 +21,6 @@
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
 #include "bplib_as.h"
-#include "bplib_stor.h"
-#include "bplib_stor_cache.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,8 +36,7 @@ static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_STOR_StoreBundle(Inst, Bundle);
-    return NO_NEXT_STATE;
+    return CONTACT_IN_CT_TO_STOR;
 }
 
 static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
