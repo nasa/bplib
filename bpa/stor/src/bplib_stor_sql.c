@@ -321,10 +321,16 @@ BPLib_Status_t BPLib_SQL_StoreBatch(sqlite3* db, BPLib_Bundle_t** BatchArr, size
     return Status;
 }
 
-BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, size_t MaxBundles, size_t* NumEgressed)
+BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, BPLib_EID_t* DestEID,
+    size_t MaxBundles, size_t* NumEgressed)
 {
     // BPLib_Status_t Status;
     int SQLStatus;
+
+    if (MaxBundles != 1)
+    {
+        fprintf(stderr, "RIGHT NOW MAX BUNDLES NEEDS TO BE 1\n");
+    }
 
     /* Prepare Queries for this batch transaction */
     SQLStatus = sqlite3_prepare_v2(db, FindByDestNodeSQL, -1, &FindByDestNodeStmt, 0);
@@ -338,7 +344,35 @@ BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, size_t MaxBundles, size_t
         return BPLIB_STOR_SQL_LOAD_ERR;
     }
 
-    
+    /* Bind parameters for metadata query */
+    SQLStatus = sqlite3_bind_int(FindByDestNodeStmt, 1, DestEID->Node);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind dest_node: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(FindByDestNodeStmt);
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+    SQLStatus = sqlite3_bind_int(FindByDestNodeStmt, 2, 1);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind limit: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(FindByDestNodeStmt);
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+
+    /* Print out what was found */
+    SQLStatus = SQLITE_ROW;
+    while (SQLStatus == SQLITE_ROW)
+    {
+        sqlite3_reset(FindByDestNodeStmt);
+        SQLStatus = sqlite3_step(FindByDestNodeStmt);
+        if (SQLStatus == SQLITE_ROW)
+        {
+            int ID = sqlite3_column_int(FindByDestNodeStmt, 0);
+            uint64_t ActionTimestamp = sqlite3_column_int64(FindByDestNodeStmt, 1);
+            uint64_t DestNode = sqlite3_column_int64(FindByDestNodeStmt, 2);
+            printf("ID: %d, ActionTimestamp %lu, DestNode %lu\n",
+                ID, ActionTimestamp, DestNode);
+        }
+    }
 
     return BPLIB_SUCCESS;
 }

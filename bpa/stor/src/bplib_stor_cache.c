@@ -102,11 +102,12 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, size_t MaxBundles)
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+    size_t MaxBundles, size_t* NumEgressed)
 {
     BPLib_Status_t Status;
 
-    if ((Inst == NULL))
+    if ((Inst == NULL) || (NumEgressed == NULL) || (DestEID == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
@@ -117,7 +118,8 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, size_t MaxBun
 
     pthread_mutex_lock(&CacheInst.lock);
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_SQL_EgressForDestEID(CacheInst.db, DestEID, BPLIB_STOR_LOADBATCHSIZE,
+        NumEgressed);
 
     pthread_mutex_unlock(&CacheInst.lock);
 

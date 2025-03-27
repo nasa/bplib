@@ -21,13 +21,16 @@
 #define BPLIB_STOR_SQL_H
 
 #include "bplib_mem.h"
+#include "bplib_eid.h"
+
 #include <sqlite3.h>
 
 BPLib_Status_t BPLib_SQL_Init(sqlite3** db, const char* DbName);
 
 BPLib_Status_t BPLib_SQL_StoreBatch(sqlite3* db, BPLib_Bundle_t** BatchArr, size_t BatchSize);
 
-BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, size_t MaxBundles, size_t* NumEgressed);
+BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, BPLib_EID_t* DestEID,
+    size_t MaxBundles, size_t* NumEgressed);
 
 BPLib_Status_t BPLib_SQL_DiscardExpired(sqlite3* db, size_t* NumDiscarded);
 

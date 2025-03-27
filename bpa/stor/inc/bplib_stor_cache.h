@@ -3,6 +3,7 @@
 
 #include "bplib_mem.h"
 #include "bplib_qm.h"
+#include "bplib_eid.h"
 
 BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst); // Rename
 
@@ -10,7 +11,8 @@ BPLib_Status_t BPLib_STOR_Destroy();
 
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, size_t MaxBundles);
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+    size_t MaxBundles, size_t* NumEgressed);
 
 BPLib_Status_t BPLib_STOR_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded);
 
