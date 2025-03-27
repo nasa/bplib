@@ -269,6 +269,8 @@ typedef struct BPLib_IpnAddr
 /* More PI Errors */
 #define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
 
+// More CLA Errors */
+#define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
 
 // TODO TIME Helpers
 

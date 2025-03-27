@@ -42,7 +42,7 @@ void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
                                      sizeof(InputBundleBuffer),
                                      Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
     UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
     UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
@@ -63,7 +63,27 @@ void Test_BPLib_CLA_Ingress_NullInputBundleError(void)
                                      sizeof(InputBundleBuffer),
                                      Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
+    UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
+    UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
+    UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
+}
+
+void Test_BPLib_CLA_Ingress_BadContId(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t InputInstance;
+    uint32_t ContId = BPLIB_MAX_NUM_CONTACTS;
+    uint8_t InputBundleBuffer[30];
+    uint32_t Timeout = 0;
+
+    ReturnStatus = BPLib_CLA_Ingress(&InputInstance,
+                                     ContId,
+                                     InputBundleBuffer,
+                                     sizeof(InputBundleBuffer),
+                                     Timeout);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_CONT_ID_INPUT_ERR);
     UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
     UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
@@ -187,6 +207,29 @@ void Test_BPLib_CLA_Egress_NullSizeBufferError(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
+void Test_BPLib_CLA_Egress_BadContId(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t Instance;
+    uint32_t ContId = BPLIB_MAX_NUM_CONTACTS;
+    uint8_t OutputBundleBuffer[30];
+    size_t NumBytesCopiedToOutputBuf;
+    size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
+    uint32_t Timeout = 0;
+
+    ReturnStatus = BPLib_CLA_Egress(&Instance,
+                                    ContId,
+                                    OutputBundleBuffer,
+                                    &NumBytesCopiedToOutputBuf,
+                                    OutputBundleBufferLength,
+                                    Timeout);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_CONT_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(NumBytesCopiedToOutputBuf, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
+}
+
 
 void Test_BPLib_CLA_Egress_QueuePullTimeout(void)
 {
@@ -248,9 +291,12 @@ void Test_BPLib_CLA_Egress_Nominal(void)
     size_t NumBytesCopiedToOutputBuf;
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
@@ -310,7 +356,7 @@ void TestBplibCla_Register(void)
 {
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInstPtrError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInstPtrError");
     UtTest_Add(Test_BPLib_CLA_Ingress_NullInputBundleError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NullInputBundleError");
-
+    UtTest_Add(Test_BPLib_CLA_Ingress_BadContId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_BadContId");
     UtTest_Add(Test_BPLib_CLA_Ingress_ControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_ControlMessageNominal");
     UtTest_Add(Test_BPLib_CLA_Ingress_NonControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_NonControlMessageNominal");
 
@@ -320,6 +366,7 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_Egress_NullInstanceInputError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullInstanceInputError");
     UtTest_Add(Test_BPLib_CLA_Egress_NullBundleOutBufferError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullBundleOutBufferError");
     UtTest_Add(Test_BPLib_CLA_Egress_NullSizeBufferError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NullSizeBufferError");
+    UtTest_Add(Test_BPLib_CLA_Egress_BadContId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_BadContId");
     UtTest_Add(Test_BPLib_CLA_Egress_QueuePullTimeout, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_QueuePullTimeout");
     UtTest_Add(Test_BPLib_CLA_Egress_BlobCopyFail, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_BlobCopyFail");
     UtTest_Add(Test_BPLib_CLA_Egress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_Nominal");

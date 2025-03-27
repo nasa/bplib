@@ -88,7 +88,7 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
    bool QueuePushReturnStatus;
 
    BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
-                        "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
+                        "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".",
                         Bundle->blocks.PrimaryBlock.DestEID.Node,
                         Bundle->blocks.PrimaryBlock.DestEID.Service);
 
