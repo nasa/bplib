@@ -25,10 +25,8 @@
 /*******************************************************************************
 * Definitions and types
 */
-#define BPLIB_STOR_DBNAME       "bplib-storage.db"
-/* Use this define to run SQLite3 entirely in RAM
-** #define BPLIB_STOR_DBNAME       ":memory:"
-*/
+//#define BPLIB_STOR_DBNAME       "bplib-storage.db"
+#define BPLIB_STOR_DBNAME       ":memory:"
 
 /* I heavily suspect we need to batch based on bytes, not on number of bundles 
 ** For now, we will store and load one bundle at a time
