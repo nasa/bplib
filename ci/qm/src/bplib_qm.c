@@ -23,7 +23,6 @@
 #include "bplib_pl.h"
 
 #include <stdio.h>
-#include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID  0x7F
 
