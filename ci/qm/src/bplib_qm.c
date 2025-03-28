@@ -176,6 +176,13 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int T
         return BPLIB_ERROR;
     }
 
+    /* Note: WorkerState is a resource shared amongst threads, but each worker state
+    ** is separated by the 'WorkerID' parameter.  This is is given at startup and
+    ** will not be changed for the duration of the run, nor will other threads be accessing
+    ** the specific WorkerID's WorkerState. This state is not locked because it would introduce
+    ** significant loss of concurrency as the worker threads compete for the array, just to
+    ** access their own state within it.
+    */
     WorkerState = &inst->RegisteredWorkers[WorkerID];
     if (WorkerState->CurrJob.NextState == NO_NEXT_STATE)
     {
