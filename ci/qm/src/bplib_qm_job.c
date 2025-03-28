@@ -128,5 +128,7 @@ BPLib_QM_JobFunc_t BPLib_QM_JobLookup(BPLib_QM_JobState_t job_state)
     {
         return job_funcs[job_state];
     }
+    /* Placing this here avoids performing the check for each job */
+    fprintf(stderr, "Warning: Returning NULL from BPLib_QM_JobLookup\n");
     return NULL;
 }
