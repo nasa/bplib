@@ -18,44 +18,28 @@
  *
  */
 
+#ifndef BPLIB_MEM_TEST_UTILS_H
+#define BPLIB_MEM_TEST_UTILS_H
+
 /*
 ** Include
 */
 
-#include "bplib_pi_test_utils.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
-
-/*
-** Global Data
-*/
-
-BPLib_Instance_t BplibInst;
-BPLib_PI_ChannelTable_t TestChanTbl;
+#include "bplib_api_types.h"
+#include "bplib_cbor.h"
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_PI_Test_Setup(void)
-{
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
+void BPLib_MEM_Test_Setup(void);
+void BPLib_MEM_Test_Teardown(void);
 
-    memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
+void TestBplibMem_Register(void);
 
-    BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
-
-    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
-}
-
-void BPLib_PI_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
-
-void UtTest_Setup(void)
-{
-    TestBplibPi_Register();
-}
+#endif /* BPLIB_MEM_TEST_UTILS_H */

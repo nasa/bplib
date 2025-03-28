@@ -134,28 +134,46 @@
 #define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (583u)
 
 
-/* ============ */
+/* ============== */
 /* STOR event IDs */
-/* ============ */
+/* ============== */
 
 #define BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID       (600u)
 #define BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID  (602u)
 #define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
+#define BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID           (604u)
+#define BPLIB_STOR_CACHE_QUEUE_ERR_EID                  (605u)
 
-#define BPLIB_NC_TBL_UPDATE_INF_EID                     (604u)
-#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (605u)
+#define BPLIB_NC_TBL_UPDATE_INF_EID                     (606u)
+#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (607u)
 
 /* ============ */
 /* BI event IDs */
 /* ============ */
-#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
+#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID            (650u)
+#define BPLIB_BI_INGRESS_DBG_EID                        (651u)
 
 /* ============= */
 /* CLA event IDs */
 /* ============= */
 
-#define BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID  (651u)
-#define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID  (652u)
-#define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID    (653u)
+#define BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID          (660u)
+#define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID          (661u)
+#define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
+#define BPLIB_CLA_EGRESS_DBG_EID                        (663u)
+
+/* ============= */
+/* MEM event IDs */
+/* ============= */
+
+#define BPLIB_MEM_NO_BLKS_ERR_EID                       (670u)
+
+/* ============ */
+/* PI event IDs */
+/* ============ */
+
+#define BPLIB_PI_EGRESS_DBG_EID                         (680u)
+#define BPLIB_PI_EGRESS_ERR_EID                         (681u)
+#define BPLIB_PI_INGRESS_DBG_EID                        (682u)
 
 #endif /* BPLIB_EVENTIDS_H */

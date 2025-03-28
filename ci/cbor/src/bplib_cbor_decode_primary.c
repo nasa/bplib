@@ -1,3 +1,23 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include "bplib_cbor_internal.h"
 
 
@@ -49,6 +69,10 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     ** so we decode this to a local stack buffer (for verification purposes only).
     */
     uint64_t Version;
+
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    /* TODO: we may not need this info */
+    bundle->blocks.PrimaryBlock.BlockOffsetStart = QCBORDecode_Tell(ctx);
 
     /* First, enter into the primary block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
@@ -135,6 +159,20 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR;
     }
 
+    /* Exit the primary block array */
+    Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
+    }
+
+    /* Grab the current offset, to be kept in the primary block's metadata */
+    bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+
+    /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
+    bundle->blocks.PrimaryBlock.RequiresEncode = false;
+
+
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");
     printf("\t CRC Type: %lu\n", bundle->blocks.PrimaryBlock.CrcType);
@@ -152,15 +190,12 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
                                                       bundle->blocks.PrimaryBlock.Timestamp.SequenceNumber);
     printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
+    printf("\t Requires Encode: %u\n", bundle->blocks.PrimaryBlock.RequiresEncode);
+    printf("\t Block Offset Start: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
+    printf("\t Block Offset End: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    printf("\t Block Size: %u\n",
+        bundle->blocks.PrimaryBlock.BlockOffsetEnd - bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     #endif
-
-
-    /* Exit the primary block array */
-    Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
-    if (Status != BPLIB_SUCCESS)
-    {
-        return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
-    }
 
     return BPLIB_SUCCESS;
 }

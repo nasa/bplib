@@ -34,10 +34,6 @@
 ** Function Definitions
 */
 
-int BPLib_BI_Init(void) {
-    return BPLIB_SUCCESS;
-}
-
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
@@ -75,16 +71,17 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     /* Validate the deserialized bundle (this does nothing right now) */
     Status = BPLib_BI_ValidateBundle();
+    /* TODO check this return once validate is actually implemented */
 
-    printf("Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.\n",
-        (unsigned long)Size,
-        CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
-        CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
-        CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
-        CandidateBundle->blocks.PrimaryBlock.SrcEID.Service
-    );
+    BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
+                (unsigned long) Size,
+                CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
+                CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
+                CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
+                CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
 
-    BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 
@@ -110,4 +107,24 @@ BPLib_Status_t BPLib_BI_ValidateBundle(void)
     /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
     
     return BPLIB_SUCCESS;
+}
+
+
+BPLib_Status_t BPLib_BI_BlobCopyOut(BPLib_Bundle_t* StoredBundle,
+                                    void* OutputBuffer,
+                                    size_t OutputBufferSize,
+                                    size_t* NumBytesCopied)
+{
+    BPLib_Status_t ReturnStatus;
+
+    if ((StoredBundle == NULL) || (StoredBundle->blob == NULL) || (OutputBuffer == NULL) || (NumBytesCopied == NULL))
+    {
+        ReturnStatus = BPLIB_NULL_PTR_ERROR;
+    }
+    else
+    {
+        ReturnStatus = BPLib_CBOR_EncodeBundle(StoredBundle, OutputBuffer, OutputBufferSize, NumBytesCopied);
+    }
+
+    return ReturnStatus;
 }

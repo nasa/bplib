@@ -91,29 +91,29 @@ typedef struct BPLib_IpnAddr
 ** Macros
 */
 
-#define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
+#define BPLIB_BUNDLE_PROTOCOL_VERSION                   (7u)     /** @brief Version of Bundle Protocol being implemented */
 
 /**
  * \brief Job egress ID to use before a bundle's route is known 
 */
-#define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
+#define BPLIB_UNKNOWN_ROUTE_ID                          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
 
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
-#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Configuration has been updated */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
-#define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
-#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Configuration validation error code */
-#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
-#define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
-#define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
-#define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
-#define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
+#define BPLIB_TBL_UPDATED                               ((BPLib_Status_t)  1)  /* Configuration has been updated */
+#define BPLIB_SUCCESS                                   ((BPLib_Status_t)  0)  /* Successful execution */
+#define BPLIB_ERROR                                     ((BPLib_Status_t) -1)  /* Failed execution */
+#define BPLIB_UNIMPLEMENTED                             ((BPLib_Status_t) -2)  /* Unimplemented function */
+#define BPLIB_UNKNOWN                                   ((BPLib_Status_t) -3)  /* Unknown return status */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE               ((BPLib_Status_t) -4)  /* Configuration validation error code */
+#define BPLIB_RBT_DUPLICATE                             ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
+#define BPLIB_TIMEOUT                                   ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
+#define BPLIB_NULL_PTR_ERROR                            ((BPLib_Status_t) -7)  /* Null pointer error */
+#define BPLIB_BUF_LEN_ERROR                             ((BPLib_Status_t) -8)  /* Buffer length error */
+#define BPLIB_INVALID_EID                               ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
+#define BPLIB_INVALID_EID_PATTERN                       ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
 
 
 /*
@@ -133,60 +133,60 @@ typedef struct BPLib_IpnAddr
  * @{
  */
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -26)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR                   ((BPLib_Status_t) -26)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -27)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -28)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -29)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -30)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR                    ((BPLib_Status_t) -27)
+#define BPLIB_TIME_WRITE_ERROR                          ((BPLib_Status_t) -28)
+#define BPLIB_TIME_READ_ERROR                           ((BPLib_Status_t) -29)
+#define BPLIB_TIME_UNINIT_ERROR                         ((BPLib_Status_t) -30)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -31)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -32)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -33)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -34)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -35)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -36)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -37)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -38)
+#define BPLIB_EM_STRING_TRUNCATED                       ((BPLib_Status_t) -31)
+#define BPLIB_EM_ILLEGAL_APP_ID                         ((BPLib_Status_t) -32)
+#define BPLIB_EM_UNKNOWN_FILTER                         ((BPLib_Status_t) -33)
+#define BPLIB_EM_BAD_ARGUMENT                           ((BPLib_Status_t) -34)
+#define BPLIB_EM_INVALID_PARAMETER                      ((BPLib_Status_t) -35)
+#define BPLIB_EM_APP_NOT_REGISTERED                     ((BPLib_Status_t) -36)
+#define BPLIB_EM_APP_SQUELCHED                          ((BPLib_Status_t) -37)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR                    ((BPLib_Status_t) -38)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -39)
+#define BPLIB_PL_NULL_CALLBACK_ERROR                    ((BPLib_Status_t) -39)
 
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR     ((BPLib_Status_t) -40)
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -41)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -42)
+#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR                 ((BPLib_Status_t) -40)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX                 ((BPLib_Status_t) -41)
+#define BPLIB_NC_INVALID_MID_VALUE                      ((BPLib_Status_t) -42)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -43)
+#define BPLIB_CLA_TIMEOUT                               ((BPLib_Status_t) -43)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -44)
-#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -45)
+#define BPLIB_PI_INVALID_CONFIG_ERROR                   ((BPLib_Status_t) -44)
+#define BPLIB_PI_TIMEOUT                                ((BPLib_Status_t) -45)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -46)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -47)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -48)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -49)
-#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -50)
-#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -51)
-#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -52)
-#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -53)
-#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -54)
+#define BPLIB_AS_INIT_MUTEX_ERR                         ((BPLib_Status_t) -46)
+#define BPLIB_AS_INVALID_EID                            ((BPLib_Status_t) -47)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR                      ((BPLib_Status_t) -48)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR                       ((BPLib_Status_t) -49)
+#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID                  ((BPLib_Status_t) -50)
+#define BPLIB_AS_MIB_KEY_ARRAY_FULL                     ((BPLib_Status_t) -51)
+#define BPLIB_AS_MIB_KEYS_OVERLAP                       ((BPLib_Status_t) -52)
+#define BPLIB_AS_INVALID_MIB_INDEX                      ((BPLib_Status_t) -53)
+#define BPLIB_AS_NO_KEYS_GIVEN                          ((BPLib_Status_t) -54)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -55)
+#define BPLIB_QM_PUSH_ERROR                             ((BPLib_Status_t) -55)
 
 /* MEM Errors */
-#define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
+#define BPLIB_MEM_INITMEM_UNALIGN                       ((BPLib_Status_t) -56)
+#define BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR                 ((BPLib_Status_t) -57) /* BPLib_MEM_CopyOutFromOffset: bytes copied != requested */
 
+/* Node Config Errors */
+#define BPLIB_NC_TBL_UPDATE_ERR                         ((BPLib_Status_t) -80)
 
-#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -57)
-
-/* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR             ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
 #define BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR           ((BPLib_Status_t) -121) /* CBOR decode error: entry array */
 #define BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR            ((BPLib_Status_t) -122) /* CBOR decode error: max blocks */
@@ -249,6 +249,21 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR             ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR   ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
 
+#define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
+#define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
+#define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR            ((BPLib_Status_t) -184) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR        ((BPLib_Status_t) -185) /* BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error */
+#define BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR             ((BPLib_Status_t) -186) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR       ((BPLib_Status_t) -187) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR       ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR       ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR      ((BPLib_Status_t) -190) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 1) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR      ((BPLib_Status_t) -191) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR      ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR      ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
+
+/* CLA errors */
 #define BPLIB_CLA_CONTACTS_MAX_REACHED                  ((BPLib_Status_t) -179) /* Max number of contacts active */
 #define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -180) /* Contact is in the incorrect state to be modified */
 #define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -181) /* PSP IO driver API call failed */
@@ -257,6 +272,10 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CLA_WAKEUP_SEM_ERROR                      ((BPLib_Status_t) -184) /* Error occured with CLA wakeup sempahore */
 #define BPLIB_CLA_EXIT_SEM_ERROR                        ((BPLib_Status_t) -185) /* Error occured with CLA exit sempahore */
 #define BPLIB_CLA_TASK_CREATE_ERROR                     ((BPLib_Status_t) -186) /* Error occured while creating task */
+#define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
+
+/* More PI Errors */
+#define BPLIB_PI_CHAN_ID_INPUT_ERR                      ((BPLib_Status_t) -200)
 
 // TODO TIME Helpers
 

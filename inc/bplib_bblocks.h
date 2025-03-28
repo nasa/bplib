@@ -87,6 +87,10 @@ typedef struct
     uint64_t                  FragmentOffset;
     uint64_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
+    /* Metadata */
+    bool                      RequiresEncode;
+    uint32_t                  BlockOffsetStart;
+    uint32_t                  BlockOffsetEnd;
 } BPLib_PrimaryBlock_t;
 
 /**
@@ -107,12 +111,15 @@ typedef struct
     /* Header Data */
     uint64_t        BlockType;
     uint64_t        BlockNum;
-    uint64_t        BundleProcFlags;
+    uint64_t        BlockProcFlags;
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;
     /* Metadata */
-    uint64_t        HeaderOffset;
-    uint64_t        DataOffset;
+    uint64_t        BlockOffsetStart; // Used when skipping re-encoding
+    uint64_t        BlockOffsetEnd; // Used when skipping re-encoding
+    uint64_t        DataOffsetStart; // Used for ADU Delivery
+    uint64_t        DataSize; // Used for ADU Delivery
+    bool            RequiresEncode;
 } BPLib_CanBlockHeader_t;
 
 /**
