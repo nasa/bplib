@@ -269,6 +269,10 @@ typedef struct BPLib_IpnAddr
 /* More PI Errors */
 #define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
 
+/* QM Errors */
+#define BPLIB_QM_INIT_ERROR                            ((BPLib_Status_t) -210)
+#define BPLIB_QM_BAD_WRKR_ID                           ((BPLib_Status_t) -211)
+#define BPLIB_QM_WRKR_REGISTER_ERROR                   ((BPLib_Status_t) -212)
 
 // TODO TIME Helpers
 

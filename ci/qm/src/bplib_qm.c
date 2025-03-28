@@ -33,13 +33,13 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 
     if (inst == NULL)
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Initialize worker registration state */
     if (pthread_mutex_init(&inst->RegisteredWorkersLock, NULL) != 0)
     {
-        return BPLIB_ERROR;
+        return BPLIB_QM_INIT_ERROR;
     }
     for (i = 0; i < QM_MAX_GEN_WORKERS; i++)
     {
@@ -129,7 +129,7 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
     if (inst->NumWorkers == QM_MAX_GEN_WORKERS)
     {
         *WorkerID = -1;
-        Status = BPLIB_ERROR;
+        Status = BPLIB_QM_WRKR_REGISTER_ERROR;
     }
     else
     {
@@ -173,7 +173,7 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int T
     }
     if ((WorkerID < 0) || (WorkerID >= inst->NumWorkers))
     {
-        return BPLIB_ERROR;
+        return BPLIB_QM_BAD_WRKR_ID;
     }
 
     /* Note: WorkerState is a resource shared amongst threads, but each worker state
