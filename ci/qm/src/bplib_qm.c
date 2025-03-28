@@ -114,7 +114,7 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     }
 }
 
-BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID)
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID)
 {
     int NewWorkerID;
     BPLib_Status_t Status;
@@ -161,7 +161,7 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle
     return Status;
 }
 
-BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs)
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs)
 {
     BPLib_QM_WorkerState_t* WorkerState;
     BPLib_QM_JobFunc_t JobFunc;

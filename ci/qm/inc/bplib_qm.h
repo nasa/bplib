@@ -89,7 +89,7 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
  * 
  * @return Status of worker registration
  */
-BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID);
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID);
 
 /**
  * @brief Executes a single job in the Queue Manager.
@@ -103,7 +103,7 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int* WorkerID);
  * 
  * @return Status of running the job
  */
-BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int WorkerID, int TimeoutMs);
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs);
 
 /**
  * @brief Adds a job to the queue.
