@@ -78,8 +78,13 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     }
 
     Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-    // TODO should this free a bundle if it fails?
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
 
+        return Status;
+    }
+    
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                 "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
                 (unsigned long) Size,
