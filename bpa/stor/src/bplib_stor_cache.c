@@ -19,33 +19,14 @@
  */
 #include "bplib_stor_cache.h"
 #include "bplib_stor_sql.h"
+#include "bplib_qm.h"
 
 #include <stdio.h>
 
 /*******************************************************************************
 * Definitions and types
 */
-//#define BPLIB_STOR_DBNAME       "bplib-storage.db"
-#define BPLIB_STOR_DBNAME       ":memory:"
-
-/* I heavily suspect we need to batch based on bytes, not on number of bundles 
-** For now, we will store and load one bundle at a time
-*/
-#define BPLIB_STOR_STOREBATCHSIZE 1
-#define BPLIB_STOR_LOADBATCHSIZE 1
-
-typedef struct BPLib_BundleCache
-{
-    sqlite3* db;
-    BPLib_Bundle_t* InsertBatch[BPLIB_STOR_STOREBATCHSIZE];
-    size_t InsertBatchSize;
-    pthread_mutex_t lock;
-} BPLib_BundleCache_t;
-
-/*******************************************************************************
-* Module State 
-*/
-static BPLib_BundleCache_t CacheInst; // Move to BPLib_Inst_t
+#define BPLIB_STOR_DBNAME       "bplib-storage.db"
 
 /*******************************************************************************
 * Exported Functions
@@ -59,51 +40,64 @@ BPLib_Status_t BPLib_STOR_CacheInit(BPLib_Instance_t* Inst)
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    pthread_mutex_init(&CacheInst.lock, NULL);
+    pthread_mutex_init(&Inst->BundleStorage.lock, NULL);
 
-    Status = BPLib_SQL_Init(&CacheInst.db, (const char *)BPLIB_STOR_DBNAME);
+    Status = BPLib_SQL_Init(Inst, (const char *)BPLIB_STOR_DBNAME);
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_Destroy()
+void BPLib_STOR_Destroy(BPLib_Instance_t* Inst)
 {
-    pthread_mutex_destroy(&CacheInst.lock);
-    return BPLIB_SUCCESS;
+    pthread_mutex_destroy(&Inst->BundleStorage.lock);
 }
 
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_BundleCache_t* CacheInst;
+    int i;
 
     if ((Inst == NULL) || (Bundle == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    pthread_mutex_lock(&CacheInst.lock);
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&Inst->BundleStorage.lock);
 
     /* Add to the next batch */
-    CacheInst.InsertBatch[CacheInst.InsertBatchSize++] = Bundle;
-    if (CacheInst.InsertBatchSize == BPLIB_STOR_STOREBATCHSIZE)
+    CacheInst->InsertBatch[CacheInst->InsertBatchSize++] = Bundle;
+    if (CacheInst->InsertBatchSize == BPLIB_STOR_INSERTBATCHSIZE)
     {
-        Status = BPLib_SQL_StoreBatch(CacheInst.db, CacheInst.InsertBatch, CacheInst.InsertBatchSize);
+        Status = BPLib_SQL_Store(Inst);
         if (Status != BPLIB_SUCCESS)
         {
-            fprintf(stderr, "STORBatch Failed\n");
+            fprintf(stderr, "StoreBundle Failed ERR=%d\n", Status);
         }
-        CacheInst.InsertBatchSize = 0;
+
+        /* Free the bundles, as they're now persistent
+        ** Note: even if the storage fails, we free everything to avoid a leak.
+        */
+        for (i = 0; i < CacheInst->InsertBatchSize; i++)
+        {
+            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
+        }
+
+        CacheInst->InsertBatchSize = 0;
     }
+    pthread_mutex_unlock(&CacheInst->lock);
 
-    pthread_mutex_unlock(&CacheInst.lock);
-
-    printf("Batch\n");
     return Status;
 }
 
 BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
     size_t MaxBundles, size_t* NumEgressed)
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_BundleCache_t* CacheInst;
+    int i, j;
+    size_t EgressCnt = 0;
+    BPLib_Bundle_t* CurrBundle;
 
     if ((Inst == NULL) || (NumEgressed == NULL) || (DestEID == NULL))
     {
@@ -114,35 +108,73 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* 
         return BPLIB_STOR_PARAM_ERR;
     }
 
-    pthread_mutex_lock(&CacheInst.lock);
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&CacheInst->lock);
 
-    Status = BPLib_SQL_EgressForDestEID(CacheInst.db, DestEID, BPLIB_STOR_LOADBATCHSIZE,
-        NumEgressed);
+    /* Ask SQL to load egressable bundles from the specified Destination EID */
+    Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, BPLIB_STOR_LOADBATCHSIZE);
 
-    pthread_mutex_unlock(&CacheInst.lock);
+    /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
+    ** was loaded here
+    */
+    if (Status == BPLIB_SUCCESS)
+    {
+        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        {
+            CurrBundle = CacheInst->LoadBatch[i];
+            CurrBundle->Meta.EgressID = 0; // Should put something here?
+            Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
+                QM_PRI_NORMAL, QM_NO_WAIT);
+            if (Status != BPLIB_SUCCESS)
+            {
+                /* In this case, bundles were loaded, but we couldn't create jobs 
+                ** Free only what we couldn't egress.
+                */
+                for (j = i; i < CacheInst->LoadBatchSize; i++)
+                {
+                    BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[j]);
+                }
+                break;
+            }
+            EgressCnt++;
+        }
+    }
+    else
+    {
+        /* In this case, there was a storage error, free whatever was loaded before the error. */
+        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        {
+            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[i]);
+        }
+    }
 
+    pthread_mutex_unlock(&CacheInst->lock);
+
+    *NumEgressed = EgressCnt;
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
 {
     BPLib_Status_t Status;
+    BPLib_BundleCache_t* CacheInst;
 
-    if ((Inst == NULL) || (NumDiscarded))
+    if ((Inst == NULL) || (NumDiscarded == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
+
     *NumDiscarded = 0;
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&CacheInst->lock);
 
-    pthread_mutex_lock(&CacheInst.lock);
-
-    Status = BPLib_SQL_DiscardExpired(CacheInst.db, NumDiscarded);
+    Status = BPLib_SQL_GarbageCollect(Inst, NumDiscarded);
     if (Status != BPLIB_SUCCESS)
     {
-        // Event Message ?
+        fprintf(stderr, "Failed to Discard Expired Bundles ERR=%d\n", Status);
     }
 
-    pthread_mutex_unlock(&CacheInst.lock);
+    pthread_mutex_unlock(&CacheInst->lock);
 
     return Status;
 }

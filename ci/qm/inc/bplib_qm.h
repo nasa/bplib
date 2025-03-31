@@ -25,6 +25,7 @@
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
 #include "bplib_cfg.h"
+#include "bplib_stor_cache.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT  /**< Constant for no wait */
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER  /**< Constant for indefinite wait */
@@ -63,6 +64,9 @@ typedef enum BPLib_QM_Priority
     QM_PRI_NORMAL = 1 /**< Normal priority for jobs */
 } BPLib_QM_Priority_t;
 
+/* Forward declaration for Bundle Cache */
+typedef struct BPLib_BundleCache BPLib_BundleCache_t;
+
 /**
  * @struct BPLib_Instance
  * @brief Represents a QM instance with its associated job memory and wait queues.
@@ -84,7 +88,7 @@ typedef struct BPLib_Instance
     BPLib_QM_WaitQueue_t BundleCacheList; /**< Queue of bundles in cache */
     void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
     BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
-    
+    BPLib_BundleCache_t BundleStorage;
 } BPLib_Instance_t;
 
 /**

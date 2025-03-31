@@ -18,20 +18,16 @@
  *
  */
 #include "bplib_stor_sql.h"
+#include "bplib_qm.h"
+#include "bplib_time.h"
+#include "bplib_fwp.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 
 /*******************************************************************************
-* Definitions and Types
-*/
-#define BPLIB_STOR_BATCH_SIZE   100
-
-/*******************************************************************************
-* SQL Query Definitions 
-*  The syntax for these is a little tricky. I reccommend sticking with \n instead
-*  of multi-line string literals.
+** SQL Query Definitions
 */
 
 /* Create Table */
@@ -39,6 +35,7 @@ static const char* CreateTableSQL =
 "CREATE TABLE IF NOT EXISTS bundle_data (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
 "    action_timestamp INTEGER,\n"
+"    egress_attempted INTEGER DEFAULT 0,\n"
 "    dest_node INTEGER\n"
 ");\n"
 "CREATE TABLE IF NOT EXISTS bundle_blobs (\n"
@@ -50,39 +47,14 @@ static const char* CreateTableSQL =
 "CREATE INDEX IF NOT EXISTS idx_action_timestamp ON bundle_data (action_timestamp);\n"
 "CREATE INDEX IF NOT EXISTS idx_dest_node ON bundle_data (dest_node);\n";
 
-/* Insert Bundle Metadata */
-static const char* InsertMetadataSQL = 
-    "INSERT INTO bundle_data (action_timestamp, dest_node) VALUES (?, ?);";
-static sqlite3_stmt* MetadataStmt;
-
-/* Insert Bundle Blob */
-const char* InsertBlobSQL = 
-    "INSERT INTO bundle_blobs (bundle_id, blob_data) VALUES (?, ?)";
-static sqlite3_stmt* InsertBlobStmt;
-
-/* Find by Dest EID */
-static const char* FindByDestNodeSQL = 
-"SELECT id, action_timestamp, dest_node\n"
-"FROM bundle_data\n"
-"WHERE dest_node = ?\n"
-"ORDER BY action_timestamp ASC\n"
-"LIMIT ?;";
-static sqlite3_stmt* FindByDestNodeStmt;
-
-static const char* FindBlobSQL = 
-"SELECT blob_data\n"
-"FROM bundle_blobs\n"
-"WHERE bundle_id = ?;";
-static sqlite3_stmt* FindBlobStmt;
-
 /* Expire Bundles */
 static const char* ExpireBundlesSQL =
-"DELETE FROM bundle_data\n"
-"WHERE action_timestamp < ?;\n";
+    "DELETE FROM bundle_data WHERE action_timestamp < ? OR egress_attempted = 1;";
 static sqlite3_stmt* ExpireBundlesStmt;
 
+
 /*******************************************************************************
-* Static Functions
+** Static Functions
 */
 static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 {
@@ -111,9 +83,7 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
     ** check if foreign keys were enabled by reading the setting back.
     */
-    // TODO: It looks like I have to use prepare_v2 and step here. Worth creating new ticket for this check, we know it's enabled
-    // Don't Merge before ticket is created or you add this.
-    // More notes: looks like I have to read back a 0 or a 1 ?? This is confusing me
+    // TODO: Make ticket for this
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(ActiveDB, CreateTableSQL, 0, 0, NULL);
@@ -125,102 +95,21 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     return SQLStatus;
 }
 
-static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks) // pass metadata_stmt in here.
+static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
-
-    sqlite3_reset(MetadataStmt);
-    sqlite3_bind_int64(MetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
-        (int64_t)BBlocks->PrimaryBlock.Lifetime);
-    sqlite3_bind_int64(MetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
-
-    SQLStatus = sqlite3_step(MetadataStmt);
-    if (SQLStatus != SQLITE_DONE)
-    {
-        fprintf(stderr, "Insert meta failed\n");
-        return SQLStatus;
-    }
-
-    /* Expecting SQLITE_DONE */
-    return SQLStatus;
-}
-
-static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t ChunkSize)
-{
-    int SQLStatus;
-
-    sqlite3_reset(InsertBlobStmt);
-    sqlite3_bind_int64(InsertBlobStmt, 1, BundleRowID);
-    sqlite3_bind_blob(InsertBlobStmt, 2, Chunk, ChunkSize, SQLITE_STATIC);
-
-    SQLStatus = sqlite3_step(InsertBlobStmt);
-    if (SQLStatus != SQLITE_DONE)
-    {
-        fprintf(stderr, "Insert chunk failed\n");
-        return SQLStatus;
-    }
-
-    return SQLStatus;
-}
-
-static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
-{
-    int SQLStatus;
-    int BundleRowID;
-    BPLib_MEM_Block_t* CurrMemBlock;
-
-    /* Store the indexable metadata */
-    SQLStatus = BPLib_SQL_StoreMetadata(&Bundle->blocks);
-    if (SQLStatus != SQLITE_DONE)
-    {
-        return SQLStatus;
-    }
-    BundleRowID = sqlite3_last_insert_rowid(db);
-
-    /* Store the decoded metadata block */
-    SQLStatus = BPLib_SQL_StoreChunk(BundleRowID, (const void*)&Bundle->blocks, sizeof(BPLib_BBlocks_t));
-    if (SQLStatus != SQLITE_DONE)
-    {
-        return SQLStatus;
-    }
-
-    /* Store the blob chunks */
-    CurrMemBlock = Bundle->blob;
-    while (CurrMemBlock != NULL)
-    {
-        SQLStatus = BPLib_SQL_StoreChunk(BundleRowID, (const void*)CurrMemBlock->user_data.raw_bytes,
-            CurrMemBlock->used_len);
-        if (SQLStatus != SQLITE_DONE)
-        {
-            return SQLStatus;
-        }
-        CurrMemBlock = CurrMemBlock->next;
-    }
-
-    /* Expecting SQLITE_DONE */
-    return SQLStatus;
-}
-
-static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
-{
-    int SQLStatus;
-    uint64_t DtnTimeNow;
+    BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
+    uint64_t DtnNowMs;
 
     *NumDiscarded = 0;
 
     /* Get DTN Time */
-    // DtnTimeNow = AskSaraWhatTimeItIs();
-    DtnTimeNow = 0; // Will never expire anything.
+    BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
+    DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
+    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - 946684800000; // Remove me: this was added because this function doesn't work in bpcat
 
-    /* Prepare and reset the ExpireBundlesStmt with the curren time */
-    SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
     sqlite3_reset(ExpireBundlesStmt);
-    SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, DtnTimeNow);
+    SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
@@ -234,157 +123,55 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         fprintf(stderr, "Failed to discard bundles: %s\n", sqlite3_errmsg(db));  
         return SQLStatus;
     }
-    /* TODO: FINALIZE GOES HERE */
 
-    /* Determine how many changes were made to the database */
+    /* Determine how many changes were made to the database, which is the number
+    ** of discarded bundles.
+    */
     *NumDiscarded = sqlite3_changes(db);
 
     return SQLITE_OK;
 }
 
 /*******************************************************************************
-* Exported Functions
+** Exported Functions
 */
-BPLib_Status_t BPLib_SQL_Init(sqlite3** db, const char* DbName)
+BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
 {
     int SQLStatus;
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    sqlite3** db = &Inst->BundleStorage.db;
 
     SQLStatus = BPLib_SQL_InitImpl(db, DbName);
-    if (SQLStatus == SQLITE_OK)
+    if (SQLStatus != SQLITE_OK)
     {
         Status = BPLIB_STOR_SQL_INIT_ERR;
     }
     return Status;
 }
 
-BPLib_Status_t BPLib_SQL_StoreBatch(sqlite3* db, BPLib_Bundle_t** BatchArr, size_t BatchSize)
+BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
 {
-    BPLib_Status_t Status;
     int SQLStatus;
-    int i;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    sqlite3* db = Inst->BundleStorage.db;
 
-    /* Prepare Insert Statements needed for this batch query */
-    SQLStatus = sqlite3_prepare_v2(db, InsertMetadataSQL, -1, &MetadataStmt, 0);
+    /* Prepare and reset the ExpireBundlesStmt with the current time */
+    SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        return BPLIB_STOR_SQL_STORAGE_ERR;
+        fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
     }
-    SQLStatus = sqlite3_prepare_v2(db, InsertBlobSQL, -1, &InsertBlobStmt, 0);
+
+    SQLStatus = BPLib_SQL_GarbageCollectImpl(db, NumDiscarded);
     if (SQLStatus != SQLITE_OK)
     {
-        return BPLIB_STOR_SQL_STORAGE_ERR;
+        Status = BPLIB_STOR_SQL_DISCARD_ERR;
     }
+    Status = BPLIB_SUCCESS;
 
-    /* Create a batch query */
-    SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to start transaction\n");
-        return BPLIB_STOR_SQL_STORAGE_ERR;
-    }
-
-    /* Perform an insert for every bundle */
-    for (i = 0; i < BatchSize; i++)
-    {
-        SQLStatus = BPLib_SQL_StoreBundle(db, BatchArr[i]);
-        if (SQLStatus != SQLITE_DONE)
-        {
-            break;
-        }
-    }
-
-    /* If there have been no errors so far, batch-write the data to persistent storage */
-    if (SQLStatus == SQLITE_DONE)
-    {
-        Status = BPLIB_SUCCESS;
-        SQLStatus = sqlite3_exec(db, "COMMIT;", 0, 0, 0);
-        if (SQLStatus != SQLITE_OK)
-        {
-            fprintf(stderr, "Failed to commit transaction\n");
-            Status = BPLIB_STOR_SQL_STORAGE_ERR;
-        }
-    }
-
-    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Attempting ROLLBACK\n");
-        Status = BPLIB_STOR_SQL_STORAGE_ERR;
-        SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
-        if (SQLStatus != SQLITE_OK)
-        {
-            fprintf(stderr, "Failed to rollback transaction\n");
-        }
-    }
+    /* Finalize the statement */
+    sqlite3_finalize(ExpireBundlesStmt);
 
     return Status;
-}
-
-BPLib_Status_t BPLib_SQL_EgressForDestEID(sqlite3* db, BPLib_EID_t* DestEID,
-    size_t MaxBundles, size_t* NumEgressed)
-{
-    // BPLib_Status_t Status;
-    int SQLStatus;
-
-    if (MaxBundles != 1)
-    {
-        fprintf(stderr, "RIGHT NOW MAX BUNDLES NEEDS TO BE 1\n");
-    }
-
-    /* Prepare Queries for this batch transaction */
-    SQLStatus = sqlite3_prepare_v2(db, FindByDestNodeSQL, -1, &FindByDestNodeStmt, 0);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_STOR_SQL_LOAD_ERR;
-    }
-    SQLStatus = sqlite3_prepare_v2(db, FindBlobSQL, -1, &FindBlobStmt, 0);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_STOR_SQL_LOAD_ERR;
-    }
-
-    /* Bind parameters for metadata query */
-    SQLStatus = sqlite3_bind_int(FindByDestNodeStmt, 1, DestEID->Node);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_node: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(FindByDestNodeStmt);
-        return BPLIB_STOR_SQL_LOAD_ERR;
-    }
-    SQLStatus = sqlite3_bind_int(FindByDestNodeStmt, 2, 1);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind limit: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(FindByDestNodeStmt);
-        return BPLIB_STOR_SQL_LOAD_ERR;
-    }
-
-    /* Print out what was found */
-    SQLStatus = SQLITE_ROW;
-    while (SQLStatus == SQLITE_ROW)
-    {
-        sqlite3_reset(FindByDestNodeStmt);
-        SQLStatus = sqlite3_step(FindByDestNodeStmt);
-        if (SQLStatus == SQLITE_ROW)
-        {
-            int ID = sqlite3_column_int(FindByDestNodeStmt, 0);
-            uint64_t ActionTimestamp = sqlite3_column_int64(FindByDestNodeStmt, 1);
-            uint64_t DestNode = sqlite3_column_int64(FindByDestNodeStmt, 2);
-            printf("ID: %d, ActionTimestamp %lu, DestNode %lu\n",
-                ID, ActionTimestamp, DestNode);
-        }
-    }
-
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPLib_SQL_DiscardExpired(sqlite3* db, size_t* NumDiscarded)
-{
-    int SQLStatus;
-
-    SQLStatus = BPLib_SQL_DiscardExpiredImpl(db, NumDiscarded);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_STOR_SQL_DISCARD_ERR;
-    }
-    return BPLIB_SUCCESS;
 }

@@ -21,6 +21,7 @@
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
 #include "bplib_as.h"
+#include "bplib_stor_cache.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +53,6 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
-
     return NO_NEXT_STATE;
 }
 
@@ -79,27 +79,33 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     BPLib_QM_WaitQueueTryPush(&(Inst->ChannelEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
-
     return NO_NEXT_STATE;
 }
 
 static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-   bool QueuePushReturnStatus;
+    //bool QueuePushReturnStatus;
+    BPLib_Status_t Status;
 
-   BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
-                        "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".",
-                        Bundle->blocks.PrimaryBlock.DestEID.Node,
-                        Bundle->blocks.PrimaryBlock.DestEID.Service);
-
-    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
-    if (QueuePushReturnStatus == false)
+    Status = BPLib_STOR_StoreBundle(Inst, Bundle);
+    if (Status != BPLIB_SUCCESS)
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
-
-        BPLib_EM_SendEvent(BPLIB_STOR_CACHE_QUEUE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Failed to push bundle onto Cache Queue");
+        fprintf(stderr, "Failed to store bundle\n");
     }
+
+//    BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
+//                         "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".",
+//                         Bundle->blocks.PrimaryBlock.DestEID.Node,
+//                         Bundle->blocks.PrimaryBlock.DestEID.Service);
+
+//     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
+//     if (QueuePushReturnStatus == false)
+//     {
+//         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
+
+//         BPLib_EM_SendEvent(BPLIB_STOR_CACHE_QUEUE_ERR_EID, BPLib_EM_EventType_ERROR,
+//                             "Failed to push bundle onto Cache Queue");
+//     }
 
     return NO_NEXT_STATE;
 }
