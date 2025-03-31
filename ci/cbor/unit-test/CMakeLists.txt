@@ -50,9 +50,11 @@ target_include_directories(utobj_bplib_cbor PRIVATE
 # Create test runner executable
 add_executable(coverage-bplib_cbor-testrunner
     utilities/bplib_cbor_test_utils.c
-    bplib_cbor_test.c
+    bplib_cbor_decode_bundle_test.c
+    bplib_cbor_decode_internal_test.c
     bplib_cbor_encode_bundle_test.c
     bplib_cbor_encode_prev_node_test.c
+    bplib_cbor_encode_internal_test.c
     $<TARGET_OBJECTS:utobj_bplib_cbor>
 )
 

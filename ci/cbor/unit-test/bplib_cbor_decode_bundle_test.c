@@ -436,7 +436,7 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
 
 
 
-void TestBplibCbor_Register(void)
+void TestBplibCborDecode_Register(void)
 {
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
