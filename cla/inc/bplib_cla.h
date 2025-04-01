@@ -192,6 +192,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId);
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
  * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ * \retval    BPLIB_CLA_IO_ERROR: A UDP conntection couldn't be set to running
  */
 BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
 
