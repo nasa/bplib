@@ -173,11 +173,12 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     }
     else
     {
-        Status = BPLIB_CLA_CONTACTS_MAX_REACHED;
-        BPLib_EM_SendEvent(BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID,
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
-                            "Max simultaneous contacts allowed (%d) has been reached",
-                            BPLIB_MAX_NUM_CONTACTS);
+                            "Contact ID must be less than %d, given %d",
+                            BPLIB_MAX_NUM_CONTACTS,
+                            ContactId);
     }
 
     return Status;

@@ -157,7 +157,6 @@
 /* CLA event IDs */
 /* ============= */
 
-#define BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID          (660u)
 #define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID          (661u)
 #define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
 #define BPLIB_CLA_EGRESS_DBG_EID                        (663u)

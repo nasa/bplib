@@ -264,7 +264,6 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR      ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
 
 /* CLA errors */
-#define BPLIB_CLA_CONTACTS_MAX_REACHED                  ((BPLib_Status_t) -179) /* Max number of contacts active */
 #define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -180) /* Contact is in the incorrect state to be modified */
 #define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -181) /* PSP IO driver API call failed */
 #define BPLIB_CLA_INVALID_CONTACT_ID                    ((BPLib_Status_t) -182)
