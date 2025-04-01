@@ -127,7 +127,7 @@ typedef struct
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId,
                                     const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
@@ -149,7 +149,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut,
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *BundleOut,
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
 
 /**

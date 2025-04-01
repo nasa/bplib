@@ -33,7 +33,7 @@
 /* ==================== */
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
 
     if ((Inst == NULL) || (Bundle == NULL))
@@ -64,7 +64,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const v
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut,
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *BundleOut,
                                 size_t *Size, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
