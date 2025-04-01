@@ -30,7 +30,7 @@
 static const char* FindByDestNodeSQL = 
 "SELECT id\n"
 "FROM bundle_data\n"
-"WHERE dest_node = ? AND egress_attempted = 0\n"
+"WHERE dest_node BETWEEN ? AND ? AND egress_attempted = 0\n"
 "ORDER BY action_timestamp ASC\n"
 "LIMIT ?;";
 static sqlite3_stmt* FindByDestNodeStmt;
@@ -120,7 +120,7 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
     return SQLStatus;
 }
 
-static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Pattern_t* DestEID,
     size_t MaxBundles)
 {
     int SQLStatus, LoadStatus;
@@ -131,12 +131,17 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_t* D
 
     /* Bind parameters for metadata query */
     sqlite3_reset(FindByDestNodeStmt);
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 1, DestEID->Node);
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 1, DestEID->MinNode);
     if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_node: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Failed to bind dest_node min: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 2, MaxBundles);
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 2, DestEID->MaxNode);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind dest_node max: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 3, MaxBundles);
     if (SQLStatus != SQLITE_OK) {
         fprintf(stderr, "Failed to bind limit: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
@@ -217,7 +222,7 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_t* D
 /*******************************************************************************
 ** Exported Functions
 */
-BPLib_Status_t BPLib_SQL_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+BPLib_Status_t BPLib_SQL_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_Pattern_t* DestEID,
     size_t MaxBundles)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;

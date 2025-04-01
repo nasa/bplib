@@ -90,7 +90,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, BPLib_EID_Pattern_t* DestEID,
     size_t MaxBundles, size_t* NumEgressed)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
@@ -103,7 +103,7 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* 
     {
         return BPLIB_NULL_PTR_ERROR;
     }
-    if (MaxBundles == 0)
+    if ((MaxBundles == 0) || (MaxBundles > BPLIB_STOR_LOADBATCHSIZE))
     {
         return BPLIB_STOR_PARAM_ERR;
     }
@@ -112,7 +112,7 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* 
     pthread_mutex_lock(&CacheInst->lock);
 
     /* Ask SQL to load egressable bundles from the specified Destination EID */
-    Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, BPLIB_STOR_LOADBATCHSIZE);
+    Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, MaxBundles);
 
     /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
     ** was loaded here
@@ -121,8 +121,9 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* 
     {
         for (i = 0; i < CacheInst->LoadBatchSize; i++)
         {
+            /* Set the metadata EID */
             CurrBundle = CacheInst->LoadBatch[i];
-            CurrBundle->Meta.EgressID = 0; // Should put something here?
+            CurrBundle->Meta.EgressID = EgressID;
             Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
                 QM_PRI_NORMAL, QM_NO_WAIT);
             if (Status != BPLIB_SUCCESS)

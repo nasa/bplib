@@ -20,6 +20,7 @@
 #ifndef BPLIB_STOR_SQL_H
 #define BPLIB_STOR_SQL_H
 
+#include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "bplib_eid.h"
 #include "bplib_stor_cache.h"
@@ -28,7 +29,7 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName);
 
 BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst);
 
-BPLib_Status_t BPLib_SQL_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_t* DestEID,
+BPLib_Status_t BPLib_SQL_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_Pattern_t* DestEID,
     size_t MaxBundles);
 
 BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);

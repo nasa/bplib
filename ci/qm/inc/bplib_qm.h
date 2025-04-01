@@ -64,9 +64,6 @@ typedef enum BPLib_QM_Priority
     QM_PRI_NORMAL = 1 /**< Normal priority for jobs */
 } BPLib_QM_Priority_t;
 
-/* Forward declaration for Bundle Cache */
-typedef struct BPLib_BundleCache BPLib_BundleCache_t;
-
 /**
  * @struct BPLib_Instance
  * @brief Represents a QM instance with its associated job memory and wait queues.
@@ -74,7 +71,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
  * This structure holds the necessary data for queue management, job states, 
  * and memory allocations within BPLib.
  */
-typedef struct BPLib_Instance
+struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool; /**< Memory pool for this BPLib Instance */
 
@@ -89,7 +86,7 @@ typedef struct BPLib_Instance
     void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
     BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
     BPLib_BundleCache_t BundleStorage;
-} BPLib_Instance_t;
+};
 
 /**
  * @struct BPLib_QM_JobContext_t

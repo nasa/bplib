@@ -30,6 +30,7 @@
 #include "bplib_nc.h"
 #include "bplib_eid.h"
 #include "bplib_as.h"
+#include "bplib_stor_cache.h"
 
 #include <stdio.h>
 
@@ -59,14 +60,14 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan)
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
-    BPLib_QM_JobState_t NextJobState     = NO_NEXT_STATE;
     uint32_t            BundlesScanned   = 0;
-    uint16_t            NumChans         = 0;
+    //uint16_t            NumChans         = 0;
     uint16_t            NumConts         = 0;
-    BPLib_Bundle_t     *QueuedBundle;
-    uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
+    //uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
     uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
     uint16_t            i, j;
+    BPLib_EID_Pattern_t* CurrEIDPattern;
+    size_t NumEgressed;
 
     if (Inst == NULL)
     {
@@ -79,15 +80,14 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     ** Get all currently available channels/contacts to avoid repeatedly checking the
     ** destination EIDs of unavailable channels/contacts
     */
-
-    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-    {
-        if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
-        {
-            AvailChans[NumChans] = i;
-            NumChans++;
-        }
-    }
+    // for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    // {
+    //     if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
+    //     {
+    //         AvailChans[NumChans] = i;
+    //         NumChans++;
+    //     }
+    // }
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
@@ -103,110 +103,16 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         */
     }
 
-    /* Pull bundles from cache queue and process them */
-    while (BundlesScanned < MaxBundlesToScan && Status == BPLIB_SUCCESS)
+    /* Egress For Contacts */
+    for (i = 0; i < NumConts; i++)
     {
-        QueuedBundle = NULL;
-        if (BPLib_QM_WaitQueueTryPull(&(Inst->BundleCacheList), &QueuedBundle, 1))
+        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
         {
-            if (QueuedBundle != NULL)
-            {
-                QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
-
-                /* If destination EID matches this node, look for an available channel */
-                if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                                            BPLIB_EID_INSTANCE))
-                {
-                    for (i = 0; i < NumChans; i++)
-                    {
-                        /* 
-                        ** See if this available channel has the same service number as
-                        ** this bundle's destination EID
-                        */
-                        if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
-                            BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[AvailChans[i]].LocalServiceNumber)
-                        {
-                            QueuedBundle->Meta.EgressID = AvailChans[i];
-                            NextJobState = CHANNEL_OUT_STOR_TO_CT;
-
-                            break;
-                        }
-                    }
-                }
-
-                /* 
-                ** If no local delivery options were found, look for a contact to send
-                ** bundles out on
-                */
-                else
-                {
-                    i = 0;
-                    while (QueuedBundle->Meta.EgressID == BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
-                    {
-                        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
-                        {
-                            if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                                BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
-                            {
-                                QueuedBundle->Meta.EgressID = AvailConts[i];
-                                NextJobState = CONTACT_OUT_STOR_TO_CT;
-
-                                break;
-                            }
-                        }
-    
-                        i++;
-                    }
-    
-                }
-
-                /* Egress bundle if a route exists */
-                if (QueuedBundle->Meta.EgressID != BPLIB_UNKNOWN_ROUTE_ID)
-                {
-                    Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
-                                                    QM_PRI_NORMAL, QM_NO_WAIT);
-                    if (Status != BPLIB_SUCCESS)
-                    {
-                        /* Something's wrong with the queues, bundle got dropped */
-                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
-
-                        /* 
-                        ** Mapping this error to debug since it really only shows up when 
-                        ** the queues are overwhelmed and then it starts spamming the
-                        ** system
-                        */
-                        BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_DEBUG,
-                            "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
-                            Status);
-                    }
-
-                    /*
-                    ** TODO cache bundle even if it's set to egress, can't delete it until
-                    ** egress can be verified or custody processing has been done
-                    */
-                }
-                /* Cache a bundle if it cannot currently be routed */
-                else
-                {
-                    Status = BPLib_STOR_CacheBundle(Inst, QueuedBundle);
-                }
-            }
-            else
-            {
-                /* we may want to remove this `else` case entirely in the future, but currently kept for debugging */
-                BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID, BPLib_EM_EventType_WARNING,
-                    "BPLib_QM_ScanCache found null bundle in BundleCacheList.");
-
-                Status = BPLIB_NULL_PTR_ERROR;
-            }
+            CurrEIDPattern = &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[AvailConts[i]].DestEIDs[j];
+            BPLib_STOR_EgressForDestEID(Inst, AvailConts[i], CurrEIDPattern,
+                BPLIB_STOR_LOADBATCHSIZE, &NumEgressed);
+            BundlesScanned += NumEgressed;
         }
-        else
-        {
-            /* No bundles found in queue, end processing */
-            break;
-        }
-
-        BundlesScanned++;
     }
 
     return Status;

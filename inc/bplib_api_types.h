@@ -87,6 +87,10 @@ typedef struct BPLib_IpnAddr
     BPLib_Ipn_t service_number;
 } BPLib_IpnAddr_t;
 
+typedef struct BPLib_Instance BPLib_Instance_t;
+
+typedef struct BPLib_BundleCache BPLib_BundleCache_t;
+
 /*
 ** Macros
 */
