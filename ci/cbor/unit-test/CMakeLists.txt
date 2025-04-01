@@ -29,6 +29,7 @@ add_library(utobj_bplib_cbor OBJECT
     ../src/bplib_cbor_encode_extension.c
     ../src/bplib_cbor_encode_payload.c
     ../src/bplib_cbor_encode_types.c
+    ../src/bplib_cbor_crc.c
 )
 
 target_compile_definitions(utobj_bplib_cbor PRIVATE
@@ -49,9 +50,11 @@ target_include_directories(utobj_bplib_cbor PRIVATE
 # Create test runner executable
 add_executable(coverage-bplib_cbor-testrunner
     utilities/bplib_cbor_test_utils.c
-    bplib_cbor_test.c
+    bplib_cbor_decode_bundle_test.c
+    bplib_cbor_decode_internal_test.c
     bplib_cbor_encode_bundle_test.c
     bplib_cbor_encode_prev_node_test.c
+    bplib_cbor_encode_internal_test.c
     $<TARGET_OBJECTS:utobj_bplib_cbor>
 )
 
@@ -67,6 +70,7 @@ target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
     m
     bplib_em_stubs
     bplib_mem_stubs
+    bplib_crc_stubs
     ut_coverage_link
     ut_assert
 )

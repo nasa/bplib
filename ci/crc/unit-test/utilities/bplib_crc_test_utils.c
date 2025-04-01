@@ -18,35 +18,25 @@
  *
  */
 
-#ifndef BPLIB_CBOR_TEST_UTILS_H
-#define BPLIB_CBOR_TEST_UTILS_H
-
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib_api_types.h"
-#include "bplib_cbor.h"
-#include "bplib_cbor_internal.h"
-#include "bplib_crc.h"
+#include "bplib_crc_test_utils.h"
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CBOR_Test_Setup(void);
-void BPLib_CBOR_Test_Teardown(void);
+void BPLib_CRC_Test_Setup(void)
+{
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
 
-void TestBplibCborDecode_Register(void);
-void TestBplibCborDecodeInternal_Register(void);
+}
 
-void TestBplibCborEncode_Register(void);
-void TestBplibCborEncodePrevNode_Register(void);
-void TestBplibCborEncodeInternal_Register(void);
-
-#endif /* BPLIB_CBOR_TEST_UTILS_H */
+void BPLib_CRC_Test_Teardown(void)
+{
+    /* Clean up test environment */
+}

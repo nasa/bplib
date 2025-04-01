@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_CBOR_TEST_UTILS_H
-#define BPLIB_CBOR_TEST_UTILS_H
+#ifndef BPLIB_CRC_TEST_UTILS_H
+#define BPLIB_CRC_TEST_UTILS_H
 
 /*
 ** Include
@@ -30,23 +30,21 @@
 #include "uttest.h"
 
 #include "bplib_api_types.h"
-#include "bplib_cbor.h"
-#include "bplib_cbor_internal.h"
 #include "bplib_crc.h"
 
+
+/*
+** Macro Definitions
+*/
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_CRC_Test_Setup, BPLib_CRC_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CBOR_Test_Setup(void);
-void BPLib_CBOR_Test_Teardown(void);
+void BPLib_CRC_Test_Setup(void);
+void BPLib_CRC_Test_Teardown(void);
 
-void TestBplibCborDecode_Register(void);
-void TestBplibCborDecodeInternal_Register(void);
-
-void TestBplibCborEncode_Register(void);
-void TestBplibCborEncodePrevNode_Register(void);
-void TestBplibCborEncodeInternal_Register(void);
-
-#endif /* BPLIB_CBOR_TEST_UTILS_H */
+#endif /* BPLIB_CRC_TEST_UTILS_H */

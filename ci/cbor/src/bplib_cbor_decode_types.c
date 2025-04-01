@@ -241,7 +241,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
             return BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR;
         }
         else
-        {
+        {            
             /* unpack the network-byte-ordered 16-bit value, storing into the 64-bit destination */
             *parsed  = (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[0] <<  8u;
             *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[1];

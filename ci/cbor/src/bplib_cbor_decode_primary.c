@@ -19,7 +19,7 @@
  */
 
 #include "bplib_cbor_internal.h"
-
+#include <stdio.h>
 
 /*******************************************************************************
 * RFC-9171 Primary Block Parsing Definition
@@ -54,7 +54,8 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
 * RFC-9171 Primary Block Parser (Implementation)
 */
 
-BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle)
+BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+                                                                const void *CandBundle)
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
@@ -78,7 +79,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
     if (Status != BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR;
+        return Status;
     }
 
     /* Version */
@@ -169,9 +170,21 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     /* Grab the current offset, to be kept in the primary block's metadata */
     bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
 
+    printf("BlockOffsetEnd is %ld\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;
 
+    /* Validate primary block CRC */
+    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, bundle->blocks.PrimaryBlock.CrcType,
+                                    bundle->blocks.PrimaryBlock.CrcVal,
+                                    bundle->blocks.PrimaryBlock.BlockOffsetStart,
+                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd - 
+                                    bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }  
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");
@@ -191,9 +204,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
     printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
     printf("\t Requires Encode: %u\n", bundle->blocks.PrimaryBlock.RequiresEncode);
-    printf("\t Block Offset Start: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
-    printf("\t Block Offset End: %u\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
-    printf("\t Block Size: %u\n",
+    printf("\t Block Offset Start: %lu\n", bundle->blocks.PrimaryBlock.BlockOffsetStart);
+    printf("\t Block Offset End: %lu\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    printf("\t Block Size: %lu\n",
         bundle->blocks.PrimaryBlock.BlockOffsetEnd - bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     #endif
 
