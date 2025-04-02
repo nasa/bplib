@@ -84,7 +84,7 @@ static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t*
     return NO_NEXT_STATE;
 }
 
-static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
+static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     int i, j;
     BPLib_EID_t* DestEID;
@@ -113,7 +113,6 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
         }
 
         /* We never found an active channel, store this bundle */
-        printf("storing local bundle\n");
         BPLib_STOR_StoreBundle(Inst, Bundle);
         return NO_NEXT_STATE;
     }
@@ -148,13 +147,13 @@ static const BPLib_QM_JobFunc_t job_funcs[NUM_GENWORKER_STATES] =
 {
     [CONTACT_IN_BI_TO_EBP] = ContactIn_EBP,
     [CONTACT_IN_EBP_TO_CT] = ContactIn_CT,
-    [CONTACT_IN_CT_TO_STOR] = STOR_Cache,
+    [CONTACT_IN_CT_TO_STOR] = STOR_Router,
     [CONTACT_OUT_STOR_TO_CT] = ContactOut_CT,
     [CONTACT_OUT_CT_TO_EBP] = ContactOut_EBP,
     [CONTACT_OUT_EBP_TO_BI] = ContactOut_BI,
     [CHANNEL_IN_PI_TO_EBP] = ChannelIn_EBP,
     [CHANNEL_IN_EBP_TO_CT] = ChannelIn_CT,
-    [CHANNEL_IN_CT_TO_STOR] = STOR_Cache,
+    [CHANNEL_IN_CT_TO_STOR] = STOR_Router,
     [CHANNEL_OUT_STOR_TO_CT] = ChannelOut_CT,
     [CHANNEL_OUT_CT_TO_EBP] = ChannelOut_EBP,
     [CHANNEL_OUT_EBP_TO_PI] = ChannelOut_PI,
