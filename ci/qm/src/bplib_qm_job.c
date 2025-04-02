@@ -88,6 +88,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
 {
     int i, j;
     BPLib_EID_t* DestEID;
+    BPLib_EID_Pattern_t AnyServiceNumPattern;
 
     /* For build 7.0 our ingress route strategy is as follows:
     ** - If the bundle is local, forward to the channel immediatley
@@ -106,7 +107,6 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
                 {
                     /* We have a channel we can deliver to: forward without storing */
                     Bundle->Meta.EgressID = i;
-                    printf("routing this bundle directly to channel\n");
                     return CHANNEL_OUT_STOR_TO_CT;
                 }
             }
@@ -123,18 +123,22 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
             {
+                /* Note: routing is assuming that a node can deliver any service number.
+                ** This is done to match storage, which indexes based on node number, not service
+                */
+                AnyServiceNumPattern = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j];
+                AnyServiceNumPattern.MinService = 0;
+                AnyServiceNumPattern.MaxService = UINT64_MAX;
                 /* FIXME: Need a GetContactState function here...*/
-                if (BPLib_EID_PatternIsMatch((*DestEID), BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                if (BPLib_EID_PatternIsMatch((*DestEID), AnyServiceNumPattern))
                 {
                     Bundle->Meta.EgressID = i;
-                    printf("routing this bundle back to CLA\n");
                     return CONTACT_OUT_STOR_TO_CT;
                 }
             }
         }
 
         /* We never found an active contact, store this bundle */
-        printf("storing relay bundle\n");
         BPLib_STOR_StoreBundle(Inst, Bundle);
         return NO_NEXT_STATE;
     }
