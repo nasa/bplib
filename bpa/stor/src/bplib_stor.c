@@ -56,7 +56,6 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
-/* Initial, simplified (reduced feature set, using fifo) Bundle Cache scan */
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan)
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
@@ -116,13 +115,4 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     }
 
     return Status;
-}
-
-/* Put a bundle in Cache */
-BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
-{
-    /* For now, just put the bundle back in the queue, will replace with real Cache */
-    BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
-
-    return BPLIB_SUCCESS;
 }

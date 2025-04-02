@@ -28,7 +28,6 @@
 #include "utgenstub.h"
 
 BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_CacheBundle()

@@ -112,8 +112,6 @@ int BPLib_STOR_Init(void);
  */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
 
-
-
 /**
  * @brief Check the bundle cache fifo for available bundles
  *

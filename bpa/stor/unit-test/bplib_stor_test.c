@@ -183,14 +183,6 @@ void Test_BPLib_STOR_ScanCache_NoContact(void)
     UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPush, 1);
 }
 
-
-void Test_BPLib_STOR_CacheBundle_Nominal(void)
-{
-    BPLib_Bundle_t Bundle;
-
-    UtAssert_INT32_EQ(BPLib_STOR_CacheBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
-}
-
 /*
 ** More BPLib_STOR_ScanCache tests would go here, but this is very temporary code,
 ** so its probably not worth further unit testing.
@@ -209,6 +201,4 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoContact, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NoContact");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoChannel, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NoChannel");
     UtTest_Add(Test_BPLib_STOR_ScanCache_ErrAddJob, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_ErrAddJob");
-
-    UtTest_Add(Test_BPLib_STOR_CacheBundle_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_CacheBundle_Nominal");
 }

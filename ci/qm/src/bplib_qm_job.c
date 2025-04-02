@@ -22,6 +22,8 @@
 #include "bplib_bi.h"
 #include "bplib_as.h"
 #include "bplib_stor_cache.h"
+#include "bplib_eid.h"
+#include "bplib_nc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,30 +86,59 @@ static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    //bool QueuePushReturnStatus;
-    BPLib_Status_t Status;
+    int i, j;
+    BPLib_EID_t* DestEID;
 
-    Status = BPLib_STOR_StoreBundle(Inst, Bundle);
-    if (Status != BPLIB_SUCCESS)
+    /* For build 7.0 our ingress route strategy is as follows:
+    ** - If the bundle is local, forward to the channel immediatley
+    ** - If the bundle is for an available contact, deliver without storing
+    ** - If the bundle if for an un-available contact or channel, store
+    */
+    DestEID = &Bundle->blocks.PrimaryBlock.DestEID;
+    if (BPLib_EID_NodeIsMatch((*DestEID), BPLIB_EID_INSTANCE))
     {
-        fprintf(stderr, "Failed to store bundle\n");
+        /* Go through each channel and find a match */
+        for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+        {
+            if (BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber == DestEID->Service)
+            {
+                if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
+                {
+                    /* We have a channel we can deliver to: forward without storing */
+                    Bundle->Meta.EgressID = i;
+                    printf("routing this bundle directly to channel\n");
+                    return CHANNEL_OUT_STOR_TO_CT;
+                }
+            }
+        }
+
+        /* We never found an active channel, store this bundle */
+        printf("storing local bundle\n");
+        BPLib_STOR_StoreBundle(Inst, Bundle);
+        return NO_NEXT_STATE;
     }
+    else
+    {
+        /* Iterate through the contacts: this is very slow. */
+        for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+        {
+            for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+            {
+                /* FIXME: Need a GetContactState function here...*/
+                if (BPLib_EID_PatternIsMatch((*DestEID), BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                {
+                    Bundle->Meta.EgressID = i;
+                    printf("routing this bundle back to CLA\n");
+                    return CONTACT_OUT_STOR_TO_CT;
+                }
+            }
+        }
 
-//    BPLib_EM_SendEvent(BPLIB_STOR_CACHE_RECVD_BUNDLE_DBG_EID, BPLib_EM_EventType_DEBUG,
-//                         "STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".",
-//                         Bundle->blocks.PrimaryBlock.DestEID.Node,
-//                         Bundle->blocks.PrimaryBlock.DestEID.Service);
-
-//     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_NO_WAIT);
-//     if (QueuePushReturnStatus == false)
-//     {
-//         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
-
-//         BPLib_EM_SendEvent(BPLIB_STOR_CACHE_QUEUE_ERR_EID, BPLib_EM_EventType_ERROR,
-//                             "Failed to push bundle onto Cache Queue");
-//     }
-
-    return NO_NEXT_STATE;
+        /* We never found an active contact, store this bundle */
+        printf("storing relay bundle\n");
+        BPLib_STOR_StoreBundle(Inst, Bundle);
+        return NO_NEXT_STATE;
+    }
 }
 
 /*******************************************************************************
