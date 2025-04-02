@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc.h"
+#include "bplib_crc.h"
 
 /* ======= */
 /* Globals */
@@ -78,6 +79,9 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
         BPLib_NC_ConfigPtrs.AuthConfigPtr      = ConfigPtrs->AuthConfigPtr;
         BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
         BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
+
+        /* Initialize CRC tables */
+        BPLib_CRC_Init();
 
         /* Initialize AS */
         Status = BPLib_AS_Init();

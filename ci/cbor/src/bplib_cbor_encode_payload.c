@@ -231,9 +231,9 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         /*
         ** Add the CRC
         */
-        /* TODO: calculate the CRC first */
+        /* Set CRC value to 0, real value will be jammed in after encoding is done */
         (void) BPLib_CBOR_EncodeCrcValue(&Context, 0, StoredBundle->blocks.PayloadHeader.CrcType);
-
+        
         /*
         ** Finish encoding, and check for errors
         */
@@ -248,11 +248,17 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
         else
         {
             TotalBytesCopied += FinishBuffer.len;
+
+            /* Calculate new CRC for encoded block */
+            BPLib_CBOR_GenerateBlockCrc(OutputBuffer, 
+                                    StoredBundle->blocks.PayloadHeader.CrcType,
+                                    0, TotalBytesCopied);
+
+            *NumBytesCopied += TotalBytesCopied;
             CurrentOutputBufferAddr += FinishBuffer.len;
             BytesLeftInOutputBuffer -= FinishBuffer.len;
         }
 
-        *NumBytesCopied = TotalBytesCopied;
         ReturnStatus = BPLIB_SUCCESS;
     }
 
@@ -302,7 +308,7 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
 
             if (PayloadDataCopyStatus == BPLIB_SUCCESS)
             {
-                *NumBytesCopied = TotalPayloadSize;
+                *NumBytesCopied += TotalPayloadSize;
                 ReturnStatus = BPLIB_SUCCESS;
             }
             else
