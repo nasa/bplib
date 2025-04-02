@@ -57,7 +57,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     BPLib_BundleCache_t* CacheInst;
     int i;
 
-    if ((Inst == NULL) || (Bundle == NULL))
+    if ((Inst == NULL) || (Bundle == NULL) || (Bundle->blob == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
