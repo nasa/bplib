@@ -114,7 +114,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
 #define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
 #define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
-
+#define BPLIB_INVALID_CRC_ERROR             ((BPLib_Status_t) -11) /* Invalid CRC */
 
 /*
 
@@ -269,10 +269,13 @@ typedef struct BPLib_IpnAddr
 /* More PI Errors */
 #define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
 
+// More CLA Errors */
+#define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
+
 /* QM Errors */
-#define BPLIB_QM_INIT_ERROR                            ((BPLib_Status_t) -210)
-#define BPLIB_QM_BAD_WRKR_ID                           ((BPLib_Status_t) -211)
-#define BPLIB_QM_WRKR_REGISTER_ERROR                   ((BPLib_Status_t) -212)
+#define BPLIB_QM_INIT_ERROR                            ((BPLib_Status_t) -220)
+#define BPLIB_QM_BAD_WRKR_ID                           ((BPLib_Status_t) -221)
+#define BPLIB_QM_WRKR_REGISTER_ERROR                   ((BPLib_Status_t) -222)
 
 // TODO TIME Helpers
 

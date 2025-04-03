@@ -150,11 +150,15 @@
 /* ============ */
 /* BI event IDs */
 /* ============ */
-#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID (650u)
-#define BPLIB_BI_INGRESS_DBG_EID             (651u)
+#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID            (650u)
+#define BPLIB_BI_INGRESS_DBG_EID                        (651u)
 
-#define BPLIB_MEM_NO_BLKS_ERR_EID            (660u)
+#define BPLIB_MEM_NO_BLKS_ERR_EID                       (660u)
 
-#define BPLIB_CLA_EGRESS_DBG_EID             (670u)
+#define BPLIB_CLA_EGRESS_DBG_EID                        (670u)
+
+#define BPLIB_PI_EGRESS_DBG_EID                         (680u)
+#define BPLIB_PI_EGRESS_ERR_EID                         (681u)
+#define BPLIB_PI_INGRESS_DBG_EID                        (682u)
 
 #endif /* BPLIB_EVENTIDS_H */

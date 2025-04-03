@@ -18,31 +18,33 @@
  *
  */
 
+#ifndef BPLIB_CRC_TEST_UTILS_H
+#define BPLIB_CRC_TEST_UTILS_H
+
 /*
 ** Include
 */
 
-#include "bplib_cla_test_utils.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib_api_types.h"
+#include "bplib_crc.h"
+
+
+/*
+** Macro Definitions
+*/
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_CRC_Test_Setup, BPLib_CRC_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CLA_Test_Setup(void)
-{
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
+void BPLib_CRC_Test_Setup(void);
+void BPLib_CRC_Test_Teardown(void);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
-}
-
-void BPLib_CLA_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
-
-void UtTest_Setup(void)
-{
-    TestBplibCla_Register();
-    TestBplibClaInternal_Register();
-}
+#endif /* BPLIB_CRC_TEST_UTILS_H */

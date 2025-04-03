@@ -43,8 +43,22 @@ void Test_BPLib_MEM_CopyOutFromOffset_NullInputErrors(void)
     UtAssert_INT32_EQ(BPLib_MEM_CopyOutFromOffset(&Bundle, 0, 0, OutputBuffer, 0), BPLIB_NULL_PTR_ERROR);
 }
 
+void Test_BPLib_MEM_CopyOutFromOffset_BadSize(void)
+{
+    BPLib_MEM_Block_t FirstBlock;
+    BPLib_Bundle_t Bundle;
+    char OutputBuffer[2048];
+    uint64_t NumBytesToCopy = 100;
+    size_t OutputBufferSize = 10;
+    memset(&Bundle, 0, sizeof(Bundle));
+
+    Bundle.blob = &FirstBlock;
+    UtAssert_INT32_EQ(BPLib_MEM_CopyOutFromOffset(&Bundle, 0, NumBytesToCopy, OutputBuffer, OutputBufferSize), BPLIB_BUF_LEN_ERROR);
+}
+
 
 void TestBplibMem_Register(void)
 {
     UtTest_Add(Test_BPLib_MEM_CopyOutFromOffset_NullInputErrors, BPLib_MEM_Test_Setup, BPLib_MEM_Test_Teardown, "Test_BPLib_MEM_CopyOutFromOffset_NullInputErrors");
+    UtTest_Add(Test_BPLib_MEM_CopyOutFromOffset_BadSize, BPLib_MEM_Test_Setup, BPLib_MEM_Test_Teardown, "Test_BPLib_MEM_CopyOutFromOffset_BadSize");
 }

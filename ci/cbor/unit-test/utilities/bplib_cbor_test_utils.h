@@ -31,6 +31,8 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cbor.h"
+#include "bplib_cbor_internal.h"
+#include "bplib_crc.h"
 
 
 /*
@@ -40,8 +42,11 @@
 void BPLib_CBOR_Test_Setup(void);
 void BPLib_CBOR_Test_Teardown(void);
 
-void TestBplibCbor_Register(void);
+void TestBplibCborDecode_Register(void);
+void TestBplibCborDecodeInternal_Register(void);
+
 void TestBplibCborEncode_Register(void);
 void TestBplibCborEncodePrevNode_Register(void);
+void TestBplibCborEncodeInternal_Register(void);
 
 #endif /* BPLIB_CBOR_TEST_UTILS_H */

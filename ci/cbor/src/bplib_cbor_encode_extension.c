@@ -166,7 +166,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         QCBOREncode_CloseBytes(&Context, SizeOfEncodedBlockSpecificData);
 
 
-        /* start with CRC value 0. actual value to be filled in later. */
+        /* Set CRC value to 0, real value will be jammed in after encoding is done */
         CurrExtBlock->Header.CrcVal = 0;
         BPLib_CBOR_EncodeCrcValue(&Context, CurrExtBlock->Header.CrcVal, CurrExtBlock->Header.CrcType);
 
@@ -183,12 +183,16 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         QcborStatus = QCBOREncode_Finish(&Context, &FinishBuffer);
         if (QcborStatus != QCBOR_SUCCESS)
         {
-            *NumBytesCopied = 0;
             ReturnStatus = BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR;
         }
         else
         {
-            *NumBytesCopied = FinishBuffer.len;
+            /* Calculate new CRC for encoded block */
+            BPLib_CBOR_GenerateBlockCrc(OutputBuffer, 
+                StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.CrcType,
+                0, FinishBuffer.len);
+               
+            *NumBytesCopied += FinishBuffer.len;
             ReturnStatus = BPLIB_SUCCESS;
         }
     }

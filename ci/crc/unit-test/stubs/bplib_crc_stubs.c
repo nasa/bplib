@@ -29,113 +29,29 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_CRCGet()
+ * Generated stub function for BPLib_CRC_Calculate()
  * ----------------------------------------------------
  */
-BPLib_CRC_Val_t BPLib_CRCGet(const void *data, const uint32_t length, BPLib_CRC_Parameters_t *params)
+BPLib_CRC_Val_t BPLib_CRC_Calculate(const void *Data, size_t DataLen, BPLib_CRC_Type_t CrcType)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_CRCGet, BPLib_CRC_Val_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_CRC_Calculate, BPLib_CRC_Val_t);
 
-    UT_GenStub_AddParam(BPLib_CRCGet, const void *, data);
-    UT_GenStub_AddParam(BPLib_CRCGet, const uint32_t, length);
-    UT_GenStub_AddParam(BPLib_CRCGet, BPLib_CRC_Parameters_t *, params);
+    UT_GenStub_AddParam(BPLib_CRC_Calculate, const void *, Data);
+    UT_GenStub_AddParam(BPLib_CRC_Calculate, size_t, DataLen);
+    UT_GenStub_AddParam(BPLib_CRC_Calculate, BPLib_CRC_Type_t, CrcType);
 
-    UT_GenStub_Execute(BPLib_CRCGet, Basic, NULL);
+    UT_GenStub_Execute(BPLib_CRC_Calculate, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_CRCGet, BPLib_CRC_Val_t);
+    return UT_GenStub_GetReturnValue(BPLib_CRC_Calculate, BPLib_CRC_Val_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_CRCInit()
+ * Generated stub function for BPLib_CRC_Init()
  * ----------------------------------------------------
  */
-void BPLib_CRCInit(void)
+void BPLib_CRC_Init(void)
 {
 
-    UT_GenStub_Execute(BPLib_CRCInit, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CRC_Finalize()
- * ----------------------------------------------------
- */
-BPLib_CRC_Val_t BPLib_CRC_Finalize(BPLib_CRC_Parameters_t *params, BPLib_CRC_Val_t crc)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CRC_Finalize, BPLib_CRC_Val_t);
-
-    UT_GenStub_AddParam(BPLib_CRC_Finalize, BPLib_CRC_Parameters_t *, params);
-    UT_GenStub_AddParam(BPLib_CRC_Finalize, BPLib_CRC_Val_t, crc);
-
-    UT_GenStub_Execute(BPLib_CRC_Finalize, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CRC_Finalize, BPLib_CRC_Val_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CRC_GetName()
- * ----------------------------------------------------
- */
-const char *BPLib_CRC_GetName(BPLib_CRC_Parameters_t *params)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CRC_GetName, const char *);
-
-    UT_GenStub_AddParam(BPLib_CRC_GetName, BPLib_CRC_Parameters_t *, params);
-
-    UT_GenStub_Execute(BPLib_CRC_GetName, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CRC_GetName, const char *);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CRC_GetWidth()
- * ----------------------------------------------------
- */
-uint8_t BPLib_CRC_GetWidth(BPLib_CRC_Parameters_t *params)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CRC_GetWidth, uint8_t);
-
-    UT_GenStub_AddParam(BPLib_CRC_GetWidth, BPLib_CRC_Parameters_t *, params);
-
-    UT_GenStub_Execute(BPLib_CRC_GetWidth, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CRC_GetWidth, uint8_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CRC_InitialValue()
- * ----------------------------------------------------
- */
-BPLib_CRC_Val_t BPLib_CRC_InitialValue(BPLib_CRC_Parameters_t *params)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CRC_InitialValue, BPLib_CRC_Val_t);
-
-    UT_GenStub_AddParam(BPLib_CRC_InitialValue, BPLib_CRC_Parameters_t *, params);
-
-    UT_GenStub_Execute(BPLib_CRC_InitialValue, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CRC_InitialValue, BPLib_CRC_Val_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CRC_Update()
- * ----------------------------------------------------
- */
-BPLib_CRC_Val_t BPLib_CRC_Update(BPLib_CRC_Parameters_t *params, BPLib_CRC_Val_t crc, const void *data, size_t size)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CRC_Update, BPLib_CRC_Val_t);
-
-    UT_GenStub_AddParam(BPLib_CRC_Update, BPLib_CRC_Parameters_t *, params);
-    UT_GenStub_AddParam(BPLib_CRC_Update, BPLib_CRC_Val_t, crc);
-    UT_GenStub_AddParam(BPLib_CRC_Update, const void *, data);
-    UT_GenStub_AddParam(BPLib_CRC_Update, size_t, size);
-
-    UT_GenStub_Execute(BPLib_CRC_Update, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CRC_Update, BPLib_CRC_Val_t);
+    UT_GenStub_Execute(BPLib_CRC_Init, Basic, NULL);
 }

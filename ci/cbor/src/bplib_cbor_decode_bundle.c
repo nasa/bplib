@@ -83,7 +83,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     }
 
     /* First, parse the primary block */
-    Status = BPLib_CBOR_DecodePrimary(&ctx, bundle);
+    Status = BPLib_CBOR_DecodePrimary(&ctx, bundle, CandBundle);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
@@ -103,7 +103,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         }
 
         /* Decode the next canonical block */
-        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle, CanonicalBlockIndex);
+        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle, CanonicalBlockIndex, CandBundle);
         if (Status != BPLIB_SUCCESS)
         {
             break;

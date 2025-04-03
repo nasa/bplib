@@ -16,6 +16,7 @@ add_library(bplib_cbor OBJECT
     src/bplib_cbor_encode_extension.c
     src/bplib_cbor_encode_payload.c
     src/bplib_cbor_encode_types.c
+    src/bplib_cbor_crc.c
 )
 
 target_include_directories(bplib_cbor PUBLIC
@@ -24,6 +25,7 @@ target_include_directories(bplib_cbor PUBLIC
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests
