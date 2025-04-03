@@ -88,8 +88,8 @@ typedef struct
       */
     char                ClaInAddr[BPLIB_MAX_EID_LENGTH];
     char                ClaOutAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t             ClaInPortNum;
-    int32_t             ClaOutPortNum;
+    int32_t             ClaInPort;
+    int32_t             ClaOutPort;
     uint32_t            DestLTPEngineID;
     uint32_t            SendBytePerCycle;
     uint32_t            ReceiveBytePerCycle;

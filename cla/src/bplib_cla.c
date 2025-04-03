@@ -116,7 +116,7 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
     BPLib_CLA_ContactsTable_t *TblDataPtr = (BPLib_CLA_ContactsTable_t *)TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr[0].ContactSet->ClaInPortNum <= 0 || TblDataPtr[0].ContactSet->ClaOutPortNum <= 0)
+    if (TblDataPtr[0].ContactSet->ClaInPort <= 0 || TblDataPtr[0].ContactSet->ClaOutPort <= 0)
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
