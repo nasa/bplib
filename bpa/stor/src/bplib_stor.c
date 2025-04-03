@@ -60,13 +60,10 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
     uint32_t            BundlesScanned   = 0;
-    //uint16_t            NumChans         = 0;
     uint16_t            NumConts         = 0;
-    //uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
-    uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
     uint16_t            i, j;
-    BPLib_EID_Pattern_t* CurrEIDPattern;
     size_t NumEgressed;
+    BPLib_EID_Pattern_t LocalEIDPattern;
 
     if (Inst == NULL)
     {
@@ -79,27 +76,20 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     ** Get all currently available channels/contacts to avoid repeatedly checking the
     ** destination EIDs of unavailable channels/contacts
     */
-    // for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-    // {
-    //     if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
-    //     {
-    //         AvailChans[NumChans] = i;
-    //         NumChans++;
-    //     }
-    // }
-
-    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        /*
-        if (Contact state is started) TODO fix me once contact directives are implemented
+        if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
         {
-        */
-            AvailConts[NumConts] = i;
-            NumConts++;
-
-        /*
+            LocalEIDPattern.MaxNode = BPLIB_EID_INSTANCE.Node;
+            LocalEIDPattern.MinNode = BPLIB_EID_INSTANCE.Node;
+            LocalEIDPattern.MaxService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
+            LocalEIDPattern.MinService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
+            BPLib_STOR_EgressForDestEID(Inst, i, true,
+                &LocalEIDPattern,
+                BPLIB_STOR_LOADBATCHSIZE,
+                &NumEgressed);
+            BundlesScanned += NumEgressed;
         }
-        */
     }
 
     /* Egress For Contacts */
@@ -107,9 +97,11 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     {
         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
         {
-            CurrEIDPattern = &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[AvailConts[i]].DestEIDs[j];
-            BPLib_STOR_EgressForDestEID(Inst, AvailConts[i], CurrEIDPattern,
-                BPLIB_STOR_LOADBATCHSIZE, &NumEgressed);
+            /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
+            BPLib_STOR_EgressForDestEID(Inst, i, false,
+                &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j],
+                BPLIB_STOR_LOADBATCHSIZE,
+                &NumEgressed);
             BundlesScanned += NumEgressed;
         }
     }

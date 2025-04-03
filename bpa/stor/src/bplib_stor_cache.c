@@ -90,8 +90,9 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, BPLib_EID_Pattern_t* DestEID,
-    size_t MaxBundles, size_t* NumEgressed)
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
+    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, 
+    size_t* NumEgressed)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
@@ -135,6 +136,12 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
                 {
                     BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[j]);
                 }
+
+                /* Note by breaking here we've chosen to lose the bundles that couldn't be
+                ** egressed. We could alternatively keep trying through this loop if we find we drop large
+                ** batches of bundles. The assumption made here is that by freeing all of the memory, we're giving
+                ** the system a better chance of recovering.
+                */
                 break;
             }
             EgressCnt++;

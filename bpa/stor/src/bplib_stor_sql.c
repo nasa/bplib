@@ -36,7 +36,8 @@ static const char* CreateTableSQL =
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
 "    action_timestamp INTEGER,\n"
 "    egress_attempted INTEGER DEFAULT 0,\n"
-"    dest_node INTEGER\n"
+"    dest_node INTEGER,\n"
+"    dest_service INTEGER\n"
 ");\n"
 "CREATE TABLE IF NOT EXISTS bundle_blobs (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
@@ -83,7 +84,6 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
     ** check if foreign keys were enabled by reading the setting back.
     */
-    // TODO: Make ticket for this
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(ActiveDB, CreateTableSQL, 0, 0, NULL);
@@ -106,7 +106,7 @@ static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
     /* Get DTN Time */
     BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
     DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
-    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - 946684800000; // Remove me: this was added because this function doesn't work in bpcat
+    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - 946684800000;
 
     sqlite3_reset(ExpireBundlesStmt);
     SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);

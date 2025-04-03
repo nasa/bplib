@@ -30,7 +30,7 @@
 static const char* FindByDestNodeSQL = 
 "SELECT id\n"
 "FROM bundle_data\n"
-"WHERE dest_node BETWEEN ? AND ? AND egress_attempted = 0\n"
+"WHERE (dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?) AND egress_attempted = 0\n"
 "ORDER BY action_timestamp ASC\n"
 "LIMIT ?;";
 static sqlite3_stmt* FindByDestNodeStmt;
@@ -141,7 +141,17 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
         fprintf(stderr, "Failed to bind dest_node max: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 3, MaxBundles);
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 3, DestEID->MinService);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind dest_service min: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 4, DestEID->MaxService);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind dest_service max: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 5, MaxBundles);
     if (SQLStatus != SQLITE_OK) {
         fprintf(stderr, "Failed to bind limit: %s\n", sqlite3_errmsg(db));
         return SQLStatus;

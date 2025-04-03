@@ -47,6 +47,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
     sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
         (int64_t)BBlocks->PrimaryBlock.Lifetime);
     sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
+    sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)BBlocks->PrimaryBlock.DestEID.Service);
 
     SQLStatus = sqlite3_step(InsertMetadataStmt);
     if (SQLStatus != SQLITE_DONE)

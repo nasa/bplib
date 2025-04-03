@@ -88,7 +88,6 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
 {
     int i, j;
     BPLib_EID_t* DestEID;
-    BPLib_EID_Pattern_t AnyServiceNumPattern;
 
     /* For build 7.0 our ingress route strategy is as follows:
     ** - If the bundle is local, forward to the channel immediatley
@@ -101,6 +100,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         /* Go through each channel and find a match */
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
+            printf("serv %lu\n", BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber);
             if (BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber == DestEID->Service)
             {
                 if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
@@ -123,14 +123,8 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
             {
-                /* Note: routing is assuming that a node can deliver any service number.
-                ** This is done to match storage, which indexes based on node number, not service
-                */
-                AnyServiceNumPattern = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j];
-                AnyServiceNumPattern.MinService = 0;
-                AnyServiceNumPattern.MaxService = UINT64_MAX;
-                /* FIXME: Need a GetContactState function here...*/
-                if (BPLib_EID_PatternIsMatch((*DestEID), AnyServiceNumPattern))
+                /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
+                if (BPLib_EID_PatternIsMatch((*DestEID), BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
                 {
                     Bundle->Meta.EgressID = i;
                     return CONTACT_OUT_STOR_TO_CT;
