@@ -125,8 +125,16 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
             /* Set the metadata EID */
             CurrBundle = CacheInst->LoadBatch[i];
             CurrBundle->Meta.EgressID = EgressID;
-            Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
-                QM_PRI_NORMAL, QM_NO_WAIT);
+            if (LocalDelivery)
+            {
+                Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CHANNEL_OUT_STOR_TO_CT,
+                    QM_PRI_NORMAL, QM_NO_WAIT);
+            }
+            else
+            {
+                Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
+                    QM_PRI_NORMAL, QM_NO_WAIT);
+            }
             if (Status != BPLIB_SUCCESS)
             {
                 /* In this case, bundles were loaded, but we couldn't create jobs 
