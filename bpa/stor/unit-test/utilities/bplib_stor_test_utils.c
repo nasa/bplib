@@ -35,10 +35,12 @@
 BPLib_Instance_t BplibInst;
 BPLib_PI_ChannelTable_t TestChanTbl;
 BPLib_CLA_ContactsTable_t TestContTbl;
+BPLib_Bundle_t TestBundle;
 
 /*
 ** Function Definitions
 */
+
 
 void BPLib_STOR_Test_Setup(void)
 {
@@ -49,12 +51,22 @@ void BPLib_STOR_Test_Setup(void)
     BPLib_NC_ConfigPtrs.ContactsConfigPtr = &TestContTbl;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }
 
 void BPLib_STOR_Test_Teardown(void)
 {
     /* Clean up test environment */
+}
+
+void BPLib_STOR_Test_SetupOneBundleStored(void)
+{
+    BPLib_STOR_Test_Setup();
+}
+
+void BPLib_STOR_Test_TeardownOneBundleStored(void)
+{
+    BPLib_STOR_Test_Teardown();
+    /* SQL is run with :memory:, so the bundle automatically is deleted after test exit */
 }
 
 void UtTest_Setup(void)

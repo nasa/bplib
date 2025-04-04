@@ -48,6 +48,9 @@ extern BPLib_Instance_t BplibInst;
 void BPLib_STOR_Test_Setup(void);
 void BPLib_STOR_Test_Teardown(void);
 
+void BPLib_STOR_Test_SetupOneBundleStored(void);
+void BPLib_STOR_Test_TeardownOneBundleStored(void);
+
 void TestBplibStor_Register(void);
 
 #endif /* BPLIB_STOR_TEST_UTILS_H */

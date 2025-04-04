@@ -190,7 +190,10 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init_NullInst");
     UtTest_Add(Test_BPLib_STOR_Destroy, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Destroy");
 
+    /* Storage Table Tests */
     UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
+
+    /* Scan Cache Tests */
     UtTest_Add(Test_BPLib_STOR_ScanCache_NullInstError, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullInstError");
     UtTest_Add(Test_BPLib_STOR_ScanCache_EmptyStorage, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_EmptyStorage");
     UtTest_Add(Test_BPLib_STOR_ScanCache_OneContactEgress, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_OneContactEgress");
@@ -198,4 +201,11 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoContact, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NoContact");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoChannel, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NoChannel");
     UtTest_Add(Test_BPLib_STOR_ScanCache_ErrAddJob, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_ErrAddJob");
+
+    /* Store Tests */
+
+    /* Load(Egress) Tests */
+
+    /* Garbage Collect Tests */
+
 }
