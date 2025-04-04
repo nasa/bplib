@@ -90,7 +90,8 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
         Status = BPLib_SQL_Store(Inst);
         if (Status != BPLIB_SUCCESS)
         {
-            fprintf(stderr, "StoreBundle Failed ERR=%d\n", Status);
+            BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
+                "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
         }
 
         /* Free the bundles, as they're now persistent
@@ -205,7 +206,8 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisc
     Status = BPLib_SQL_GarbageCollect(Inst, NumDiscarded);
     if (Status != BPLIB_SUCCESS)
     {
-        fprintf(stderr, "Failed to Discard Expired Bundles ERR=%d\n", Status);
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to run garbage collection. RC=%d", Status);
     }
 
     pthread_mutex_unlock(&CacheInst->lock);
@@ -249,11 +251,16 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
             LocalEIDPattern.MinNode = BPLIB_EID_INSTANCE.Node;
             LocalEIDPattern.MaxService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
             LocalEIDPattern.MinService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
-            BPLib_STOR_EgressForDestEID(Inst, i, true,
+            Status = BPLib_STOR_EgressForDestEID(Inst, i, true,
                 &LocalEIDPattern,
                 BPLIB_STOR_LOADBATCHSIZE,
                 &NumEgressed);
             BundlesScanned += NumEgressed;
+            if (Status != BPLIB_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "BPLib_SQL_Store failed to egress bundle for local channel %d, RC=%d", i, Status);
+            }
         }
     }
 
@@ -263,11 +270,16 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
         {
             /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
-            BPLib_STOR_EgressForDestEID(Inst, i, false,
+            Status = BPLib_STOR_EgressForDestEID(Inst, i, false,
                 &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j],
                 BPLIB_STOR_LOADBATCHSIZE,
                 &NumEgressed);
             BundlesScanned += NumEgressed;
+            if (Status != BPLIB_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "BPLib_SQL_Store failed to egress bundle for contact %d, RC=%d", i, Status);
+            }
         }
     }
 
