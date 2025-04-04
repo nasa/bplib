@@ -25,7 +25,7 @@
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
 #include "bplib_cfg.h"
-#include "bplib_stor_cache.h"
+#include "bplib_stor.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT  /**< Constant for no wait */
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER  /**< Constant for indefinite wait */

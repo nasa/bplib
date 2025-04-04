@@ -8,7 +8,6 @@
 
 add_library(bplib_stor OBJECT
     src/bplib_stor.c
-    src/bplib_stor_cache.c
     src/bplib_stor_sql.c
     src/bplib_stor_sql_store.c
     src/bplib_stor_sql_load.c

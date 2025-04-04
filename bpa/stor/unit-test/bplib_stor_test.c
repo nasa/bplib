@@ -30,7 +30,7 @@
 */
 void Test_BPLib_STOR_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_STOR_Init(), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_STOR_Init(NULL), BPLIB_SUCCESS);
 }
 
 void Test_BPLib_STOR_StorageTblValidateFunc_Nominal(void)

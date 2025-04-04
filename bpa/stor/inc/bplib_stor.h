@@ -28,11 +28,24 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
-#include "bplib_qm.h"
+#include "bplib_mem.h"
+
+#include <sqlite3.h>
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
+#define BPLIB_STOR_INSERTBATCHSIZE 1 /* To raise from 1, we need a "flush timer" */
+#define BPLIB_STOR_LOADBATCHSIZE 100
 
+struct BPLib_BundleCache
+{
+    pthread_mutex_t lock;
+    sqlite3* db;
+    BPLib_Bundle_t* InsertBatch[BPLIB_STOR_INSERTBATCHSIZE];
+    size_t InsertBatchSize;
+    BPLib_Bundle_t* LoadBatch[BPLIB_STOR_LOADBATCHSIZE];
+    size_t LoadBatchSize;
+};
 
 /**
  * \brief Storage housekeeping payload
@@ -87,12 +100,15 @@ extern BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
  *       STOR initialization function
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
  *
+ *  \param[in] Inst Pointer to BPLib Instance, which contains cache instance within 
+ * 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_STOR_Init(void);
+BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst);
+
+void BPLib_STOR_Destroy(BPLib_Instance_t* Inst);
 
 /**
  * \brief Validate Storage Table configurations
@@ -126,17 +142,11 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
  */
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan);
 
-/**
- * @brief Cache a bundle
- *
- * This function takes a bundle and puts it in Cache
- *
- * @param[in] Inst The instance with the queue context information
- * @param[in] Bundle The bundle to cache
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Scanning cache was successful
- */
-BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
+
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
+    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed);
+
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
 
 #endif /* BPLIB_STOR_H */

@@ -23,7 +23,6 @@
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "bplib_eid.h"
-#include "bplib_stor_cache.h"
 
 BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName);
 

@@ -21,7 +21,6 @@
 #include "bplib_qm_job.h"
 #include "bplib_bi.h"
 #include "bplib_as.h"
-#include "bplib_stor_cache.h"
 #include "bplib_eid.h"
 #include "bplib_nc.h"
 

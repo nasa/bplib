@@ -10,8 +10,6 @@
 # Create stubs (for external use)
 add_library(bplib_stor_stubs STATIC
     stubs/bplib_stor_stubs.c
-    stubs/bplib_stor_cache_stubs.c
-    stubs/bplib_stor_sql_stubs.c
 )
 
 target_include_directories(bplib_stor_stubs PUBLIC
@@ -23,7 +21,9 @@ target_link_libraries(bplib_stor_stubs PUBLIC ut_assert)
 # Create unit test object
 add_library(utobj_bplib_stor OBJECT
     ../src/bplib_stor.c
-    stubs/bplib_stor_cache_stubs.c
+    ../src/bplib_stor_sql.c
+    ../src/bplib_stor_sql_load.c
+    ../src/bplib_stor_sql_store.c
 )
 
 target_compile_definitions(utobj_bplib_stor PRIVATE
@@ -70,6 +70,9 @@ target_link_libraries(coverage-bplib_stor-testrunner PUBLIC
     bplib_fwp_stubs
     bplib_nc_stubs
     bplib_as_stubs
+    bplib_mem_stubs
+    bplib_time_stubs
+    -lsqlite3
 )
 
 add_test(coverage-bplib_stor-testrunner coverage-bplib_stor-testrunner)

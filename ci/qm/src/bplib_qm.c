@@ -21,7 +21,7 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
-#include "bplib_stor_cache.h"
+#include "bplib_stor.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +41,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     }
 
     /* Init Cache */
-    Status = BPLib_STOR_CacheInit(inst);
+    Status = BPLib_STOR_Init(inst);
     if (Status != BPLIB_SUCCESS)
     {
         fprintf(stderr, "Failed to initialize Cache\n");
