@@ -30,7 +30,19 @@
 */
 void Test_BPLib_STOR_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_STOR_Init(NULL), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_STOR_Init(&BplibInst), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_STOR_InitNullInst(void)
+{
+    UtAssert_INT32_EQ(BPLib_STOR_Init(NULL), BPLIB_NULL_PTR_ERROR);
+}
+
+void Test_BPLib_STOR_Destroy(void)
+{
+    /* Here, you're just checking there's no segfault */
+    BPLib_STOR_Destroy(&BplibInst);
+    BPLib_STOR_Destroy(NULL);
 }
 
 void Test_BPLib_STOR_StorageTblValidateFunc_Nominal(void)
@@ -46,28 +58,11 @@ void Test_BPLib_STOR_ScanCache_NullInstError(void)
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(NULL, BundlesToScan), BPLIB_NULL_PTR_ERROR);
 }
 
-/* Test that a null bundle was pulled from the queue */
-void Test_BPLib_STOR_ScanCache_NullQueue(void)
-{
-    uint32_t BundlesToScan = 1;
-    BPLib_Bundle_t *BundlePtr = NULL;
-    
-    UT_SetDeferredRetcode(UT_KEY(BPLib_NC_GetAppState), 1, BPLIB_NC_APP_STATE_STARTED);
-    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
-    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
-
-    UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_NULL_PTR_ERROR);
-
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID);
-}
-
 /* Test that function exits gracefully when the queue is empty */
-void Test_BPLib_STOR_ScanCache_EmptyQueue(void)
+void Test_BPLib_STOR_ScanCache_EmptyStorage(void)
 {
     uint32_t BundlesToScan = 1;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), false);
 
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
 
@@ -190,12 +185,14 @@ void Test_BPLib_STOR_ScanCache_NoContact(void)
 
 void TestBplibStor_Register(void)
 {
+    /* Init/Teardown */
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
-    UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init_NullInst");
+    UtTest_Add(Test_BPLib_STOR_Destroy, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Destroy");
 
+    UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NullInstError, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullInstError");
-    UtTest_Add(Test_BPLib_STOR_ScanCache_NullQueue, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullQueue");
-    UtTest_Add(Test_BPLib_STOR_ScanCache_EmptyQueue, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_EmptyQueue");
+    UtTest_Add(Test_BPLib_STOR_ScanCache_EmptyStorage, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_EmptyStorage");
     UtTest_Add(Test_BPLib_STOR_ScanCache_OneContactEgress, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_OneContactEgress");
     UtTest_Add(Test_BPLib_STOR_ScanCache_OneChannelEgress, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_OneChannelEgress");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoContact, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NoContact");

@@ -44,7 +44,12 @@ BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
 /*******************************************************************************
 * Definitions and types
 */
+/* We conditionally allow this to be defined by a compile time variable
+** so that the unit tests can pass in :memory: here and avoid using the disk
+*/
+#ifndef BPLIB_STOR_DBNAME
 #define BPLIB_STOR_DBNAME       "bplib-storage.db"
+#endif
 
 /*******************************************************************************
 * Exported Functions
@@ -66,6 +71,11 @@ BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst)
 
 void BPLib_STOR_Destroy(BPLib_Instance_t* Inst)
 {
+    if (Inst == NULL)
+    {
+        return;
+    }
+
     pthread_mutex_destroy(&Inst->BundleStorage.lock);
 }
 

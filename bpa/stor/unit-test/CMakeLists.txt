@@ -29,6 +29,7 @@ add_library(utobj_bplib_stor OBJECT
 target_compile_definitions(utobj_bplib_stor PRIVATE
     $<TARGET_PROPERTY:bplib_stor,COMPILE_DEFINITIONS>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_COMPILE_DEFINITIONS>
+    BPLIB_STOR_DBNAME=":memory:"
 )
 
 target_compile_options(utobj_bplib_stor PRIVATE
