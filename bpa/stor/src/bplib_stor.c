@@ -60,7 +60,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
     uint32_t            BundlesScanned   = 0;
-    uint16_t            NumConts         = 0;
     uint16_t            i, j;
     size_t NumEgressed;
     BPLib_EID_Pattern_t LocalEIDPattern;
@@ -93,7 +92,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     }
 
     /* Egress For Contacts */
-    for (i = 0; i < NumConts; i++)
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
         {
