@@ -21,6 +21,7 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
+#include "bplib_stor.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +33,19 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 {
     bool queue_init, mem_init;
     uint16_t i;
+    BPLib_Status_t Status;
 
     if (inst == NULL)
     {
         return BPLIB_ERROR;
+    }
+
+    /* Init Cache */
+    Status = BPLib_STOR_Init(inst);
+    if (Status != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to initialize Cache\n");
+        return Status;
     }
 
     /* This is a one-time allocation when BPLib is initialized

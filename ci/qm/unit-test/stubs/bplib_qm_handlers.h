@@ -31,11 +31,25 @@
 
 #include "bplib_qm.h"
 
+#define QM_MAX_INCDEC_DEPTH (100u)
+
+typedef struct
+{
+    BPLib_QM_JobState_t State;
+    BPLib_Bundle_t* Bundle;
+} BPLib_QM_CreateJobContext_t;
+
+/*
+** Global Data
+*/
+extern BPLib_QM_CreateJobContext_t Context_BPLib_QM_CreateJob[];
 
 /*
 ** Function Definitions
 */
 
 void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+void UT_Handler_BPLib_QM_AddUnsortedJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 #endif /* BPLIB_QM_HANDLERS_H */
