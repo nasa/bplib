@@ -62,7 +62,11 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
     BPLib_Bundle_t* RetBundle;
 
     sqlite3_reset(FindBlobStmt);
-    sqlite3_bind_int64(FindBlobStmt, 1, BundleID);
+    SQLStatus = sqlite3_bind_int64(FindBlobStmt, 1, BundleID);
+    if (SQLStatus != SQLITE_OK) {
+        fprintf(stderr, "Failed to bind BundleID: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
 
     SQLStatus = sqlite3_step(FindBlobStmt);
     while (SQLStatus == SQLITE_ROW)

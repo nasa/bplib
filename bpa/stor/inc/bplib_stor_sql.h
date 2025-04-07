@@ -24,6 +24,11 @@
 #include "bplib_mem.h"
 #include "bplib_eid.h"
 
+/* This is a temporary define denoating milliseconds between POSIX and DTN time
+** It is used until a more mature boot-era solution is implemented in BPLIB_TIME
+*/
+#define BPLIB_STOR_EPOCHOFFSET 946684800000
+
 BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName);
 
 BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst);

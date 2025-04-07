@@ -120,8 +120,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
 }
 
 BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
-    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, 
-    size_t* NumEgressed)
+    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
@@ -143,6 +142,11 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
 
     /* Ask SQL to load egressable bundles from the specified Destination EID */
     Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, MaxBundles);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+    }
 
     /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
     ** was loaded here

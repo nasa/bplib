@@ -28,7 +28,7 @@
 
 /* Insert Bundle Metadata */
 static const char* InsertMetadataSQL = 
-    "INSERT INTO bundle_data (action_timestamp, dest_node) VALUES (?, ?);";
+    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service) VALUES (?, ?, ?);";
 static sqlite3_stmt* InsertMetadataStmt;
 
 /* Insert Bundle Blob */
@@ -44,10 +44,25 @@ static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
     int SQLStatus;
 
     sqlite3_reset(InsertMetadataStmt);
-    sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
         (int64_t)BBlocks->PrimaryBlock.Lifetime);
-    sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
-    sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)BBlocks->PrimaryBlock.DestEID.Service);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind action_timestamp in store_meta\n");
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind dest_node in store_meta\n");
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)BBlocks->PrimaryBlock.DestEID.Service);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind dest_service in store_meta\n");
+        return SQLStatus;
+    }
 
     SQLStatus = sqlite3_step(InsertMetadataStmt);
     if (SQLStatus != SQLITE_DONE)

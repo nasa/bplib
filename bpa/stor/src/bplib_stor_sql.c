@@ -98,15 +98,15 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
-    BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
+    //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
     uint64_t DtnNowMs;
 
     *NumDiscarded = 0;
 
     /* Get DTN Time */
-    BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
-    DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
-    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - 946684800000;
+    // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
+    // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
+    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
     sqlite3_reset(ExpireBundlesStmt);
     SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
@@ -152,23 +152,25 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
 BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
 {
     int SQLStatus;
-    BPLib_Status_t Status = BPLIB_SUCCESS;
     sqlite3* db = Inst->BundleStorage.db;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
 
     /* Prepare and reset the ExpireBundlesStmt with the current time */
     SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
-
-    SQLStatus = BPLib_SQL_GarbageCollectImpl(db, NumDiscarded);
-    if (SQLStatus != SQLITE_OK)
-    {
         Status = BPLIB_STOR_SQL_DISCARD_ERR;
     }
-    Status = BPLIB_SUCCESS;
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        SQLStatus = BPLib_SQL_GarbageCollectImpl(db, NumDiscarded);
+        if (SQLStatus != SQLITE_OK)
+        {
+            Status = BPLIB_STOR_SQL_DISCARD_ERR;
+        }
+    }
 
     /* Finalize the statement */
     sqlite3_finalize(ExpireBundlesStmt);

@@ -58,6 +58,7 @@ target_include_directories(coverage-bplib_stor-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
 )
@@ -69,6 +70,7 @@ target_link_libraries(coverage-bplib_stor-testrunner PUBLIC
     bplib_qm_stubs
     bplib_eid_stubs
     bplib_fwp_stubs
+    bpa_fwp_stubs
     bplib_nc_stubs
     bplib_as_stubs
     bplib_mem_stubs
