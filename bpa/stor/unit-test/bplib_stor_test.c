@@ -73,7 +73,6 @@ void Test_BPLib_STOR_StoreBundle_NullParams(void)
 void Test_BPLib_STOR_StoreBundle_Nominal(void)
 {
     BPLib_Bundle_t Bundle;
-    BPLib_Status_t Status;
     BPLib_STOR_Test_CreateTestBundle(&Bundle);
 
     /* Store a bundle */
@@ -97,7 +96,6 @@ void Test_BPLib_STOR_StoreBundle_Nominal(void)
 void Test_BPLib_STOR_StoreBundle_SQLFail(void)
 {
     BPLib_Bundle_t Bundle;
-    BPLib_Status_t Status;
 
     /* Store a bundle */
     BplibInst.BundleStorage.db = NULL;
@@ -257,7 +255,6 @@ void Test_BPLib_STOR_EgressForDestEid_NominalCont(void)
 void Test_BPLib_STOR_EgressForDestEid_SQLFail(void)
 {
     size_t NumEgressed;
-    BPLib_Bundle_t *LoadedBundle;
     BPLib_EID_Pattern_t DestEID;
     size_t MaxBundles = 1;
 
@@ -276,7 +273,6 @@ void Test_BPLib_STOR_EgressForDestEid_AddJobFail(void)
 {
     BPLib_EID_Pattern_t DestEID;
     size_t NumEgressed;
-    BPLib_Bundle_t *LoadedBundle;
 
     /* Select a filter for the DestEID range matching the test bundle */
     size_t MaxBundles = 1;
@@ -322,8 +318,6 @@ void Test_BPLib_STOR_ScanCache_EmptyStorage(void)
 void Test_BPLib_STOR_ScanCache_OneContactEgress(void)
 {
     uint32_t BundlesToScan = 1;
-    BPLib_Bundle_t Bundle;
-    BPLib_Bundle_t *BundlePtr = &Bundle;
 
     BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MaxNode = 100;
     BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MinNode = 100;
@@ -339,8 +333,6 @@ void Test_BPLib_STOR_ScanCache_OneContactEgress(void)
 void Test_BPLib_STOR_ScanCache_OneChannelEgress(void)
 {
     uint32_t BundlesToScan = 1;
-    BPLib_Bundle_t Bundle;
-    BPLib_Bundle_t *BundlePtr = &Bundle;
     uint16_t ChanID = BPLIB_MAX_NUM_CHANNELS - 1;
 
     BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanID].LocalServiceNumber = 1;
@@ -356,8 +348,6 @@ void Test_BPLib_STOR_ScanCache_OneChannelEgress(void)
 void Test_BPLib_STOR_ScanCache_NoChannel(void)
 {
     uint32_t BundlesToScan = 1;
-    BPLib_Bundle_t Bundle;
-    BPLib_Bundle_t *BundlePtr = &Bundle;
     uint16_t ChanID = BPLIB_MAX_NUM_CHANNELS - 1;
     int16_t InvalidServ = 3;
 
@@ -374,8 +364,6 @@ void Test_BPLib_STOR_ScanCache_NoChannel(void)
 void Test_BPLib_STOR_ScanCache_NoContact(void)
 {
     uint32_t BundlesToScan = 1;
-    BPLib_Bundle_t Bundle;
-    BPLib_Bundle_t *BundlePtr = &Bundle;
     int16_t InvalidServ = 3;
 
     BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MaxNode = 100;

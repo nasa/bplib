@@ -129,7 +129,7 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
 {
     int SQLStatus, LoadStatus;
     sqlite3* db = Inst->BundleStorage.db;
-    BPLib_Bundle_t* CurrBundle;
+    BPLib_Bundle_t* CurrBundle = NULL;
     int CurrBundleID, i;
     int LoadedBundleIDs[BPLIB_STOR_LOADBATCHSIZE];
 

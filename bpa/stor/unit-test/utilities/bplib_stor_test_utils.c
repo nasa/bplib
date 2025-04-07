@@ -59,7 +59,7 @@ void BPLib_STOR_Test_CreateTestBundle(BPLib_Bundle_t* Bundle)
     */
     Bundle->blob = (BPLib_MEM_Block_t*)calloc(1, sizeof(BPLib_MEM_Block_t));
     Bundle->blob->next = NULL;
-    strcpy(Bundle->blob->user_data.raw_bytes, "CBOR Blob");
+    strcpy((char*)Bundle->blob->user_data.raw_bytes, "CBOR Blob");
     Bundle->blob->used_len = 10; // strlen + 1 for \0
 }
 
