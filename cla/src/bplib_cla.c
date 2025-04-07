@@ -83,8 +83,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
         Status = BPLIB_CLA_CONT_ID_INPUT_ERR;
     }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout)
-             && Bundle != NULL)
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
     {
         /* Copy the bundle to the CLA buffer */
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
@@ -95,6 +94,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
         }
         else
         {
+            printf("blob copyout err %d\n", Status);
             *Size = 0;
         }
     

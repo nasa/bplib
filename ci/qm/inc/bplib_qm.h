@@ -24,6 +24,9 @@
 #include "bplib_api_types.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_qm_job.h"
+#include "bplib_mem.h"
+#include "bplib_cfg.h"
+#include "bplib_stor.h"
 
 #define QM_NO_WAIT          0L  /**< Constant representing no wait */
 #define QM_WAIT_FOREVER    -1L /**< Constant representing an indefinite wait */
@@ -55,6 +58,10 @@ struct BPLib_Instance
     BPLib_QM_WaitQueue_t BundleCacheList; /**< Queue of bundles in cache */
     BPLib_QM_WaitQueue_t ContactEgressJobs[BPLIB_MAX_NUM_CONTACTS]; /**< Queue of contact egress jobs */
     BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
+
+    /* Bundle Storage */
+    BPLib_BundleCache_t BundleStorage;
+
 };
 
 /**

@@ -23,9 +23,6 @@
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
 
-/* Forward declaration of BPLib_Instance_t, defined in bplib_qm.h */
-typedef struct BPLib_Instance BPLib_Instance_t;
-
 /**
  * @enum BPLib_JobState
  * @brief Enumeration representing the various job states in the Bundle Protocol.

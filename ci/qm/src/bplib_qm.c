@@ -21,6 +21,7 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
+#include "bplib_stor.h"
 
 #include <stdio.h>
 
@@ -30,6 +31,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 {
     bool QueueInit;
     int i;
+    BPLib_Status_t Status;
 
     if (inst == NULL)
     {
@@ -41,6 +43,16 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
     {
         return BPLIB_QM_INIT_ERROR;
     }
+
+    /* Init Cache */
+    Status = BPLib_STOR_Init(inst);
+    if (Status != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to initialize Cache\n");
+        return BPLIB_QM_INIT_ERROR;
+    }
+
+    /* Setup Worker State */
     for (i = 0; i < QM_MAX_GEN_WORKERS; i++)
     {
         memset(&inst->RegisteredWorkers[i].CurrJob, 0, sizeof(BPLib_QM_Job_t));

@@ -147,6 +147,11 @@
 #define BPLIB_NC_TBL_UPDATE_INF_EID                     (606u)
 #define BPLIB_NC_TBL_UPDATE_ERR_EID                     (607u)
 
+#define BPLIB_STOR_SQL_LOAD_ERR_EID                     (608u)
+#define BPLIB_STOR_SQL_STORE_ERR_EID                    (609u)
+#define BPLIB_STOR_SQL_GC_ERR_EID                       (610u)
+
+
 /* ============ */
 /* BI event IDs */
 /* ============ */
