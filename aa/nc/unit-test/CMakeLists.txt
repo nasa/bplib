@@ -11,6 +11,7 @@
 add_library(bplib_nc_stubs STATIC
     stubs/bplib_nc_stubs.c
     stubs/bplib_nc_directives_stubs.c
+    stubs/bplib_nc_rwlock_stubs.c
 )
 
 target_include_directories(bplib_nc_stubs PUBLIC
@@ -23,6 +24,7 @@ target_link_libraries(bplib_nc_stubs PUBLIC ut_assert)
 add_library(utobj_bplib_nc OBJECT
     ../src/bplib_nc.c
     ../src/bplib_nc_directives.c
+    ../src/bplib_nc_rwlock.c
 )
 
 target_compile_definitions(utobj_bplib_nc PRIVATE
@@ -44,6 +46,7 @@ target_include_directories(utobj_bplib_nc PRIVATE
 add_executable(coverage-bplib_nc-testrunner
     utilities/bplib_nc_test_utils.c
     bplib_nc_test.c
+    bplib_nc_rwlock_test.c
     $<TARGET_OBJECTS:utobj_bplib_nc>
 )
 

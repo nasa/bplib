@@ -30,6 +30,7 @@
 
 BPLib_NC_ConfigPtrs_t TestConfigPtrs;
 uint8 Context_TableType[UT_MAX_TABLE_TYPE_DEPTH];
+BPLib_NC_RWLock_t RWLock;
 
 /* ==================== */
 /* Function Definitions */
@@ -181,7 +182,20 @@ void BPLib_NC_Test_Teardown(void)
     }
 }
 
+void BPLib_NC_Test_Setup_RWLock()
+{
+    BPLib_NC_Test_Setup();
+    BPLib_NC_RWLock_Init(&RWLock);
+}
+
+void BPLib_NC_Test_Teardown_RWLock()
+{
+    BPLib_NC_Test_Teardown();
+    BPLib_NC_RWLock_Destroy(&RWLock);
+}
+
 void UtTest_Setup(void)
 {
     TestBplibNc_Register();
+    TestBplibNcRwlock_Register();
 }

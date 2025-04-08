@@ -397,6 +397,15 @@ void Test_BPLib_STOR_ScanCache_NoContact(void)
     UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
+/*  Test that ScanCache locks NC before reading */
+void Test_BPLib_STOR_ScanCache_NCLock(void)
+{
+    uint32_t BundlesToScan = 1;
+    BPLib_STOR_ScanCache(&BplibInst, BundlesToScan);
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderLock, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderUnlock, 1);
+}
+
 void TestBplibStor_Register(void)
 {
     /* Init/Teardown */
@@ -431,4 +440,5 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_ScanCache_OneChannelEgress, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_ScanCache_OneChannelEgress");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoContact, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_ScanCache_NoContact");
     UtTest_Add(Test_BPLib_STOR_ScanCache_NoChannel, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_ScanCache_NoChannel");
+    UtTest_Add(Test_BPLib_STOR_ScanCache_NCLock, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NCLock");
 }
