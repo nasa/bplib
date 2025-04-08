@@ -159,7 +159,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
             Status = BPLIB_SUCCESS;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "[Contact ID #%d] Contact is already set up",
+                                "Contact with ID #%d is already set up",
                                 ContactId);
         }
         else
@@ -205,7 +205,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
             Status = BPLIB_SUCCESS;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "[Contact ID #%d] Contact is already started",
+                                "Contact with ID #%d is already started",
                                 ContactId);
         }
         else
@@ -250,7 +250,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
             Status = BPLIB_SUCCESS;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "[Contact ID #%d] Contact is already stopped",
+                                "Contact with ID #%d is already stopped",
                                 ContactId);
         }
         else
@@ -293,7 +293,7 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
             Status = BPLIB_SUCCESS;
             BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
                                 BPLib_EM_EventType_DEBUG,
-                                "[Contact ID #%d] Contact is already torn down",
+                                "Contact with ID #%d Contact is already torn down",
                                 ContactId);
         }
         else
