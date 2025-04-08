@@ -65,7 +65,10 @@ void BPLib_NC_RWLock_Destroy(BPLib_NC_RWLock_t *RWLock)
 
 void BPLib_NC_RWLock_RLock(BPLib_NC_RWLock_t *RWLock)
 {
-    /* NULL Check omitted for efficiency */
+    if (RWLock == NULL)
+    {
+        return;
+    }
 
     pthread_mutex_lock(&RWLock->Lock);
 
@@ -81,7 +84,10 @@ void BPLib_NC_RWLock_RLock(BPLib_NC_RWLock_t *RWLock)
 
 void BPLib_NC_RWLock_RUnlock(BPLib_NC_RWLock_t *RWLock)
 {
-    /* NULL Check omitted for efficiency */
+    if (RWLock == NULL)
+    {
+        return;
+    }
 
     pthread_mutex_lock(&RWLock->Lock);
 
@@ -97,7 +103,10 @@ void BPLib_NC_RWLock_RUnlock(BPLib_NC_RWLock_t *RWLock)
 
 void BPLib_NC_RWLock_WLock(BPLib_NC_RWLock_t *RWLock)
 {
-    /* NULL Check omitted for efficiency */
+    if (RWLock == NULL)
+    {
+        return;
+    }
 
     pthread_mutex_lock(&RWLock->Lock);
 
@@ -113,7 +122,10 @@ void BPLib_NC_RWLock_WLock(BPLib_NC_RWLock_t *RWLock)
 
 void BPLib_NC_RWLock_WUnlock(BPLib_NC_RWLock_t *RWLock)
 {
-    /* NULL Check omitted for efficiency */
+    if (RWLock == NULL)
+    {
+        return;
+    }
 
     pthread_mutex_lock(&RWLock->Lock);
 
