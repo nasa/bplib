@@ -257,6 +257,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     ** Get all currently available channels/contacts to avoid repeatedly checking the
     ** destination EIDs of unavailable channels/contacts
     */
+    BPLib_NC_ReaderLock();
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
@@ -297,5 +298,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         }
     }
 
+    BPLib_NC_ReaderUnlock();
     return Status;
 }
