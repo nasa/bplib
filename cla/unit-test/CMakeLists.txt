@@ -11,6 +11,7 @@
 add_library(bplib_cla_stubs STATIC
     stubs/bplib_cla_stubs.c
     stubs/bplib_cla_internal_stubs.c
+    stubs/bplib_cla_handlers.c
 )
 
 target_include_directories(bplib_cla_stubs PUBLIC
