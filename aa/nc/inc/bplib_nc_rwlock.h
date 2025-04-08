@@ -36,7 +36,7 @@ typedef struct BPLib_NC_RWLock {
     pthread_cond_t ReadCond;       /**< Condition variable for readers */
     pthread_cond_t WriteCond;      /**< Condition variable for writers */
     int ReaderCnt;                 /**< Number of active readers */
-    int WriterCount;               /**< Number of active writers */
+    int WriterCnt;               /**< Number of active writers */
 } BPLib_NC_RWLock_t;
 
 /**

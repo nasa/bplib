@@ -46,6 +46,7 @@ target_include_directories(utobj_bplib_nc PRIVATE
 add_executable(coverage-bplib_nc-testrunner
     utilities/bplib_nc_test_utils.c
     bplib_nc_test.c
+    bplib_nc_rwlock_test.c
     $<TARGET_OBJECTS:utobj_bplib_nc>
 )
 

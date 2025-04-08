@@ -24,7 +24,7 @@ BPLib_Status_t BPLib_NC_RWLock_Init(BPLib_NC_RWLock_t *RWLock)
 {
     if (RWLock == NULL)
     {
-        return BPLIB_OS_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     if (pthread_mutex_init(&RWLock->Lock, NULL) != 0)
@@ -46,7 +46,7 @@ BPLib_Status_t BPLib_NC_RWLock_Init(BPLib_NC_RWLock_t *RWLock)
     }
 
     RWLock->ReaderCnt = 0;
-    RWLock->WriterCount = 0;
+    RWLock->WriterCnt = 0;
 
     return BPLIB_SUCCESS;
 }
@@ -69,7 +69,7 @@ void BPLib_NC_RWLock_RLock(BPLib_NC_RWLock_t *RWLock)
 
     pthread_mutex_lock(&RWLock->Lock);
 
-    while (RWLock->WriterCount > 0)
+    while (RWLock->WriterCnt > 0)
     {
         pthread_cond_wait(&RWLock->ReadCond, &RWLock->Lock);
     }
@@ -101,12 +101,12 @@ void BPLib_NC_RWLock_WLock(BPLib_NC_RWLock_t *RWLock)
 
     pthread_mutex_lock(&RWLock->Lock);
 
-    while (RWLock->ReaderCnt > 0 || RWLock->WriterCount > 0)
+    while (RWLock->ReaderCnt > 0 || RWLock->WriterCnt > 0)
     {
         pthread_cond_wait(&RWLock->WriteCond, &RWLock->Lock);
     }
 
-    RWLock->WriterCount++;
+    RWLock->WriterCnt++;
 
     pthread_mutex_unlock(&RWLock->Lock);
 }
@@ -117,7 +117,7 @@ void BPLib_NC_RWLock_WUnlock(BPLib_NC_RWLock_t *RWLock)
 
     pthread_mutex_lock(&RWLock->Lock);
 
-    RWLock->WriterCount--;
+    RWLock->WriterCnt--;
 
     pthread_cond_broadcast(&RWLock->ReadCond);
     pthread_cond_signal(&RWLock->WriteCond);
