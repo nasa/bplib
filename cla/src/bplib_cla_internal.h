@@ -92,4 +92,14 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle);
  */
 BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr);
 
+/**
+  * \brief     Set the run state of the provided contact
+  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration whose run state is being requested to change
+  * \param[in] RunState  (BPLib_CLA_ContactRunState_t) Requested run state of the provided contact ID from the Contacts Configuration
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
+  * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID does not match a contact ID in the Contacts Configuration
+  */
+ BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState);
+
 #endif /* BPLIB_CLA_INTERNAL_H */
