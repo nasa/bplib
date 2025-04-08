@@ -16,6 +16,7 @@ add_library(bplib_cla_stubs STATIC
 
 target_include_directories(bplib_cla_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    stubs
     ../src
 )
 
