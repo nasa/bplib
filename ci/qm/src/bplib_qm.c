@@ -24,20 +24,24 @@
 #include "bplib_stor.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
-#define BPLIB_QM_RUNJOB_PERF_ID 0x7F
-#define BPLIB_QM_JOBWAIT_TIMEOUT 1L
+#define BPLIB_QM_RUNJOB_PERF_ID  0x7F
 
-BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
+BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 {
-    bool queue_init, mem_init;
-    uint16_t i;
+    bool QueueInit;
+    int i;
     BPLib_Status_t Status;
 
     if (inst == NULL)
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* Initialize worker registration state */
+    if (pthread_mutex_init(&inst->RegisteredWorkersLock, NULL) != 0)
+    {
+        return BPLIB_QM_INIT_ERROR;
     }
 
     /* Init Cache */
@@ -45,115 +49,51 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     if (Status != BPLIB_SUCCESS)
     {
         fprintf(stderr, "Failed to initialize Cache\n");
-        return Status;
+        return BPLIB_QM_INIT_ERROR;
     }
 
-    /* This is a one-time allocation when BPLib is initialized
-    ** Note: We have decided to modify this so that job_mem and unsorted_job_mem are passed
-    **  in as parameters this function. This will be done in a future ticket.
+    /* Setup Worker State */
+    for (i = 0; i < QM_MAX_GEN_WORKERS; i++)
+    {
+        memset(&inst->RegisteredWorkers[i].CurrJob, 0, sizeof(BPLib_QM_Job_t));
+        inst->RegisteredWorkers[i].CurrJob.NextState = NO_NEXT_STATE;
+    }
+
+    QueueInit = true;
+    /* Initialize the job queue */
+    if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), sizeof(BPLib_QM_Job_t), MaxJobs))
+    {
+        QueueInit = false;
+    }
+
+    /* TODO: This is a BundleQueue, but is kept as WaitQueueInit in expectation this code is
+    ** soon to be removed. I feel it's best to just leave this alone for now.
     */
-    mem_init = true;
-    inst->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
-    if (inst->job_mem == NULL)
+    if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), sizeof(BPLib_Bundle_t*), MaxJobs))
     {
-        mem_init = false;
+        QueueInit = false;
     }
 
-    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_JobContext_t));
-    if (inst->unsorted_job_mem == NULL)
+    /* TODO: Use Bundle Queue */
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        mem_init = false;
-    }
-
-    inst->BundleCacheListMem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-    if (inst->BundleCacheListMem == NULL)
-    {
-        mem_init = false;
+        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
+        {
+            QueueInit = false;
+        }
     }
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        inst->ContactEgressMem[i] = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-        if (inst->ContactEgressMem[i] == NULL)
+        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
         {
-            mem_init = false;
+            QueueInit = false;
         }
     }
 
-    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    if (QueueInit == false)
     {
-        inst->ChannelEgressMem[i] = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-        if (inst->ChannelEgressMem[i] == NULL)
-        {
-            mem_init = false;
-        }
-    }
-
-    if (mem_init == false)
-    {
-        free(inst->job_mem);
-        free(inst->unsorted_job_mem);
-        free(inst->BundleCacheListMem);
-
-        for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-        {
-            free(inst->ChannelEgressMem[i]);
-        }
-
-        for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-        {
-            free(inst->ContactEgressMem[i]);
-        }
-
-        return BPLIB_ERROR;
-    }
-
-    /* Initialize the jobs and unsorted jobs queue */
-    queue_init = true;
-    if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), inst->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
-    {
-        queue_init = false;
-    }
-    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_JobContext_t), max_jobs))
-    {
-        queue_init = false;
-    }
-    if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), inst->BundleCacheListMem, sizeof(BPLib_Bundle_t*), max_jobs))
-    {
-        queue_init = false;
-    }
-
-    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-    {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), inst->ChannelEgressMem[i], sizeof(BPLib_Bundle_t*), max_jobs))
-        {
-            queue_init = false;
-        }
-    }
-    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-    {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), inst->ContactEgressMem[i], sizeof(BPLib_Bundle_t*), max_jobs))
-        {
-            queue_init = false;
-        }
-    }
-
-    if (!queue_init)
-    {
-        free(inst->job_mem);
-        free(inst->unsorted_job_mem);
-        free(inst->BundleCacheListMem);
-
-        for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-        {
-            free(inst->ChannelEgressMem[i]);
-        }
-
-        for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-        {
-            free(inst->ContactEgressMem[i]);
-        }
-
+        BPLib_QM_QueueTableDestroy(inst);
         return BPLIB_ERROR;
     }
 
@@ -169,37 +109,63 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
         return;
     }
 
-    BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
-    BPLib_QM_WaitQueueDestroy(&(inst->UnsortedJobs));
-    BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
-    free(inst->job_mem);
-    free(inst->unsorted_job_mem);
-    free(inst->BundleCacheListMem);
+    /* Worker State Cleanup */
+    pthread_mutex_destroy(&inst->RegisteredWorkersLock);
+    inst->NumWorkers = 0;
 
+    /* Queue Cleanup */
+    BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         BPLib_QM_WaitQueueDestroy(&(inst->ChannelEgressJobs[i]));
-        free(inst->ChannelEgressMem[i]);
     }
-
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
         BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs[i]));
-        free(inst->ContactEgressMem[i]);
     }
 }
 
-BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
-    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID)
+{
+    int NewWorkerID;
+    BPLib_Status_t Status;
+
+    if ((inst == NULL) || (WorkerID == NULL))
+    {
+        *WorkerID = -1;
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    pthread_mutex_lock(&inst->RegisteredWorkersLock);
+    if (inst->NumWorkers == QM_MAX_GEN_WORKERS)
+    {
+        *WorkerID = -1;
+        Status = BPLIB_QM_WRKR_REGISTER_ERROR;
+    }
+    else
+    {
+        NewWorkerID = inst->NumWorkers;
+        inst->NumWorkers++;
+        *WorkerID = NewWorkerID;
+        Status = BPLIB_SUCCESS;
+    }
+    pthread_mutex_unlock(&inst->RegisteredWorkersLock);
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int TimeoutMs)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_QM_JobContext_t UnsortedJob;
+    BPLib_QM_Job_t NewJob;
 
-    UnsortedJob.Bundle = bundle;
-    UnsortedJob.NextState = state;
-    UnsortedJob.Priority = priority;
+    NewJob.Bundle = bundle;
+    NewJob.NextState = state;
+    NewJob.Priority = priority;
     
-    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &UnsortedJob, timeout_ms))
+    if (!BPLib_QM_WaitQueueTryPush(&(inst->GenericWorkerJobs), &NewJob, TimeoutMs))
     {
         Status = BPLIB_QM_PUSH_ERROR;
     }
@@ -207,78 +173,48 @@ BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* b
     return Status;
 }
 
-void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs)
 {
-    BPLib_QM_Job_t curr_job;
-    BPLib_QM_JobState_t next_state;
+    BPLib_QM_WorkerState_t* WorkerState;
+    BPLib_QM_JobFunc_t JobFunc;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &curr_job, timeout_ms))
+    if (inst == NULL)
     {
-        /* Run the job and get back the next state */
-        BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.JobFunc(inst, curr_job.Context.Bundle);
-        BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
-
-        /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
-        ** Important note here:
-        **  Should a worker fail to place the job in the unsorted jobs queue, this
-        **  may indicate a system that's over-tasked. There are several ways to define what 
-        **  our node's behavior should be here:
-        **      1) we could put this jobs in an overflow queue, then create a notificatino that the system degraded.
-        **      2) we could selectively drop "less important" UnsortedJob_t based on their next_state or priority.
-        **         This means bundles would be dropped, which I'm guessing we dont want
-        **      3) we could block and wait until this job can be pushed.
-        **
-        **  I think it could be a good idea to make the unsorted jobs queue larger than the jobs queue so that this
-        **  case is infrequent.
-        */
-        if (next_state != NO_NEXT_STATE)
-        {
-            BPLib_QM_AddUnsortedJob(inst, curr_job.Context.Bundle, next_state, 
-                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
-        } 
-    }    
-}
-
-void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
-{
-    size_t jobs_scheduled;
-    BPLib_QM_Job_t curr_job;
-    BPLib_QM_JobFunc_t next_job_func;
-
-    jobs_scheduled = 0;
-    while (jobs_scheduled < num_jobs)
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if ((WorkerID < 0) || (WorkerID >= inst->NumWorkers))
     {
-        /* RECEIVING INTO curr_job.Context directly may be a quick fix. 
-        ** This prevents the previous segfault.  We're probably ok doing this
-        ** until our queue design and back-pressuring is developed.
-        */
-        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &curr_job.Context, BPLIB_QM_JOBWAIT_TIMEOUT))
-        {
-            next_job_func = BPLib_QM_Job_Lookup(curr_job.Context.NextState);
-            if (next_job_func)
-            {
-                /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
-                curr_job.JobFunc = next_job_func;
+        return BPLIB_QM_BAD_WRKR_ID;
+    }
 
-                /* Add the job to the job queue so a worker can discover it 
-                ** Note: There is no backpressuring logic right now so this can block indefintely.
-                **  This will only do so if the system is clogged or misconfigured. 
-                **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
-                **  with a backpressuring strategy, but it should be done in a future ticket.
-                */
-                BPLib_QM_WaitQueueTryPush(&(inst->GenericWorkerJobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
-                jobs_scheduled++;
-            }
-            else
-            {
-                /* I don't think this warrants an event message, but we should know if something got here */
-                printf("Invalid Bundle State Reached: %d\n", curr_job.Context.NextState);
-            }
+    /* Note: WorkerState is a resource shared amongst threads, but each worker state
+    ** is separated by the 'WorkerID' parameter.  This is is given at startup and
+    ** will not be changed for the duration of the run, nor will other threads be accessing
+    ** the specific WorkerID's WorkerState. This state is not locked because it would introduce
+    ** significant loss of concurrency as the worker threads compete for the array, just to
+    ** access their own state within it.
+    */
+    WorkerState = &inst->RegisteredWorkers[WorkerID];
+    if (WorkerState->CurrJob.NextState == NO_NEXT_STATE)
+    {
+        if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &WorkerState->CurrJob, TimeoutMs))
+        {
+            JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
+            WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
+            Status = BPLIB_SUCCESS;
         }
         else
         {
-            break;
+            Status = BPLIB_TIMEOUT;
         }
     }
+    else
+    {
+        JobFunc = BPLib_QM_JobLookup(WorkerState->CurrJob.NextState);
+        WorkerState->CurrJob.NextState = JobFunc(inst, WorkerState->CurrJob.Bundle);
+        Status = BPLIB_SUCCESS;
+    }
+
+    return Status;
 }

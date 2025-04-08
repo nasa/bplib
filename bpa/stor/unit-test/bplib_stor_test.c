@@ -193,7 +193,7 @@ void Test_BPLib_STOR_EgressForDestEid_NominalChan(void)
     UtAssert_INT32_EQ(NumEgressed, 1);
 
     /* Ensure Job Added for Channel */
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
     UtAssert_INT32_EQ(Context_BPLib_QM_CreateJob[0].State, CHANNEL_OUT_STOR_TO_CT);
 
     /* Check Bundle Contents */
@@ -233,7 +233,7 @@ void Test_BPLib_STOR_EgressForDestEid_NominalCont(void)
     UtAssert_INT32_EQ(NumEgressed, 1);
 
     /* Ensure Job Added for Channel */
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
     UtAssert_INT32_EQ(Context_BPLib_QM_CreateJob[0].State, CONTACT_OUT_STOR_TO_CT);
 
     /* Check Bundle Contents */
@@ -282,7 +282,7 @@ void Test_BPLib_STOR_EgressForDestEid_AddJobFail(void)
     DestEID.MinService = 1;
 
     /* Make sure error is propagated up to callee */
-    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_AddUnsortedJob), 1, BPLIB_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_CreateJob), 1, BPLIB_ERROR);
     UtAssert_INT32_EQ(BPLib_STOR_EgressForDestEID(&BplibInst, 0, false, &DestEID,
         MaxBundles, &NumEgressed), BPLIB_ERROR);
     UtAssert_INT32_EQ(NumEgressed, 0);
@@ -311,7 +311,7 @@ void Test_BPLib_STOR_ScanCache_EmptyStorage(void)
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
 
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 /* Test that one bundle gets set to egress to contact 0 */
@@ -326,7 +326,28 @@ void Test_BPLib_STOR_ScanCache_OneContactEgress(void)
 
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
+}
+
+/* Test that a failed addition of an unsorted job is reported correctly */
+void Test_BPLib_STOR_ScanCache_ErrAddJob(void)
+{
+    uint32_t BundlesToScan = 2;
+    BPLib_Bundle_t Bundle;
+    BPLib_Bundle_t *BundlePtr = &Bundle;
+
+    Bundle.Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
+    
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_EID_PatternIsMatch), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_CreateJob), 1, BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_ERROR);
+    UtAssert_UINT16_EQ(Bundle.Meta.EgressID, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
 }
 
 /* Test that one bundle gets set to egress to channel 1 */
@@ -341,7 +362,7 @@ void Test_BPLib_STOR_ScanCache_OneChannelEgress(void)
 
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
 }
 
 /* Test that one bundle without an available channel path does not get egressed */
@@ -357,7 +378,7 @@ void Test_BPLib_STOR_ScanCache_NoChannel(void)
 
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 /* Test that one bundle without an available contact path does not get egressed */
@@ -373,7 +394,7 @@ void Test_BPLib_STOR_ScanCache_NoContact(void)
 
     UtAssert_INT32_EQ(BPLib_STOR_ScanCache(&BplibInst, BundlesToScan), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 /*  Test that ScanCache locks NC before reading */
@@ -384,7 +405,6 @@ void Test_BPLib_STOR_ScanCache_NCLock(void)
     UtAssert_STUB_COUNT(BPLib_NC_ReaderLock, 1);
     UtAssert_STUB_COUNT(BPLib_NC_ReaderUnlock, 1);
 }
-
 
 void TestBplibStor_Register(void)
 {

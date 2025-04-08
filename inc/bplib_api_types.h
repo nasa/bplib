@@ -276,6 +276,11 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 // More CLA Errors */
 #define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
 
+/* QM Errors */
+#define BPLIB_QM_INIT_ERROR                            ((BPLib_Status_t) -220)
+#define BPLIB_QM_BAD_WRKR_ID                           ((BPLib_Status_t) -221)
+#define BPLIB_QM_WRKR_REGISTER_ERROR                   ((BPLib_Status_t) -222)
+
 /* Storage Errors: SQL */
 #define BPLIB_STOR_SQL_INIT_ERR                         ((BPLib_Status_t) -240)
 #define BPLIB_STOR_SQL_STORAGE_ERR                      ((BPLib_Status_t) -241)

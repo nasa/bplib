@@ -165,8 +165,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         "Ingressing ADU of %lu bytes via channel #%d.", AduSize, ChanId);
 
     BPLib_NC_ReaderUnlock();
-
-    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    return BPLib_QM_CreateJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
 
 /* Egress an ADU */

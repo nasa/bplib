@@ -95,7 +95,7 @@ void BPLib_STOR_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_AddUnsortedJob), UT_Handler_BPLib_QM_AddUnsortedJob, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_CreateJob), UT_Handler_BPLib_QM_CreateJob, NULL);
 
     /* Init Storage */
     BPLib_STOR_Init(&BplibInst);

@@ -43,7 +43,7 @@ void Test_BPLib_BI_RecvFullBundleIn_NullInputErrors(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 void Test_BPLib_BI_RecvFullBundleIn_MemAllocError(void)
@@ -63,7 +63,7 @@ void Test_BPLib_BI_RecvFullBundleIn_MemAllocError(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 
@@ -86,7 +86,7 @@ void Test_BPLib_BI_RecvFullBundleIn_CborDecodeError(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
 
@@ -110,7 +110,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_AddUnsortedJob, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
 }
 
 

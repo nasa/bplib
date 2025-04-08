@@ -41,15 +41,15 @@ void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, 
     }
 }
 
-void UT_Handler_BPLib_QM_AddUnsortedJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+void UT_Handler_BPLib_QM_CreateJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     uint16 CallNum;
     uint16 CallCount;
 
-    CallCount = UT_GetStubCount(UT_KEY(BPLib_QM_AddUnsortedJob));
+    CallCount = UT_GetStubCount(UT_KEY(BPLib_QM_CreateJob));
     if (CallCount > QM_MAX_INCDEC_DEPTH)
     {
-        UtAssert_Failed("BPLib_QM_AddUnsortedJob call history depth exceeded. Called: %u, Max: %u",
+        UtAssert_Failed("BPLib_QM_CreateJob call history depth exceeded. Called: %u, Max: %u",
                         CallCount,
                         QM_MAX_INCDEC_DEPTH);
     }

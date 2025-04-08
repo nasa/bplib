@@ -158,11 +158,13 @@ static const BPLib_QM_JobFunc_t job_funcs[NUM_GENWORKER_STATES] =
     [CHANNEL_OUT_EBP_TO_PI] = ChannelOut_PI,
 };
 
-BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state)
+BPLib_QM_JobFunc_t BPLib_QM_JobLookup(BPLib_QM_JobState_t job_state)
 {
     if ((job_state >= 0) && (job_state < NUM_GENWORKER_STATES))
     {
         return job_funcs[job_state];
     }
+    /* Placing this here avoids performing the check for each job */
+    fprintf(stderr, "Warning: Returning NULL from BPLib_QM_JobLookup\n");
     return NULL;
 }

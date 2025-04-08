@@ -170,7 +170,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     /* Grab the current offset, to be kept in the primary block's metadata */
     bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
 
-    printf("BlockOffsetEnd is %ld\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
+    //printf("BlockOffsetEnd is %ld\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
 
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;

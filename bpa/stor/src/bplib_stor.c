@@ -160,12 +160,12 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
             CurrBundle->Meta.EgressID = EgressID;
             if (LocalDelivery)
             {
-                Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CHANNEL_OUT_STOR_TO_CT,
+                Status = BPLib_QM_CreateJob(Inst, CurrBundle, CHANNEL_OUT_STOR_TO_CT,
                     QM_PRI_NORMAL, QM_NO_WAIT);
             }
             else
             {
-                Status = BPLib_QM_AddUnsortedJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
+                Status = BPLib_QM_CreateJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
                     QM_PRI_NORMAL, QM_NO_WAIT);
             }
             if (Status != BPLIB_SUCCESS)
