@@ -21,15 +21,15 @@
 #ifndef BPLIB_QM_WAITQUEUE_H
 #define BPLIB_QM_WAITQUEUE_H
 
+#include "bplib_mem.h"
+#include "bplib_qm_job.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 
 // TODO: Use bplib_os
 #include <pthread.h>
-
-#define WAITQUEUE_NO_WAIT      0L  /**< Constant representing no wait */
-#define WAITQUEUE_WAIT_FOREVER -1L /**< Constant representing an indefinite wait */
 
 /**
  * @struct BPLib_QM_WaitQueue
@@ -60,13 +60,12 @@ typedef struct BPLib_QM_WaitQueue
  * It sets up the necessary internal state and synchronization primitives (mutex and condition variables).
  * 
  * @param[out] q The queue to be initialized.
- * @param[in] storage Pointer to the storage area to hold the queue elements.
  * @param[in] el_size The size of each element in the queue.
  * @param[in] capacity The maximum capacity of the queue.
  * 
  * @return `true` if the initialization was successful, `false` otherwise.
  */
-bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
+bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, size_t el_size, size_t capacity);
 
 /**
  * @brief Destroys a wait queue.
@@ -89,7 +88,7 @@ void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t* q);
  * 
  * @return `true` if the item was successfully pushed, `false` if the operation timed out.
  */
-bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, void* item, int timeout_ms);
+bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, const void* item, int timeout_ms);
 
 /**
  * @brief Attempts to pull an item from the wait queue.

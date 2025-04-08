@@ -76,14 +76,6 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
         return Status;
     }
-
-    Status = BPLib_QM_AddUnsortedJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-    if (Status != BPLIB_SUCCESS)
-    {
-        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
-
-        return Status;
-    }
     
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                 "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
@@ -93,7 +85,13 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
                 CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
                 CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
 
-    return BPLIB_SUCCESS;
+    Status = BPLib_QM_CreateJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
+    }
+
+    return Status;
 }
 
 /* Receive Control Messages from CLA, pass them to CT*/
