@@ -96,6 +96,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* Mark the primary block as "dirty" */
     NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
 
+    BPLib_NC_ReaderLock();
+
     /* Set primary block based on channel table configurations */
     BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID),
                         BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
@@ -161,6 +163,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
     BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
         "Ingressing ADU of %lu bytes via channel #%d.", AduSize, ChanId);
+
+    BPLib_NC_ReaderUnlock();
 
     return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }

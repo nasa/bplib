@@ -119,6 +119,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
 #define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
 #define BPLIB_INVALID_CRC_ERROR             ((BPLib_Status_t) -11) /* Invalid CRC */
+#define BPLIB_OS_ERROR                      ((BPLib_Status_t) -12)
 
 /*
 
