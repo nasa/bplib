@@ -60,6 +60,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     BPLib_NC_ReaderLock();
     if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->ParamSetMaxBundleLength)
     {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_TOO_LONG, 1);
         return BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR;
     }
     BPLib_NC_ReaderUnlock();
@@ -118,12 +119,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
             break;
         }
     };
-
-    /* Verify payload was in fact decoded */
-    if (bundle->blocks.PayloadHeader.BlockType != BPLib_BlockType_Payload)
-    {
-        return BPLIB_CBOR_DEC_NO_PAYLOAD_DEC_ERR;
-    }
 
     QCBORDecode_ExitArray(&ctx);
     QStatus = QCBORDecode_GetError(&ctx);

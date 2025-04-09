@@ -246,8 +246,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR       ((BPLib_Status_t) -153) /* CBOR Hop Count block decode error: invalid block data values */
 
 #define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -154) /* CBOR canon block decode error: can't process block */
-#define BPLIB_CBOR_DEC_NO_PAYLOAD_DEC_ERR              ((BPLib_Status_t) -155) /* CBOR canon block decode error: no payload found */
-#define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -156) /* CBOR decode error: bundle is too long */
+#define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -155) /* CBOR decode error: bundle is too long */
 
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR ((BPLib_Status_t) -160) /* CBOR decode types error: enter def array */
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR ((BPLib_Status_t) -161) /* CBOR decode types error: def array size */
@@ -303,6 +302,9 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_STOR_SQL_LOAD_ERR                         ((BPLib_Status_t) -242)
 #define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
 #define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
+
+/* Bundle Interfae Errors */
+#define BPLIB_BI_INVALID_BUNDLE_ERR                     ((BPLib_Status_t) -260)
 
 /** @} */
 
