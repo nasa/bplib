@@ -64,28 +64,8 @@ typedef uint8_t BPLib_BlockType_t;
  */
 typedef int32_t BPLib_Status_t;
 
-typedef struct BPLib_handle
-{
-    uint32_t hdl;
-} BPLib_Handle_t;
-
 // Integer typedefs
-
 typedef uintmax_t BPLib_Val_t;
-typedef intmax_t  BPLib_Sval_t;
-typedef uint16_t  BPLib_Index_t;
-
-// Bundle Protocol Typedefs
-
-/* IPN Schema Endpoint ID Integer Definition */
-typedef BPLib_Val_t BPLib_Ipn_t;
-
-/* combine IPN node+service */
-typedef struct BPLib_IpnAddr
-{
-    BPLib_Ipn_t node_number;
-    BPLib_Ipn_t service_number;
-} BPLib_IpnAddr_t;
 
 typedef struct BPLib_Instance BPLib_Instance_t;
 
@@ -97,12 +77,47 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
 
-/**
+
+/** 
+ * @defgroup Bundle Processing Control Flags
+ * @{
+ */
+#define BPLIB_BUNDLE_PROC_FRAG_FLAG         0x000001    /** @brief Bundle is a fragment */
+#define BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG 0x000002    /** @brief ADU is an administrative record */
+#define BPLIB_BUNDLE_PROC_NO_FRAG_FLAG      0x000004    /** @brief Bundle must not be fragmented */
+#define BPLIB_BUNDLE_PROC_ACK_FLAG          0x000020    /** @brief Acknowledgement by application is requested */
+#define BPLIB_BUNDLE_PROC_STATUS_TIME_FLAG  0x000040    /** @brief Status time requested in reports */
+#define BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG  0x004000    /** @brief Request reporting of bundle reception */
+#define BPLIB_BUNDLE_PROC_FORWARD_FLAG      0x010000    /** @brief Request reporting of bundle forwarding */
+#define BPLIB_BUNDLE_PROC_DELIVERY_FLAG     0x020000    /** @brief Request reporting of bundle delivery */
+#define BPLIB_BUNDLE_PROC_DELETE_FLAG       0x040000    /** @brief Request reporting of bundle deletion */
+
+/* Currently only this bundle flag is supported */
+#define BPLIB_VALID_BUNDLE_PROC_FLAG_MASK   BPLIB_BUNDLE_PROC_NO_FRAG_FLAG
+
+/** @} */
+
+/** 
+ * @defgroup Block Processing Control Flags
+ * @{
+ */
+#define BPLIB_BLOCK_PROC_REPLCT_FRAG_FLAG   0x01        /** @brief Block must be replicated in every fragment */
+#define BPLIB_BLOCK_PROC_STATUS_REPORT_FLAG 0x02        /** @brief Transmit status report if block can't be processed */
+#define BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG 0x04        /** @brief Delete bundle if block can't be processed */
+#define BPLIB_BLOCK_PROC_DISCARD_BLOCK_FLAG 0x10        /** @brief Discard block if it can't be processed */
+
+/* Currently only these block flags are supported */
+#define BPLIB_VALID_BLOCK_PROC_FLAG_MASK    (BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG | \
+                                             BPLIB_BLOCK_PROC_DISCARD_BLOCK_FLAG)
+/** @} */
+
+/*
  * \brief Job egress ID to use before a bundle's route is known 
 */
 #define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
 
-/** @defgroup BPLib_ReturnCodes BPLib Return Codes
+/** 
+ * @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
@@ -134,9 +149,6 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_GENERIC_ERROR_25              ((BPLib_Status_t) -25) // Error description
 */
 
-/** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
- * @{
- */
 /* Framework Proxy Errors */
 #define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -26)
 
@@ -195,7 +207,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
 #define BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR          ((BPLib_Status_t) -121) /* CBOR decode error: entry array */
-#define BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR           ((BPLib_Status_t) -122) /* CBOR decode error: max blocks */
+#define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -122) /* CBOR decode error: extra data after payload */
 #define BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR           ((BPLib_Status_t) -123) /* CBOR decode error: entry array */
 
 #define BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR            ((BPLib_Status_t) -124) /* CBOR primary block decode error: entry array */
@@ -231,7 +243,11 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CBOR_DEC_HOP_BLOCK_EXIT_ARRAY_ERR        ((BPLib_Status_t) -150) /* CBOR Hop Count block decode error: exit array */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR     ((BPLib_Status_t) -151) /* CBOR Hop Count block decode error: hop limit decode */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR     ((BPLib_Status_t) -152) /* CBOR Hop Count block decode error: hop count decode */
+#define BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR       ((BPLib_Status_t) -153) /* CBOR Hop Count block decode error: invalid block data values */
 
+#define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -154) /* CBOR canon block decode error: can't process block */
+#define BPLIB_CBOR_DEC_NO_PAYLOAD_DEC_ERR              ((BPLib_Status_t) -155) /* CBOR canon block decode error: no payload found */
+#define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -156) /* CBOR decode error: bundle is too long */
 
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR ((BPLib_Status_t) -160) /* CBOR decode types error: enter def array */
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR ((BPLib_Status_t) -161) /* CBOR decode types error: def array size */
@@ -288,13 +304,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
 #define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
 
-// TODO TIME Helpers
-
-// Candidates for inclusion in bplib_time.h or in bplib_stor_cache_types.h.
-#define BPLIB_TIME_TO_INT(t)   ((t).Time)
-#define BPLIB_TIME_FROM_INT(t) { (t) }
-#define BPLIB_TIME_IS_VALID(t) (BPLIB_TIME_TO_INT(t) != 0)
-#define BPLIB_TIME_IS_INFINITE(t) (BPLIB_TIME_TO_INT(t) == UINT64_MAX)
+/** @} */
 
 #ifdef __cplusplus
 } // extern "C"

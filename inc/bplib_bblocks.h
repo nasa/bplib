@@ -122,6 +122,7 @@ typedef struct
     size_t          DataOffsetStart; // Used for ADU Delivery
     size_t          DataSize; // Used for ADU Delivery
     bool            RequiresEncode;
+    bool            RequiresDiscard; // If discarding a block on re-encode
 } BPLib_CanBlockHeader_t;
 
 /**

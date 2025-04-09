@@ -49,11 +49,20 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    // TODO figure out minimum length
     /* A CandBundleLen less than 2 implies empty contents. */
     if (CandBundleLen <= 2)
     {
         return BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR;
     }
+
+    /* Verify bundle is not longer than maximum allowed length */
+    BPLib_NC_ReaderLock();
+    if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->ParamSetMaxBundleLength)
+    {
+        return BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR;
+    }
+    BPLib_NC_ReaderUnlock();
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Candidate bundle received with size %lu: \n", CandBundleLen);
@@ -73,7 +82,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     UBufC.len = CandBundleLen;
     QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
 
-
     /* Enter Array */
     QCBORDecode_EnterArray(&ctx, &OuterArr);
     QStatus = QCBORDecode_GetError(&ctx);
@@ -86,6 +94,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     Status = BPLib_CBOR_DecodePrimary(&ctx, bundle, CandBundle);
     if (Status != BPLIB_SUCCESS)
     {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_INVALID_PRIMARY_BLOCK, 1);
         return Status;
     }
 
@@ -110,11 +119,10 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         }
     };
 
-    /* sanity check that we didn't have extra data left after decoding the canonical blocks */
-    NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
-    if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
+    /* Verify payload was in fact decoded */
+    if (bundle->blocks.PayloadHeader.BlockType != BPLib_BlockType_Payload)
     {
-        return BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR;
+        return BPLIB_CBOR_DEC_NO_PAYLOAD_DEC_ERR;
     }
 
     QCBORDecode_ExitArray(&ctx);

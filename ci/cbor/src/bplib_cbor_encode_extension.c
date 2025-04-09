@@ -127,6 +127,11 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     {
         ReturnStatus = BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR;
     }
+    /* If block data couldn't be processed and we have to discard it, skip it */
+    else if (StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.RequiresDiscard)
+    {
+        ReturnStatus = BPLIB_SUCCESS;
+    }
     else
     {
         /*
