@@ -1058,7 +1058,7 @@ void Test_BPLib_NC_ContactSetup_Error(void)
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_ERR_EID,
                                 "Failed contact-setup directive for contact ID = %d");
 }
 
@@ -1092,7 +1092,7 @@ void Test_BPLib_NC_ContactStart_Error(void)
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_SUCCESS_EID,
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_ERR_EID,
                                 "Failed contact-start directive for contact ID = %d");
 }
 
@@ -1126,7 +1126,7 @@ void Test_BPLib_NC_ContactStop_Error(void)
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_ERR_EID,
                                 "Failed contact-stop directive for contact ID = %d");
 }
 
@@ -1160,7 +1160,7 @@ void Test_BPLib_NC_ContactTeardown_Error(void)
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_ERR_EID,
                                 "Failed contact-teardown directive for contact ID = %d");
 }
 
