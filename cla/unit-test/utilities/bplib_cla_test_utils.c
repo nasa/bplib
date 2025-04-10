@@ -23,6 +23,9 @@
 /* ======== */
 
 #include "bplib_cla_test_utils.h"
+#include "bpa_fwp_stubs.h"
+#include "bplib_fwp.h"
+#include "bplib_nc.h"
 #include "bplib_em_handlers.h" /* For BPLib_EM_SendEvent handler */
 
 /* ==================== */
@@ -39,8 +42,20 @@ void BPLib_CLA_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char*
 
 void BPLib_CLA_Test_Setup(void)
 {
+    BPLib_CLA_ContactsTable_t TestContactsTbl;
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    /* Set up callbacks */
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup    = BPA_CLAP_ContactSetup;
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart    = BPA_CLAP_ContactStart;
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop     = BPA_CLAP_ContactStop;
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown = BPA_CLAP_ContactTeardown;
+
+    /* Prime the Contacts Configuration to return valid values */
+    memset((void*) &TestContactsTbl,  1, sizeof(BPLib_CLA_ContactsTable_t));
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr = &TestContactsTbl;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }
