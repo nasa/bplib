@@ -27,6 +27,12 @@
 #include "bplib_cla.h"
 #include "utgenstub.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_CLA_ContactSetup()
