@@ -30,7 +30,7 @@
 ** Function Definitions
 */
 
-void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId)
+BPLib_Status_t BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId)
 {
     BPLib_PI_Config_t *CurrCanonConfig;
 
@@ -84,6 +84,8 @@ void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId
     }
 
     BPLib_NC_ReaderUnlock();
+
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
