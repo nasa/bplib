@@ -34,6 +34,16 @@ void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId
 {
     BPLib_PI_Config_t *CurrCanonConfig;
 
+    if (Bundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
     BPLib_NC_ReaderLock();
 
     CurrCanonConfig = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId];
@@ -50,14 +60,14 @@ void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId
     }
 
     /* Initialize age block */
-    if (CurrCanonConfig->AgeBlkConfig.IncludeBlock)
+    if (CurrCanonConfig->AgeBlkConfig.IncludeBlock || Bundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
     {
         Bundle->blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Age;
         Bundle->blocks.ExtBlocks[1].Header.CrcType = CurrCanonConfig->AgeBlkConfig.CrcType;
         Bundle->blocks.ExtBlocks[1].Header.BlockNum = CurrCanonConfig->AgeBlkConfig.BlockNum;
         Bundle->blocks.ExtBlocks[1].Header.BlockProcFlags = CurrCanonConfig->AgeBlkConfig.BlockProcFlags;          
 
-        Bundle->blocks.ExtBlocks[0].Header.RequiresEncode = true;
+        Bundle->blocks.ExtBlocks[1].Header.RequiresEncode = true;
     }
 
     /* Initialize hop count block */
@@ -68,7 +78,7 @@ void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId
         Bundle->blocks.ExtBlocks[2].Header.BlockNum = CurrCanonConfig->HopCountBlkConfig.BlockNum;
         Bundle->blocks.ExtBlocks[2].Header.BlockProcFlags = CurrCanonConfig->HopCountBlkConfig.BlockProcFlags;
 
-        Bundle->blocks.ExtBlocks[0].Header.RequiresEncode = true;
+        Bundle->blocks.ExtBlocks[2].Header.RequiresEncode = true;
 
         Bundle->blocks.ExtBlocks[2].BlockData.HopCountData.HopLimit = CurrCanonConfig->HopLimit;
     }
@@ -96,6 +106,7 @@ BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
             Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.HopCountData.HopCount++;
             Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
         }
+
         /* Add time on node to age block */
         if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_Age)
         {
@@ -107,6 +118,7 @@ BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
             Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.AgeBlockData.Age += TimeOnNode;
             Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
         }
+
         /* Set previous node to this node */
         if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
         {
@@ -116,7 +128,5 @@ BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
         }
     }
     
-    // age block and creation time?
-
     return Status;
 }

@@ -135,6 +135,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
 #define BPLIB_INVALID_CRC_ERROR             ((BPLib_Status_t) -11) /* Invalid CRC */
 #define BPLIB_OS_ERROR                      ((BPLib_Status_t) -12)
+#define BPLIB_INVALID_CHAN_ID_ERR           ((BPLib_Status_t) -13) /* Invalid Channel ID */
 
 /*
 
@@ -285,9 +286,6 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR     ((BPLib_Status_t) -191) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR     ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
 #define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR     ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
-
-/* More PI Errors */
-#define BPLIB_PI_CHAN_ID_INPUT_ERR                     ((BPLib_Status_t) -200)
 
 // More CLA Errors */
 #define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)

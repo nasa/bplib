@@ -81,7 +81,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* Channel ID must be within array index limits */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
-        return BPLIB_PI_CHAN_ID_INPUT_ERR;
+        return BPLIB_INVALID_CHAN_ID_ERR;
     }
 
     /* Allocate Bundle based on AduSize */
@@ -153,7 +153,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     else if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
         *AduSize = 0;
-        Status = BPLIB_PI_CHAN_ID_INPUT_ERR;
+        Status = BPLIB_INVALID_CHAN_ID_ERR;
     }
     /* Get the next bundle in the channel egress queue */
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
