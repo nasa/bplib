@@ -522,7 +522,7 @@ void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
                                 BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                "Contact with ID #%d cannot be torndown or exited before starting");
+                                "Contact with ID #%d must be setup before starting");
 }
 
 void Test_BPLib_CLA_ContactStop_Nominal(void)
