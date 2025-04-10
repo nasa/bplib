@@ -124,8 +124,8 @@ BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
         /* Set previous node to this node */
         if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
         {
-            Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.PrevNodeBlockData.PrevNodeId.Node = BPLIB_EID_INSTANCE.Node;
-            Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.PrevNodeBlockData.PrevNodeId.Service = BPLIB_EID_INSTANCE.Service;
+            BPLib_EID_CopyEids(&Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.PrevNodeBlockData.PrevNodeId,
+                                BPLIB_EID_INSTANCE);
             Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
         }
     }
