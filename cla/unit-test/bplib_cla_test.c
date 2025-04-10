@@ -390,9 +390,9 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
 
     /* Verify that the event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-    //                             "Contact ID must be less than %d, given %d");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
+                                "Contact ID must be less than %d, given %d");
 }
 
 void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
@@ -416,9 +416,9 @@ void Test_BPLib_CLA_ContactSetup_InvalidRunState(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-    //                             "Contact with ID %d must be torndown");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID #%d must be torndown");
 }
 
 void Test_BPLib_CLA_ContactSetup_CallbackError(void)
@@ -493,9 +493,9 @@ void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-    //                             "Contact ID %d is invalid");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
+                                "Contact ID %d is invalid");
 }
 
 void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
@@ -520,9 +520,9 @@ void Test_BPLib_CLA_ContactStart_InvalidRunState(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-    //                             "Contact with ID %d cannot be torndown or exited before starting");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID #%d cannot be torndown or exited before starting");
 }
 
 void Test_BPLib_CLA_ContactStop_Nominal(void)
@@ -568,9 +568,9 @@ void Test_BPLib_CLA_ContactStop_InvalidContactId(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-    //                             "Contact ID %d is invalid");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
+                                "Contact ID %d is invalid");
 }
 
 void Test_BPLib_CLA_ContactStop_InvalidRunState(void)
@@ -595,9 +595,9 @@ void Test_BPLib_CLA_ContactStop_InvalidRunState(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-    //                             "Contact with ID %d must be started first");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID #%d must be started first");
 }
 
 void Test_BPLib_CLA_ContactTeardown_Nominal(void)
@@ -643,9 +643,9 @@ void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-    //                             "Contact ID %d is invalid");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
+                                "Contact ID %d is invalid");
 }
 
 void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
@@ -670,9 +670,9 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    // BPLib_CLA_Test_Verify_Event(0,
-    //                             BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-    //                             "Contact with ID %d needs to be stopped or set up first");
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
+                                "Contact with ID #%d needs to be stopped or set up first");
 }
 
 void TestBplibCla_Register(void)
