@@ -120,9 +120,9 @@ void Test_BPLib_BI_RecvCtrlMsg_Nominal(void)
     UtAssert_INT32_EQ(BPLib_BI_RecvCtrlMsg(MsgPtr), BPLIB_SUCCESS);    
 }
 
-void Test_BPLib_BI_ValidateBundle_Nominal(void)
+void Test_BPLib_BI_ValidateBundle_Null(void)
 {
-    UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(NULL), BPLIB_SUCCESS);        
+    UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(NULL), BPLIB_NULL_PTR_ERROR);        
 }
 
 
@@ -230,7 +230,7 @@ void TestBplibBi_Register(void)
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Nominal");
 
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
-    UtTest_Add(Test_BPLib_BI_ValidateBundle_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Nominal");
+    UtTest_Add(Test_BPLib_BI_ValidateBundle_Null, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Null");
 
     UtTest_Add(Test_BPLib_BI_BlobCopyOut_InputBundleNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_InputBundleNullError");
     UtTest_Add(Test_BPLib_BI_BlobCopyOut_InputBundleBlobNullError, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_BlobCopyOut_InputBundleBlobNullError");

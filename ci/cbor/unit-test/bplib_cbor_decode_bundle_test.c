@@ -230,7 +230,7 @@ void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
 void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
 {
     BPLib_Bundle_t bundle;
-    // BPLib_Status_t ReturnStatus;
+    BPLib_Status_t ReturnStatus;
     memset(&bundle, 0, sizeof(bundle));
     bundle.blob = NULL;
 
@@ -241,20 +241,13 @@ void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
     UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x25C7);
     UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0x66CE);
 
-    // ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks,
-    //                                        sizeof(bundle_with_too_many_canonical_blocks),
-    //                                        &bundle);
-    // TODO
-    //UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR);
+    ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks,
+                                           sizeof(bundle_with_too_many_canonical_blocks),
+                                           &bundle);
+    
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR);
 
 }
-
-
-
-
-
-
-
 
 void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
 {
@@ -262,16 +255,21 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
     BPLib_Status_t ReturnStatus;
     memset(&bundle, 0, sizeof(bundle));
 
+    /* 
+    ** Note that only the canonical block has a none CRC, the primary block must have
+    ** a CRC since it doesn't have a security block
+    */
+
     /*
     Primary Block: 
-            CRC Type: 0
+            CRC Type: 1
             Flags: 4
             Dest EID (scheme.node.service): 2.200.1
             Source EID (scheme.node.service): 2.100.1
             Report-To EID (scheme.node.service): 2.100.1
             Timestamp (created, seq): 755533838904, 0
             Lifetime: 3600000
-            CRC Value: 0x0
+            CRC Value: 0xB19
     Canonical Block [0]: 
             Block Type: 1
             Block Number: 1
@@ -283,17 +281,20 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
             CRC Value: 0x0
     */
     unsigned char primary_and_payload_with_crc_none[] = {
-        0x9f, 0x89, 0x07, 0x04, 0x00, 0x82, 0x02, 0x82, 
+        0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 
         0x18, 0xc8, 0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 
         0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 0x01, 0x82, 
         0x1b, 0x00, 0x00, 0x00, 0xaf, 0xe9, 0x53, 0x7a, 
-        0x38, 0x00, 0x1a, 0x00, 0x36, 0xee, 0x80, 0x20, 
+        0x38, 0x00, 0x1a, 0x00, 0x36, 0xee, 0x80, 0x42, 
+        0x0b, 0x19,
         0x86, 0x01, 0x01, 0x00, 0x00, 0x58, 0x1e, 0xaa, 
         0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 
         0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 
         0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 
         0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x20, 0xff,
     };
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xB19);
 
     ReturnStatus = BPLib_CBOR_DecodeBundle(primary_and_payload_with_crc_none,
                                            sizeof(primary_and_payload_with_crc_none),
@@ -304,7 +305,7 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
     /*
     ** Verify Primary Block metadata
     */
-    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcType, (uint64_t) BPLib_CRC_Type_None);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcType, (uint64_t) BPLib_CRC_Type_CRC16);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.BundleProcFlags, 4);
 
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.DestEID.Scheme, 2);
@@ -325,25 +326,17 @@ void Test_BPLib_CBOR_DecodeBundle_CrcNone(void)
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Lifetime, 3600000);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.FragmentOffset, 0);
     UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.TotalAduLength, 0);
-    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcVal, 0);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcVal, 0xB19);
     
     /*
     ** Verify Payload metadata
     */
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockProcFlags, 0);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_None);
-   UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcVal, 0);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockProcFlags, 0);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_None);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcVal, 0);
 }
-
-
-
-
-
-
-
-
 
 void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
 {

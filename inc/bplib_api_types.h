@@ -207,7 +207,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
 #define BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR          ((BPLib_Status_t) -121) /* CBOR decode error: entry array */
-#define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -122) /* CBOR decode error: extra data after payload */
+#define BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR           ((BPLib_Status_t) -122) /* CBOR decode error: max blocks */
 #define BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR           ((BPLib_Status_t) -123) /* CBOR decode error: entry array */
 
 #define BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR            ((BPLib_Status_t) -124) /* CBOR primary block decode error: entry array */
@@ -247,6 +247,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 
 #define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -154) /* CBOR canon block decode error: can't process block */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -155) /* CBOR decode error: bundle is too long */
+#define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -156) /* CBOR decode error: extra data after payload  */
 
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR ((BPLib_Status_t) -160) /* CBOR decode types error: enter def array */
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR ((BPLib_Status_t) -161) /* CBOR decode types error: def array size */

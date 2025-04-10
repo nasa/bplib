@@ -26,24 +26,15 @@
 */
 
 #include "bplib_api_types.h"
+#include "bplib_mem.h"
 
 
 /*
 ** Exported Functions
 */
 
-/**
- * \brief Extension Block Processor initialization
- *
- *  \par Description
- *       EBP initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-int BPLib_EBP_Init(void);
+void BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId);
+
+BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle);
 
 #endif /* BPLIB_EBP_H */

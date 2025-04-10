@@ -55,6 +55,9 @@ target_include_directories(coverage-bplib_ebp-testrunner PRIVATE
 target_link_libraries(coverage-bplib_ebp-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_nc_stubs
+    bplib_time_stubs
+    bplib_eid_stubs
 )
 
 add_test(coverage-bplib_ebp-testrunner coverage-bplib_ebp-testrunner)

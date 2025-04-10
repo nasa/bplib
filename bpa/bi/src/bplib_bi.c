@@ -81,7 +81,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     }
 
     /* Get reception time of bundle */
-    BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
+    BPLib_TIME_GetMonotonicTime(&(CandidateBundle->Meta.MonoTime));
     
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                 "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
@@ -120,6 +120,11 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     bool     AgeBlockPresent = false;
     bool     HopCountPresent = false;
 
+    if (CandidateBundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
     /* 
     ** Most validation is done in CBOR as fields are being decoded. The remaining
     ** validation done here is for anything that requires a fully decoded bundle to
@@ -127,7 +132,7 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     */
 
     /* Verify a payload is present */
-    if (bundle->blocks.PayloadHeader.BlockType != BPLib_BlockType_Payload)
+    if (CandidateBundle->blocks.PayloadHeader.BlockType != BPLib_BlockType_Payload)
     {
         return BPLIB_BI_INVALID_BUNDLE_ERR;
     }
@@ -157,15 +162,15 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
                 AgeBlockPresent = true;
             }
         }
-        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_HopCount)
+        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
         {
-            if (HopCountPresent)
+            if (PrevNodePresent)
             {
                 return BPLIB_BI_INVALID_BUNDLE_ERR;
             }
             else
             {
-                HopCountPresent = true;
+                PrevNodePresent = true;
             }
         }
     }

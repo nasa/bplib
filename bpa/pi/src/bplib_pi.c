@@ -32,6 +32,7 @@
 #include "bplib_mem.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
+#include "bplib_ebp.h"
 #include <stdio.h>
 
 
@@ -70,10 +71,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
                                                             void *AduPtr, size_t AduSize)
 {
     BPLib_Bundle_t *NewBundle;
-    uint16_t CanonBlockIndex;
-    uint16_t NextExtensionBlockIndex;
-    BPLib_PI_CanBlkConfig_t* CurrCanonConfigSrc;
-    BPLib_CanBlockHeader_t* CurrCanonConfigDest;
+    BPLib_PI_Config_t *CurrCanonConfig;
 
     if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
     {
@@ -98,21 +96,17 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
     BPLib_NC_ReaderLock();
 
-    /* Set primary block based on channel table configurations */
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID),
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].DestEID);
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID),
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].ReportToEID);
-    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
-    NewBundle->blocks.PrimaryBlock.SrcEID.Service =
-                        BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
+    CurrCanonConfig = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId];
 
-    NewBundle->blocks.PrimaryBlock.BundleProcFlags =
-                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].BundleProcFlags;
-    NewBundle->blocks.PrimaryBlock.CrcType =
-                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CrcType;
-    NewBundle->blocks.PrimaryBlock.Lifetime =
-                BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].Lifetime;
+    /* Set primary block based on channel table configurations */
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID), CurrCanonConfig->DestEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID), CurrCanonConfig->ReportToEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
+    NewBundle->blocks.PrimaryBlock.SrcEID.Service = CurrCanonConfig->LocalServiceNumber;
+
+    NewBundle->blocks.PrimaryBlock.BundleProcFlags = CurrCanonConfig->BundleProcFlags;
+    NewBundle->blocks.PrimaryBlock.CrcType = CurrCanonConfig->CrcType;
+    NewBundle->blocks.PrimaryBlock.Lifetime = CurrCanonConfig->Lifetime;
 
     /* 
     ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime
@@ -122,49 +116,25 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
     NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
 
+    /* Initialize payload block */
+    NewBundle->blocks.PayloadHeader.BlockType = BPLib_BlockType_Payload;
+    NewBundle->blocks.PayloadHeader.CrcType = CurrCanonConfig->PayloadBlkConfig.CrcType;
+    NewBundle->blocks.PayloadHeader.BlockNum = 1;
+    NewBundle->blocks.PayloadHeader.BlockProcFlags = CurrCanonConfig->PayloadBlkConfig.BlockProcFlags;    
 
-    /* Fill out the canonical block configs */
-    NextExtensionBlockIndex = 0;
-    for (CanonBlockIndex = 0; CanonBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonBlockIndex++)
-    {
-        /* Set the source (table) config pointer */
-        CurrCanonConfigSrc = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].CanBlkConfig[CanonBlockIndex];
-
-        /* Set the destination (bundle metadata) config pointer */
-        if (CurrCanonConfigSrc->BlockType == BPLib_BlockType_Payload)
-        {
-            CurrCanonConfigDest = &NewBundle->blocks.PayloadHeader;
-        }
-        else
-        {
-            /* quick array index sanity check (this could happen if the src config didn't have a payload config) */
-            if (NextExtensionBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
-            {
-                break;
-            }
-            else
-            {
-                CurrCanonConfigDest = &NewBundle->blocks.ExtBlocks[NextExtensionBlockIndex].Header;
-                NextExtensionBlockIndex++;
-            }
-        }
-
-        /* Copy the configs from source to destination */
-        CurrCanonConfigDest->BlockType = CurrCanonConfigSrc->BlockType;
-        CurrCanonConfigDest->CrcType = CurrCanonConfigSrc->CrcType;
-        CurrCanonConfigDest->BlockNum = CurrCanonConfigSrc->BlockNum;
-        CurrCanonConfigDest->BlockProcFlags = CurrCanonConfigSrc->BlockProcFlags;
-    }
-
-    /* Fill out the rest of the payload block fields */
+    /* Fill out the rest of the payload block metadata */
     NewBundle->blocks.PayloadHeader.RequiresEncode = true;
     NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
     NewBundle->blocks.PayloadHeader.DataSize = AduSize;
 
+    BPLib_NC_ReaderUnlock();
+
+    /* Initialize the extension block data */
+    BPLib_EBP_InitializeExtensionBlocks(NewBundle, ChanId);
+
     BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
         "Ingressing ADU of %lu bytes via channel #%d.", AduSize, ChanId);
 
-    BPLib_NC_ReaderUnlock();
     return BPLib_QM_CreateJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
 

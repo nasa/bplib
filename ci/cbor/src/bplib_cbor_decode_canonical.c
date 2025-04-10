@@ -288,14 +288,14 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     else
     {
         /* Block control flag says to delete bundle when block can't be processed */
-        if ((CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG) == BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
+        if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
         {
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK, 1);
 
             return BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR;
         }
         /* Block control flag says to discard just this block when it can't be processed */
-        if ((CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG) == BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
+        if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DISCARD_BLOCK_FLAG)
         {
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_UNPROCESSED_BLOCKS, 1);
 

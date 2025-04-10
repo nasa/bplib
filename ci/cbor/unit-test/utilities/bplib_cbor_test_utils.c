@@ -23,6 +23,15 @@
 */
 
 #include "bplib_cbor_test_utils.h"
+#include "bplib_nc.h"
+
+
+/*
+** Global Data
+*/
+
+BPLib_NC_MIBConfigPNTable_t TestMibConfigPnTbl;
+
 
 /*
 ** Function Definitions
@@ -32,6 +41,11 @@ void BPLib_CBOR_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr = &TestMibConfigPnTbl;
+
+    /* Set default max length to something excessively high for most tests */
+    TestMibConfigPnTbl.ParamSetMaxBundleLength = 1000000;
 }
 
 void BPLib_CBOR_Test_Teardown(void)
