@@ -33,12 +33,6 @@
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
 
-/* =========== */
-/* Global Data */
-/* =========== */
-
-BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */

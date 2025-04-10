@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc_directives.h"
+#include "bplib_cla.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -1193,6 +1194,12 @@ void BPLib_NC_SendStorageHk()
 void BPLib_NC_SendChannelContactStatHk()
 {
     BPLib_Status_t Status;
+    uint32_t       ContactId;
+
+    for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
+    {
+        BPLib_NC_ChannelContactStatsPayload.ContactStatus[ContactId].State = BPLib_CLA_ContactRunStates[ContactId];
+    }
 
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_NC_ChannelContactStatsPayload);
 

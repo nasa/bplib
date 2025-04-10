@@ -73,6 +73,17 @@ typedef enum
     BPLIB_CLA_EXITED   = 4,
 } BPLib_CLA_ContactRunState_t;
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+/**
+  * \brief Array use to track the run states of all active contacts. The run states
+  *        are associated with the contact ID via the index into the array.
+  *        Ex: BPLib_CLA_ContactRunStates[0] is the contact run state for contact ID 0
+  */
+ extern BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[];
+
 /**
  * \brief Global Contacts Configuration
  */

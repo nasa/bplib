@@ -28,6 +28,12 @@
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
