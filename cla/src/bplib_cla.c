@@ -49,7 +49,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
 
     if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
-        return BPLIB_CLA_CONT_ID_INPUT_ERR;
+        return BPLIB_CLA_INVALID_CONTACT_ID;
     }
 
     /* Not a RFC 9171 bundle. Can be a control message or junk*/
@@ -84,11 +84,10 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
     else if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
         *Size = 0;
-        Status = BPLIB_CLA_CONT_ID_INPUT_ERR;
+        Status = BPLIB_CLA_INVALID_CONTACT_ID;
     }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout)
-             && Bundle != NULL)
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
     {
         /* Copy the bundle to the CLA buffer */
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
@@ -99,6 +98,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         }
         else
         {
+            printf("blob copyout err %d\n", Status);
             *Size = 0;
         }
 

@@ -9,6 +9,7 @@
 add_library(bplib_nc OBJECT
     src/bplib_nc.c
     src/bplib_nc_directives.c
+    src/bplib_nc_rwlock.c
 )
 
 target_include_directories(bplib_nc PUBLIC
@@ -20,6 +21,7 @@ target_include_directories(bplib_nc PUBLIC
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

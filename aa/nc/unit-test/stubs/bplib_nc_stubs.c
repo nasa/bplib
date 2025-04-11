@@ -30,8 +30,21 @@
 /* =========== */
 /* Global Data */
 /* =========== */
-
 BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_ConfigUpdate()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_NC_ConfigUpdate(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_ConfigUpdate, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_NC_ConfigUpdate, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_NC_ConfigUpdate, BPLib_Status_t);
+}
 
 /*
  * ----------------------------------------------------
@@ -99,6 +112,28 @@ BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_ReaderLock()
+ * ----------------------------------------------------
+ */
+void BPLib_NC_ReaderLock(void)
+{
+
+    UT_GenStub_Execute(BPLib_NC_ReaderLock, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_ReaderUnlock()
+ * ----------------------------------------------------
+ */
+void BPLib_NC_ReaderUnlock(void)
+{
+
+    UT_GenStub_Execute(BPLib_NC_ReaderUnlock, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_NC_SetAppState()
  * ----------------------------------------------------
  */
@@ -108,18 +143,4 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State)
     UT_GenStub_AddParam(BPLib_NC_SetAppState, BPLib_NC_ApplicationState_t, State);
 
     UT_GenStub_Execute(BPLib_NC_SetAppState, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_NC_ConfigUpdate()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_NC_ConfigUpdate(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ConfigUpdate, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_NC_ConfigUpdate, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ConfigUpdate, BPLib_Status_t);
 }

@@ -86,9 +86,8 @@ static struct _HopCountBlockDataParser HopCountBlockDataParser = {
 /*******************************************************************************
 * RFC-9171 Canonical Block Parsers (Implementation)
 */
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
-                                          BPLib_Bundle_t* bundle,
-                                          uint32_t CanonicalBlockIndex)
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle,
+                                    uint32_t CanonicalBlockIndex, const void *CandBundle)
 {
     BPLib_Status_t Status;
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
@@ -259,7 +258,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     }
 
     /* CRC Value */
-    Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
+    Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, 
+                                CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR;
@@ -283,6 +283,17 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
     else
     {
         CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
+    }
+
+    /* Validate the block's CRC */
+    Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, 
+                    CanonicalBlockHdr->CrcType, CanonicalBlockHdr->CrcVal,
+                    CanonicalBlockHdr->BlockOffsetStart, 
+                    CanonicalBlockHdr->BlockOffsetEnd - 
+                    CanonicalBlockHdr->BlockOffsetStart + 1);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
     }
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)

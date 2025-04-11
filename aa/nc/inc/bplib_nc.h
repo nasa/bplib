@@ -103,6 +103,23 @@ extern BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
 BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs);
 
 /**
+ * \brief Acquires the reader lock on the node configuration.
+ *
+ * \details This function acquires the reader lock on the node configuration,
+ * allowing multiple readers to access the configuration data simultaneously
+ * as long as no writer holds the lock.
+ */
+void BPLib_NC_ReaderLock(void);
+
+/**
+ * \brief Releases the reader lock on the node configuration.
+ *
+ * \details This function releases the reader lock on the node configuration,
+ * allowing other threads (readers or writers) to acquire the lock as needed.
+ */
+void BPLib_NC_ReaderUnlock(void);
+
+/**
  * \brief Validate MIB Per Node Configuration Table configurations
  *
  * \par Description

@@ -41,7 +41,10 @@ void BPLib_CBOR_Test_Teardown(void)
 
 void UtTest_Setup(void)
 {
-    TestBplibCbor_Register();
+    TestBplibCborDecode_Register();
+    TestBplibCborDecodeInternal_Register();
+    
     TestBplibCborEncode_Register();
     TestBplibCborEncodePrevNode_Register();
+    TestBplibCborEncodeInternal_Register();
 }

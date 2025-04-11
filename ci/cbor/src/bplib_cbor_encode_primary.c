@@ -31,7 +31,6 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
     UsefulBufC FinishBuffer;
     QCBORError QcborStatus;
 
-
     if ((StoredBundle == NULL) || (OutputBuffer == NULL) || (NumBytesCopied == NULL))
     {
         ReturnStatus = BPLIB_NULL_PTR_ERROR;
@@ -65,10 +64,13 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         BPLib_CBOR_EncodeCreationTimeStamp(&Context, &StoredBundle->blocks.PrimaryBlock.Timestamp);
 
         QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.Lifetime);
-        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.FragmentOffset);
-        QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.TotalAduLength);
 
-        /* start with CRC value 0. actual value to be filled in later. */
+        // TODO these fields are only present in fragmented bundles, will add logic to
+        // distinguish fragmented and unfragmented bundles later
+        // QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.FragmentOffset);
+        // QCBOREncode_AddUInt64(&Context, StoredBundle->blocks.PrimaryBlock.TotalAduLength);
+
+        /* Set CRC value to 0, real value will be jammed in after encoding is done */
         StoredBundle->blocks.PrimaryBlock.CrcVal = 0;
         BPLib_CBOR_EncodeCrcValue(&Context, StoredBundle->blocks.PrimaryBlock.CrcVal,
                                             StoredBundle->blocks.PrimaryBlock.CrcType);
@@ -86,12 +88,16 @@ BPLib_Status_t BPLib_CBOR_EncodePrimary(BPLib_Bundle_t* StoredBundle,
         QcborStatus = QCBOREncode_Finish(&Context, &FinishBuffer);
         if (QcborStatus != QCBOR_SUCCESS)
         {
-            *NumBytesCopied = 0;
             ReturnStatus = BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR;
         }
         else
         {
-            *NumBytesCopied = FinishBuffer.len;
+            /* Calculate new CRC for encoded bundle */
+            BPLib_CBOR_GenerateBlockCrc(OutputBuffer, 
+                                    StoredBundle->blocks.PrimaryBlock.CrcType,
+                                    0, FinishBuffer.len);
+
+            *NumBytesCopied += FinishBuffer.len;
             ReturnStatus = BPLIB_SUCCESS;
         }
     }
@@ -153,11 +159,10 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
             }
             else
             {
-                *NumBytesCopied = PrimaryBlockSize;
+                *NumBytesCopied += PrimaryBlockSize;
                 ReturnStatus = BPLIB_SUCCESS;
             }
         }
     }
     return ReturnStatus;
 }
-

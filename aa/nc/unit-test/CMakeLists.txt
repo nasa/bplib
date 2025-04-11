@@ -11,6 +11,7 @@
 add_library(bplib_nc_stubs STATIC
     stubs/bplib_nc_stubs.c
     stubs/bplib_nc_directives_stubs.c
+    stubs/bplib_nc_rwlock_stubs.c
 )
 
 target_include_directories(bplib_nc_stubs PUBLIC
@@ -23,6 +24,7 @@ target_link_libraries(bplib_nc_stubs PUBLIC ut_assert)
 add_library(utobj_bplib_nc OBJECT
     ../src/bplib_nc.c
     ../src/bplib_nc_directives.c
+    ../src/bplib_nc_rwlock.c
 )
 
 target_compile_definitions(utobj_bplib_nc PRIVATE
@@ -44,6 +46,7 @@ target_include_directories(utobj_bplib_nc PRIVATE
 add_executable(coverage-bplib_nc-testrunner
     utilities/bplib_nc_test_utils.c
     bplib_nc_test.c
+    bplib_nc_rwlock_test.c
     $<TARGET_OBJECTS:utobj_bplib_nc>
 )
 
@@ -58,6 +61,7 @@ target_include_directories(coverage-bplib_nc-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_em_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_nc-testrunner PUBLIC
@@ -70,6 +74,7 @@ target_link_libraries(coverage-bplib_nc-testrunner PUBLIC
     bplib_stor_stubs
     bplib_eid_stubs
     bplib_cla_stubs
+    bplib_crc_stubs
 )
 
 add_test(coverage-bplib_nc-testrunner coverage-bplib_nc-testrunner)

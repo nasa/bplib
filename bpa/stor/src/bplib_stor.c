@@ -30,6 +30,7 @@
 #include "bplib_nc.h"
 #include "bplib_eid.h"
 #include "bplib_as.h"
+#include "bplib_stor_sql.h"
 
 #include <stdio.h>
 
@@ -39,13 +40,195 @@
 
 BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
 
-/*
-** Function Definitions
-*/
 
-int BPLib_STOR_Init(void) {
-    return BPLIB_SUCCESS;
+/*******************************************************************************
+* Definitions and types
+*/
+/* We conditionally allow this to be defined by a compile time variable
+** so that the unit tests can pass in :memory: here and avoid using the disk
+*/
+#ifndef BPLIB_STOR_DBNAME
+#define BPLIB_STOR_DBNAME       "bplib-storage.db"
+#endif
+
+/*******************************************************************************
+* Exported Functions
+*/
+BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst)
+{
+    BPLib_Status_t Status;
+
+    if (Inst == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    pthread_mutex_init(&Inst->BundleStorage.lock, NULL);
+
+    Status = BPLib_SQL_Init(Inst, (const char *)BPLIB_STOR_DBNAME);
+    return Status;
 }
+
+void BPLib_STOR_Destroy(BPLib_Instance_t* Inst)
+{
+    if (Inst == NULL)
+    {
+        return;
+    }
+
+    pthread_mutex_destroy(&Inst->BundleStorage.lock);
+}
+
+BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_BundleCache_t* CacheInst;
+    int i;
+
+    if ((Inst == NULL) || (Bundle == NULL) || (Bundle->blob == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&Inst->BundleStorage.lock);
+
+    /* Add to the next batch */
+    CacheInst->InsertBatch[CacheInst->InsertBatchSize++] = Bundle;
+    if (CacheInst->InsertBatchSize == BPLIB_STOR_INSERTBATCHSIZE)
+    {
+        Status = BPLib_SQL_Store(Inst);
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
+                "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+        }
+
+        /* Free the bundles, as they're now persistent
+        ** Note: even if the storage fails, we free everything to avoid a leak.
+        */
+        for (i = 0; i < CacheInst->InsertBatchSize; i++)
+        {
+            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
+        }
+
+        CacheInst->InsertBatchSize = 0;
+    }
+    pthread_mutex_unlock(&CacheInst->lock);
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
+    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_BundleCache_t* CacheInst;
+    int i, j;
+    size_t EgressCnt = 0;
+    BPLib_Bundle_t* CurrBundle;
+
+    if ((Inst == NULL) || (NumEgressed == NULL) || (DestEID == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if ((MaxBundles == 0) || (MaxBundles > BPLIB_STOR_LOADBATCHSIZE))
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&CacheInst->lock);
+
+    /* Ask SQL to load egressable bundles from the specified Destination EID */
+    Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, MaxBundles);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+    }
+
+    /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
+    ** was loaded here
+    */
+    if (Status == BPLIB_SUCCESS)
+    {
+        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        {
+            /* Set the metadata EID */
+            CurrBundle = CacheInst->LoadBatch[i];
+            CurrBundle->Meta.EgressID = EgressID;
+            if (LocalDelivery)
+            {
+                Status = BPLib_QM_CreateJob(Inst, CurrBundle, CHANNEL_OUT_STOR_TO_CT,
+                    QM_PRI_NORMAL, QM_NO_WAIT);
+            }
+            else
+            {
+                Status = BPLib_QM_CreateJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
+                    QM_PRI_NORMAL, QM_NO_WAIT);
+            }
+            if (Status != BPLIB_SUCCESS)
+            {
+                /* In this case, bundles were loaded, but we couldn't create jobs 
+                ** Free only what we couldn't egress.
+                */
+                for (j = i; i < CacheInst->LoadBatchSize; i++)
+                {
+                    BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[j]);
+                }
+
+                /* Note by breaking here we've chosen to lose the bundles that couldn't be
+                ** egressed. We could alternatively keep trying through this loop if we find we drop large
+                ** batches of bundles. The assumption made here is that by freeing all of the memory, we're giving
+                ** the system a better chance of recovering.
+                */
+                break;
+            }
+            EgressCnt++;
+        }
+    }
+    else
+    {
+        /* In this case, there was a storage error, free whatever was loaded before the error. */
+        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        {
+            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[i]);
+        }
+    }
+
+    pthread_mutex_unlock(&CacheInst->lock);
+
+    *NumEgressed = EgressCnt;
+    return Status;
+}
+
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+{
+    BPLib_Status_t Status;
+    BPLib_BundleCache_t* CacheInst;
+
+    if ((Inst == NULL) || (NumDiscarded == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    *NumDiscarded = 0;
+    CacheInst = &Inst->BundleStorage;
+    pthread_mutex_lock(&CacheInst->lock);
+
+    Status = BPLib_SQL_GarbageCollect(Inst, NumDiscarded);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to run garbage collection. RC=%d", Status);
+    }
+
+    pthread_mutex_unlock(&CacheInst->lock);
+
+    return Status;
+}
+
 
 /* Validate Storage table data */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
@@ -55,18 +238,13 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
-/* Initial, simplified (reduced feature set, using fifo) Bundle Cache scan */
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan)
 {
     BPLib_Status_t      Status           = BPLIB_SUCCESS;
-    BPLib_QM_JobState_t NextJobState     = NO_NEXT_STATE;
     uint32_t            BundlesScanned   = 0;
-    uint16_t            NumChans         = 0;
-    uint16_t            NumConts         = 0;
-    BPLib_Bundle_t     *QueuedBundle;
-    uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
-    uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
     uint16_t            i, j;
+    size_t NumEgressed;
+    BPLib_EID_Pattern_t LocalEIDPattern;
 
     if (Inst == NULL)
     {
@@ -79,144 +257,47 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     ** Get all currently available channels/contacts to avoid repeatedly checking the
     ** destination EIDs of unavailable channels/contacts
     */
-
+    BPLib_NC_ReaderLock();
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
         {
-            AvailChans[NumChans] = i;
-            NumChans++;
+            LocalEIDPattern.MaxNode = BPLIB_EID_INSTANCE.Node;
+            LocalEIDPattern.MinNode = BPLIB_EID_INSTANCE.Node;
+            LocalEIDPattern.MaxService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
+            LocalEIDPattern.MinService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber;
+            Status = BPLib_STOR_EgressForDestEID(Inst, i, true,
+                &LocalEIDPattern,
+                BPLIB_STOR_LOADBATCHSIZE,
+                &NumEgressed);
+            BundlesScanned += NumEgressed;
+            if (Status != BPLIB_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "BPLib_SQL_Store failed to egress bundle for local channel %d, RC=%d", i, Status);
+            }
         }
     }
 
+    /* Egress For Contacts */
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        /*
-        if (Contact state is started) TODO fix me once contact directives are implemented
+        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
         {
-        */
-            AvailConts[NumConts] = i;
-            NumConts++;
-
-        /*
-        }
-        */
-    }
-
-    /* Pull bundles from cache queue and process them */
-    while (BundlesScanned < MaxBundlesToScan && Status == BPLIB_SUCCESS)
-    {
-        QueuedBundle = NULL;
-        if (BPLib_QM_WaitQueueTryPull(&(Inst->BundleCacheList), &QueuedBundle, 1))
-        {
-            if (QueuedBundle != NULL)
+            /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
+            Status = BPLib_STOR_EgressForDestEID(Inst, i, false,
+                &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j],
+                BPLIB_STOR_LOADBATCHSIZE,
+                &NumEgressed);
+            BundlesScanned += NumEgressed;
+            if (Status != BPLIB_SUCCESS)
             {
-                QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
-
-                /* If destination EID matches this node, look for an available channel */
-                if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                                            BPLIB_EID_INSTANCE))
-                {
-                    for (i = 0; i < NumChans; i++)
-                    {
-                        /* 
-                        ** See if this available channel has the same service number as
-                        ** this bundle's destination EID
-                        */
-                        if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
-                            BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[AvailChans[i]].LocalServiceNumber)
-                        {
-                            QueuedBundle->Meta.EgressID = AvailChans[i];
-                            NextJobState = CHANNEL_OUT_STOR_TO_CT;
-
-                            break;
-                        }
-                    }
-                }
-
-                /* 
-                ** If no local delivery options were found, look for a contact to send
-                ** bundles out on
-                */
-                else
-                {
-                    i = 0;
-                    while (QueuedBundle->Meta.EgressID == BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
-                    {
-                        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
-                        {
-                            if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                                BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
-                            {
-                                QueuedBundle->Meta.EgressID = AvailConts[i];
-                                NextJobState = CONTACT_OUT_STOR_TO_CT;
-
-                                break;
-                            }
-                        }
-    
-                        i++;
-                    }
-    
-                }
-
-                /* Egress bundle if a route exists */
-                if (QueuedBundle->Meta.EgressID != BPLIB_UNKNOWN_ROUTE_ID)
-                {
-                    Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
-                                                    QM_PRI_NORMAL, QM_NO_WAIT);
-                    if (Status != BPLIB_SUCCESS)
-                    {
-                        /* Something's wrong with the queues, bundle got dropped */
-                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 1);
-
-                        /* 
-                        ** Mapping this error to debug since it really only shows up when 
-                        ** the queues are overwhelmed and then it starts spamming the
-                        ** system
-                        */
-                        BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_DEBUG,
-                            "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
-                            Status);
-                    }
-
-                    /*
-                    ** TODO cache bundle even if it's set to egress, can't delete it until
-                    ** egress can be verified or custody processing has been done
-                    */
-                }
-                /* Cache a bundle if it cannot currently be routed */
-                else
-                {
-                    Status = BPLib_STOR_CacheBundle(Inst, QueuedBundle);
-                }
-            }
-            else
-            {
-                /* we may want to remove this `else` case entirely in the future, but currently kept for debugging */
-                BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID, BPLib_EM_EventType_WARNING,
-                    "BPLib_QM_ScanCache found null bundle in BundleCacheList.");
-
-                Status = BPLIB_NULL_PTR_ERROR;
+                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                    "BPLib_SQL_Store failed to egress bundle for contact %d, RC=%d", i, Status);
             }
         }
-        else
-        {
-            /* No bundles found in queue, end processing */
-            break;
-        }
-
-        BundlesScanned++;
     }
 
+    BPLib_NC_ReaderUnlock();
     return Status;
-}
-
-/* Put a bundle in Cache */
-BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
-{
-    /* For now, just put the bundle back in the queue, will replace with real Cache */
-    BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
-
-    return BPLIB_SUCCESS;
 }

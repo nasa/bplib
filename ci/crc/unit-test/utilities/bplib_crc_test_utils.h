@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_TEST_UTILS_H
-#define BPLIB_STOR_TEST_UTILS_H
+#ifndef BPLIB_CRC_TEST_UTILS_H
+#define BPLIB_CRC_TEST_UTILS_H
 
 /*
 ** Include
@@ -30,34 +30,21 @@
 #include "uttest.h"
 
 #include "bplib_api_types.h"
-#include "bplib_stor.h"
-#include "bplib_stor_sql.h"
-#include "bplib_em_handlers.h"
-#include "bplib_qm_handlers.h"
-#include "bpa_fwp_stubs.h"
+#include "bplib_crc.h"
+
 
 /*
-** Global Data
+** Macro Definitions
 */
 
-extern BPLib_Instance_t BplibInst;
-
-/*
-** Helper Utilities
-*/
-void BPLib_STOR_Test_CreateTestBundle(BPLib_Bundle_t* Bundle);
-void BPLib_STOR_Test_FreeTestBundle(BPLib_Bundle_t* Bundle);
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_CRC_Test_Setup, BPLib_CRC_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-void BPLib_STOR_Test_Setup(void);
-void BPLib_STOR_Test_Teardown(void);
+void BPLib_CRC_Test_Setup(void);
+void BPLib_CRC_Test_Teardown(void);
 
-void BPLib_STOR_Test_SetupOneBundleStored(void);
-void BPLib_STOR_Test_TeardownOneBundleStored(void);
-
-void TestBplibStor_Register(void);
-
-#endif /* BPLIB_STOR_TEST_UTILS_H */
+#endif /* BPLIB_CRC_TEST_UTILS_H */

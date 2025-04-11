@@ -21,24 +21,21 @@
 #ifndef BPLIB_CRC_H
 #define BPLIB_CRC_H
 
-/******************************************************************************
- INCLUDES
- ******************************************************************************/
+/*
+** Include
+*/
 
 #include "bplib_api_types.h"
 
-/******************************************************************************
- DEFINES
- ******************************************************************************/
 
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
+/*
+** Type Definitions 
+*/
 
 /**
- * @brief Type of block CRC calculated by bplib
+ * @brief Types of CRC supported by BPLib
  *
- * @note the numeric values of this enumeration match the crctype values in the BPv7 spec.
+ * @note The numeric values of this enumeration match the CRC type values in the BPv7 spec
  */
 enum BPLib_CRC_Type
 {
@@ -61,37 +58,43 @@ enum BPLib_CRC_Type
 
 typedef uint8_t BPLib_CRC_Type_t;
 
-
-/*
+/**
+ * \brief CRC value
+ * 
  * To keep the value consistent with CBOR, all CRCs are 64-bit
  * For CRC algorithms of lesser width, the value is right-justified (LSB/LSW)
  */
 typedef uint64_t BPLib_CRC_Val_t;
 
-/* Standard parameters for calculating a CRC. */
-struct BPLib_CRC_Parameters;
-typedef const struct BPLib_CRC_Parameters BPLib_CRC_Parameters_t;
 
 /*
- * CRC algorithms that are implemented in BPLIB
- * These definitions are always fixed/const
+** Exported Functions
+*/
+
+/**
+ * \brief     CRC Initialization
+ * 
+ *  \par Description
+ *       Initializes the CRC tables
  */
-extern BPLib_CRC_Parameters_t BPLIB_CRC_NONE;
-extern BPLib_CRC_Parameters_t BPLIB_CRC_16_X25;
-extern BPLib_CRC_Parameters_t BPLIB_CRC_32_CASTAGNOLI;
+void BPLib_CRC_Init(void);
 
-/******************************************************************************
- PROTOTYPES
- ******************************************************************************/
-
-void BPLib_CRCInit(void);
-
-const char *BPLib_CRC_GetName(BPLib_CRC_Parameters_t *params);
-uint8_t     BPLib_CRC_GetWidth(BPLib_CRC_Parameters_t *params);
-BPLib_CRC_Val_t BPLib_CRC_InitialValue(BPLib_CRC_Parameters_t *params);
-BPLib_CRC_Val_t BPLib_CRC_Update(BPLib_CRC_Parameters_t *params, BPLib_CRC_Val_t crc, const void *data, size_t size);
-BPLib_CRC_Val_t BPLib_CRC_Finalize(BPLib_CRC_Parameters_t *params, BPLib_CRC_Val_t crc);
-
-BPLib_CRC_Val_t BPLib_CRCGet(const void *data, const uint32_t length, BPLib_CRC_Parameters_t *params);
+/**
+ * \brief Calculate CRC
+ *
+ *  \par Description
+ *       Calculates the CRC of the provided data, using either the CRC-16/X25 or the
+ *       CRC-32/Castagnoli algorithms. Any other CRC type will return 0.
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - The CRC tables have been initializes (see BPLib_CRC_Init)
+ * 
+ *  \param[in] Data Pointer to a byte array containing data to calculate the CRC over
+ *  \param[in] DataLen Length of the data to CRC (in bytes)
+ *  \param[in] CrcType Type of CRC (either NONE, CRC-16 or CRC-32)
+ *
+ *  \return CRC Value
+ */
+BPLib_CRC_Val_t BPLib_CRC_Calculate(const void *Data, size_t DataLen, BPLib_CRC_Type_t CrcType);
 
 #endif /* BPLIB_CRC_H */

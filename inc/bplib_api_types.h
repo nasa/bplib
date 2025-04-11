@@ -87,6 +87,10 @@ typedef struct BPLib_IpnAddr
     BPLib_Ipn_t service_number;
 } BPLib_IpnAddr_t;
 
+typedef struct BPLib_Instance BPLib_Instance_t;
+
+typedef struct BPLib_BundleCache BPLib_BundleCache_t;
+
 /*
 ** Macros
 */
@@ -114,7 +118,8 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_BUF_LEN_ERROR                             ((BPLib_Status_t) -8)  /* Buffer length error */
 #define BPLIB_INVALID_EID                               ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
 #define BPLIB_INVALID_EID_PATTERN                       ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
-
+#define BPLIB_INVALID_CRC_ERROR                         ((BPLib_Status_t) -11) /* Invalid CRC */
+#define BPLIB_OS_ERROR                                  ((BPLib_Status_t) -12)
 
 /*
 
@@ -187,11 +192,11 @@ typedef struct BPLib_IpnAddr
 /* Node Config Errors */
 #define BPLIB_NC_TBL_UPDATE_ERR                         ((BPLib_Status_t) -80)
 
+/* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR             ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
 #define BPLIB_CBOR_DEC_BUNDLE_ENTER_ARRAY_ERR           ((BPLib_Status_t) -121) /* CBOR decode error: entry array */
 #define BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR            ((BPLib_Status_t) -122) /* CBOR decode error: max blocks */
 #define BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR            ((BPLib_Status_t) -123) /* CBOR decode error: entry array */
-
 #define BPLIB_CBOR_DEC_PRIM_ENTER_ARRAY_ERR             ((BPLib_Status_t) -124) /* CBOR primary block decode error: entry array */
 #define BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR              ((BPLib_Status_t) -125) /* CBOR primary block decode error: exit array */
 #define BPLIB_CBOR_DEC_PRIM_VERSION_DEC_ERR             ((BPLib_Status_t) -126) /* CBOR primary block decode error: decode version field */
@@ -205,7 +210,6 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_PRIM_CREATE_TIME_DEC_ERR         ((BPLib_Status_t) -134) /* CBOR primary block decode error: decode create time field */
 #define BPLIB_CBOR_DEC_PRIM_LIFETIME_DEC_ERR            ((BPLib_Status_t) -135) /* CBOR primary block decode error: decode lifetime field */
 #define BPLIB_CBOR_DEC_PRIM_CRC_VAL_DEC_ERR             ((BPLib_Status_t) -136) /* CBOR primary block decode error: decode crc value field */
-
 #define BPLIB_CBOR_DEC_CANON_BLOCK_INDEX_ERR            ((BPLib_Status_t) -137) /* CBOR canon block decode error: invalid block index */
 #define BPLIB_CBOR_DEC_CANON_ENTER_ARRAY_ERR            ((BPLib_Status_t) -138) /* CBOR canon block decode error: entry array */
 #define BPLIB_CBOR_DEC_CANON_EXIT_ARRAY_ERR             ((BPLib_Status_t) -139) /* CBOR canon block decode error: exit array */
@@ -216,65 +220,63 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_CANON_ENTER_BYTE_STR_ERR         ((BPLib_Status_t) -144) /* CBOR canon block decode error: enter data byte string */
 #define BPLIB_CBOR_DEC_CANON_EXIT_BYTE_STR_ERR          ((BPLib_Status_t) -145) /* CBOR canon block decode error: exit data byte string */
 #define BPLIB_CBOR_DEC_CANON_CRC_VAL_DEC_ERR            ((BPLib_Status_t) -146) /* CBOR canon block decode error: decode crc value field */
-
 #define BPLIB_CBOR_DEC_PREV_NODE_EID_DEC_ERR            ((BPLib_Status_t) -147) /* CBOR Prev Node block decode error: decode eid field */
-
 #define BPLIB_CBOR_DEC_AGE_BLOCK_DEC_ERR                ((BPLib_Status_t) -148) /* CBOR Age block decode error: decode eid field */
-
 #define BPLIB_CBOR_DEC_HOP_BLOCK_ENTER_ARRAY_ERR        ((BPLib_Status_t) -149) /* CBOR Hop Count block decode error: enter array */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_EXIT_ARRAY_ERR         ((BPLib_Status_t) -150) /* CBOR Hop Count block decode error: exit array */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR      ((BPLib_Status_t) -151) /* CBOR Hop Count block decode error: hop limit decode */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR      ((BPLib_Status_t) -152) /* CBOR Hop Count block decode error: hop count decode */
-
-
-#define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR  ((BPLib_Status_t) -160) /* CBOR decode types error: enter def array */
-#define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR  ((BPLib_Status_t) -161) /* CBOR decode types error: def array size */
-#define BPLIB_CBOR_DEC_TYPES_EXIT_DEF_ARRAY_QCBOR_ERR   ((BPLib_Status_t) -162) /* CBOR decode types error: exit def array */
-#define BPLIB_CBOR_DEC_TYPES_GET_UINT64_QCBOR_ERR       ((BPLib_Status_t) -163) /* CBOR decode types error: get uint64 */
-#define BPLIB_CBOR_DEC_TYPES_EID_ENTER_OUTER_ARRAY_ERR  ((BPLib_Status_t) -164) /* CBOR decode types error: EID enter outer array */
-#define BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR    ((BPLib_Status_t) -165) /* CBOR decode types error: EID scheme not implemented */
-#define BPLIB_CBOR_DEC_TYPES_EID_ENTER_SSP_ARRAY_ERR    ((BPLib_Status_t) -166) /* CBOR decode types error: EID enter SSP array */
-#define BPLIB_CBOR_DEC_TYPES_EID_IPN_NODE_DEC_ERR       ((BPLib_Status_t) -167) /* CBOR decode types error: EID IPN node num decode */
-#define BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR       ((BPLib_Status_t) -168) /* CBOR decode types error: EID IPN serv num decode */
-#define BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR     ((BPLib_Status_t) -169) /* CBOR decode types error: EID exit SSP array */
-#define BPLIB_CBOR_DEC_TYPES_EID_EXIT_OUTER_ARRAY_ERR   ((BPLib_Status_t) -170) /* CBOR decode types error: EID exit outer array */
-
-#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_ENTER_ARRAY_ERR  ((BPLib_Status_t) -171) /* CBOR decode types error: timestamp enter array */
-#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_EXIT_ARRAY_ERR   ((BPLib_Status_t) -172) /* CBOR decode types error: timestamp exit array */
-#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_CREATE_DEC_ERR   ((BPLib_Status_t) -173) /* CBOR decode types error: timestamp create time decode */
-#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_SEQ_NUM_DEC_ERR  ((BPLib_Status_t) -174) /* CBOR decode types error: timestamp seq num decode */
-
-#define BPLIB_CBOR_DEC_TYPES_CRC_ENTER_BYTE_STR_ERR     ((BPLib_Status_t) -175) /* CBOR decode types error: CRC Val enter byte-string */
-#define BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR             ((BPLib_Status_t) -176) /* CBOR decode types error: CRC Val length not 16 */
-#define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR             ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
-#define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR   ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
-
-#define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
-#define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -183) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
-#define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR            ((BPLib_Status_t) -184) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
-#define BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR        ((BPLib_Status_t) -185) /* BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error */
-#define BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR             ((BPLib_Status_t) -186) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
-#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR       ((BPLib_Status_t) -187) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
-#define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR       ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
-#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR       ((BPLib_Status_t) -189) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
-
-#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR      ((BPLib_Status_t) -190) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 1) */
-#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR      ((BPLib_Status_t) -191) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
-#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR      ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
-#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR      ((BPLib_Status_t) -193) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
+#define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR  ((BPLib_Status_t) -153) /* CBOR decode types error: enter def array */
+#define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR  ((BPLib_Status_t) -154) /* CBOR decode types error: def array size */
+#define BPLIB_CBOR_DEC_TYPES_EXIT_DEF_ARRAY_QCBOR_ERR   ((BPLib_Status_t) -155) /* CBOR decode types error: exit def array */
+#define BPLIB_CBOR_DEC_TYPES_GET_UINT64_QCBOR_ERR       ((BPLib_Status_t) -156) /* CBOR decode types error: get uint64 */
+#define BPLIB_CBOR_DEC_TYPES_EID_ENTER_OUTER_ARRAY_ERR  ((BPLib_Status_t) -157) /* CBOR decode types error: EID enter outer array */
+#define BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR    ((BPLib_Status_t) -158) /* CBOR decode types error: EID scheme not implemented */
+#define BPLIB_CBOR_DEC_TYPES_EID_ENTER_SSP_ARRAY_ERR    ((BPLib_Status_t) -159) /* CBOR decode types error: EID enter SSP array */
+#define BPLIB_CBOR_DEC_TYPES_EID_IPN_NODE_DEC_ERR       ((BPLib_Status_t) -160) /* CBOR decode types error: EID IPN node num decode */
+#define BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR       ((BPLib_Status_t) -161) /* CBOR decode types error: EID IPN serv num decode */
+#define BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR     ((BPLib_Status_t) -162) /* CBOR decode types error: EID exit SSP array */
+#define BPLIB_CBOR_DEC_TYPES_EID_EXIT_OUTER_ARRAY_ERR   ((BPLib_Status_t) -163) /* CBOR decode types error: EID exit outer array */
+#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_ENTER_ARRAY_ERR  ((BPLib_Status_t) -164) /* CBOR decode types error: timestamp enter array */
+#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_EXIT_ARRAY_ERR   ((BPLib_Status_t) -165) /* CBOR decode types error: timestamp exit array */
+#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_CREATE_DEC_ERR   ((BPLib_Status_t) -166) /* CBOR decode types error: timestamp create time decode */
+#define BPLIB_CBOR_DEC_TYPES_TIMESTAMP_SEQ_NUM_DEC_ERR  ((BPLib_Status_t) -167) /* CBOR decode types error: timestamp seq num decode */
+#define BPLIB_CBOR_DEC_TYPES_CRC_ENTER_BYTE_STR_ERR     ((BPLib_Status_t) -168) /* CBOR decode types error: CRC Val enter byte-string */
+#define BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR             ((BPLib_Status_t) -169) /* CBOR decode types error: CRC Val length not 16 */
+#define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR             ((BPLib_Status_t) -170) /* CBOR decode types error: CRC Val length not 32 */
+#define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR   ((BPLib_Status_t) -171) /* CBOR decode types error: CRC Val type */
+#define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -172) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
+#define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR     ((BPLib_Status_t) -173) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
+#define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR            ((BPLib_Status_t) -174) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_EXT_INPUT_BLOCK_INDEX_ERR        ((BPLib_Status_t) -175) /* BPLib_CBOR_EncodeExtensionBlock: Ext Block Index Error */
+#define BPLIB_CBOR_ENC_EXT_QCBOR_FINISH_ERR             ((BPLib_Status_t) -176) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_HEAD_ERR       ((BPLib_Status_t) -177) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_ADD_BYTE_STR_HEAD_ERR       ((BPLib_Status_t) -178) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_PAYL_QCBOR_FINISH_TAIL_ERR       ((BPLib_Status_t) -179) /* BPLib_CBOR_EncodeExtensionBlock: QCBOREncode_Finish Error */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_1_ERR      ((BPLib_Status_t) -180) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 1) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_2_ERR      ((BPLib_Status_t) -181) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 2) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_3_ERR      ((BPLib_Status_t) -182) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 3) */
+#define BPLIB_CBOR_ENC_BUNDLE_OUTPUT_BUF_LEN_4_ERR      ((BPLib_Status_t) -183) /* BPLib_CBOR_EncodeBundle: Output buf too small (check 4) */
 
 /* CLA errors */
-#define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -180) /* Contact is in the incorrect state to be modified */
-#define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -181) /* PSP IO driver API call failed */
-#define BPLIB_CLA_INVALID_CONTACT_ID                    ((BPLib_Status_t) -182)
-#define BPLIB_CLA_INIT_SEM_ERROR                        ((BPLib_Status_t) -183) /* Error occured with CLA initializing sempahore */
-#define BPLIB_CLA_WAKEUP_SEM_ERROR                      ((BPLib_Status_t) -184) /* Error occured with CLA wakeup sempahore */
-#define BPLIB_CLA_EXIT_SEM_ERROR                        ((BPLib_Status_t) -185) /* Error occured with CLA exit sempahore */
-#define BPLIB_CLA_TASK_CREATE_ERROR                     ((BPLib_Status_t) -186) /* Error occured while creating task */
-#define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
+#define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -200) /* Contact is in the incorrect state to be modified */
+#define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -201) /* PSP IO driver API call failed */
+#define BPLIB_CLA_INVALID_CONTACT_ID                    ((BPLib_Status_t) -202) /* Provided ID of the desired contact is invalid */
 
 /* More PI Errors */
-#define BPLIB_PI_CHAN_ID_INPUT_ERR                      ((BPLib_Status_t) -200)
+#define BPLIB_PI_CHAN_ID_INPUT_ERR                      ((BPLib_Status_t) -210)
+
+/* QM Errors */
+#define BPLIB_QM_INIT_ERROR                             ((BPLib_Status_t) -220)
+#define BPLIB_QM_BAD_WRKR_ID                            ((BPLib_Status_t) -221)
+#define BPLIB_QM_WRKR_REGISTER_ERROR                    ((BPLib_Status_t) -222)
+
+/* Storage Errors: SQL */
+#define BPLIB_STOR_SQL_INIT_ERR                         ((BPLib_Status_t) -240)
+#define BPLIB_STOR_SQL_STORAGE_ERR                      ((BPLib_Status_t) -241)
+#define BPLIB_STOR_SQL_LOAD_ERR                         ((BPLib_Status_t) -242)
+#define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
+#define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
 
 // TODO TIME Helpers
 

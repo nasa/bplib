@@ -44,12 +44,11 @@ void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t *q)
  * Generated stub function for BPLib_QM_WaitQueueInit()
  * ----------------------------------------------------
  */
-bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t *q, void *storage, size_t el_size, size_t capacity)
+bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t *q, size_t el_size, size_t capacity)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_WaitQueueInit, bool);
 
     UT_GenStub_AddParam(BPLib_QM_WaitQueueInit, BPLib_QM_WaitQueue_t *, q);
-    UT_GenStub_AddParam(BPLib_QM_WaitQueueInit, void *, storage);
     UT_GenStub_AddParam(BPLib_QM_WaitQueueInit, size_t, el_size);
     UT_GenStub_AddParam(BPLib_QM_WaitQueueInit, size_t, capacity);
 
@@ -81,12 +80,12 @@ bool BPLib_QM_WaitQueueTryPull(BPLib_QM_WaitQueue_t *q, void *ret_item, int time
  * Generated stub function for BPLib_QM_WaitQueueTryPush()
  * ----------------------------------------------------
  */
-bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t *q, void *item, int timeout_ms)
+bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t *q, const void *item, int timeout_ms)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_WaitQueueTryPush, bool);
 
     UT_GenStub_AddParam(BPLib_QM_WaitQueueTryPush, BPLib_QM_WaitQueue_t *, q);
-    UT_GenStub_AddParam(BPLib_QM_WaitQueueTryPush, void *, item);
+    UT_GenStub_AddParam(BPLib_QM_WaitQueueTryPush, const void *, item);
     UT_GenStub_AddParam(BPLib_QM_WaitQueueTryPush, int, timeout_ms);
 
     UT_GenStub_Execute(BPLib_QM_WaitQueueTryPush, Basic, NULL);

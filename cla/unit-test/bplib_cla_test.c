@@ -83,7 +83,7 @@ void Test_BPLib_CLA_Ingress_BadContId(void)
                                      sizeof(InputBundleBuffer),
                                      Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_CONT_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_INVALID_CONTACT_ID);
     UtAssert_STUB_COUNT(BPLib_CLA_IsAControlMsg, 0);
     UtAssert_STUB_COUNT(BPLib_CLA_ProcessControlMessage, 0);
     UtAssert_STUB_COUNT(BPLib_BI_RecvFullBundleIn, 0);
@@ -220,7 +220,7 @@ void Test_BPLib_CLA_Egress_BadContId(void)
                                     OutputBundleBufferLength,
                                     Timeout);
 
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_CONT_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_INVALID_CONTACT_ID);
     UtAssert_INT32_EQ(NumBytesCopiedToOutputBuf, 0);
     UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
