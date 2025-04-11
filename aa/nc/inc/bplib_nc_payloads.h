@@ -192,6 +192,7 @@ typedef struct
 {
     uint32_t                    ContactID;                              /**< \brief Unique ID for this contact */
     BPLib_CLA_ContactRunState_t State;                                  /**< \brief Configured, Running, or Off */
+    uint8_t                     Spare[3];
     char                        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
     uint32_t                    OutputQueueID;                          /**< \brief Output queue ID */
     uint32_t                    Spare1;

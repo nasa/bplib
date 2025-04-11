@@ -1193,12 +1193,21 @@ void BPLib_NC_SendStorageHk()
 
 void BPLib_NC_SendChannelContactStatHk()
 {
-    BPLib_Status_t Status;
-    uint32_t       ContactId;
+    BPLib_Status_t              Status;
+    uint32_t                    ContactId;
+    BPLib_CLA_ContactRunState_t RunState;
 
     for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
     {
-        BPLib_NC_ChannelContactStatsPayload.ContactStatus[ContactId].State = BPLib_CLA_ContactRunStates[ContactId];
+        Status = BPLib_CLA_GetContactRunState(BPLib_CLA_ContactRunStates[ContactId], &RunState);
+        if (Status == BPLIB_SUCCESS)
+        {
+            BPLib_NC_ChannelContactStatsPayload.ContactStatus[ContactId].State = RunState;
+        }
+        else
+        {
+            // BPLib_EM_SendEvent()
+        }
     }
 
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_NC_ChannelContactStatsPayload);
