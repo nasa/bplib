@@ -1199,7 +1199,7 @@ void BPLib_NC_SendChannelContactStatHk()
 
     for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
     {
-        Status = BPLib_CLA_GetContactRunState(BPLib_CLA_ContactRunStates[ContactId], &RunState);
+        Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
         if (Status == BPLIB_SUCCESS)
         {
             BPLib_NC_ChannelContactStatsPayload.ContactStatus[ContactId].State = RunState;
