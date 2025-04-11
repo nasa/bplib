@@ -198,7 +198,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
-        if (RunState == BPLIB_CLA_SETUP)
+        if (RunState == BPLIB_CLA_SETUP || RunState == BPLIB_CLA_STOPPED)
         { /* Contact must be set up before running */
             Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
             if (Status == BPLIB_SUCCESS)
