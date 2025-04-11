@@ -18,32 +18,17 @@
  *
  */
 
-#ifndef BPLIB_CLA_TEST_UTILS_H
-#define BPLIB_CLA_TEST_UTILS_H
-
-/* ======== */
-/* Includes */
-/* ======== */
+ #ifndef BPLIB_CLA_HANDLERS_H
+ #define BPLIB_CLA_HANDLERS_H
+ 
+ /* ======== */
+ /* Includes */
+ /* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib_cla.h"
-#include "bplib_api_types.h"
-#include "bplib_cla_internal.h"
-#include "bplib_qm_handlers.h"
+void UT_Handler_BPLib_CLA_GetContactRunState(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
-/* ==================== */
-/* Function Definitions */
-/* ==================== */
-
-void BPLib_CLA_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
-
-void BPLib_CLA_Test_Setup(void);
-void BPLib_CLA_Test_Teardown(void);
-
-void TestBplibCla_Register(void);
-void TestBplibClaInternal_Register(void);
-
-#endif /* BPLIB_CLA_TEST_UTILS_H */
+#endif /* BPLIB_CLA_HANDLERS_H */

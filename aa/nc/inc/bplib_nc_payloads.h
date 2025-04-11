@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
+#include "bplib_cla.h"
 
 /* =================== */
 /* Payload Definitions */
@@ -133,22 +134,22 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint32_t ContactId;
 } BPLib_ContactSetup_Payload_t;
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint32_t ContactId;
 } BPLib_ContactStart_Payload_t;
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint32_t ContactId;
 } BPLib_ContactStop_Payload_t;
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint32_t ContactId;
 } BPLib_ContactTeardown_Payload_t;
 
 typedef struct
@@ -189,11 +190,12 @@ typedef struct
 
 typedef struct
 {
-    uint32_t    ContactID;                              /**< \brief Unique ID for this contact */
-    uint32_t    State;                                  /**< \brief Configured, Running, or Off */
-    char        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
-    uint32_t    OutputQueueID;                          /**< \brief Output queue ID */
-    uint32_t    Spare1;
+    uint32_t                    ContactID;                              /**< \brief Unique ID for this contact */
+    BPLib_CLA_ContactRunState_t State;                                  /**< \brief Configured, Running, or Off */
+    uint8_t                     Spare[3];
+    char                        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
+    uint32_t                    OutputQueueID;                          /**< \brief Output queue ID */
+    uint32_t                    Spare1;
 } BPLib_ContactHkTlmPayloadSet_t;
 
 typedef struct

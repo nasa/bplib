@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc_directives.h"
+#include "bplib_cla.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -786,131 +787,100 @@ void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
 
 void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    1) Verify that table was validated via cFS table upload.    
-    2) Checks if path is available for assignment
-    3) Assigns an instance of BI and CLA
-    4) Configures assigned instances of BI, CT, EBP, CLA based on configuration
-    5) Registers CLA with Storage given the table configuration (Path ID, EID map)
+    Status = BPLib_CLA_ContactSetup(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact setup directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-setup directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_SETUP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact setup directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-setup directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - Identify contact
-    Status = BPLib_CLA_ContactStart();
+    Status = BPLib_CLA_ContactStart(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_START_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact start directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-start directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_START_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact start directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-start directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - Identify contact to be stopped
-    Status = BPLib_CLA_ContactStop();
-
-    - Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
+    Status = BPLib_CLA_ContactStop(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
+        /* TODO: Request Storage clear all queues associated with the CLA. Storage clears the queues */
+
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact stop directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-stop directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_STOP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact stop directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-stop directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    - If contact has been stopped, Node Configuration deconfigures the CLA
-    - Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
+    Status = BPLib_CLA_ContactTeardown(Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Contact teardown directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful contact-teardown directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_CONTACT_TEARDOWN_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Contact teardown directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Failed contact-teardown directive for contact ID = %d",
+                            Payload.ContactId);
     }
-    */
 }
 
 void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
@@ -1223,7 +1193,22 @@ void BPLib_NC_SendStorageHk()
 
 void BPLib_NC_SendChannelContactStatHk()
 {
-    BPLib_Status_t Status;
+    BPLib_Status_t              Status;
+    uint32_t                    ContactId;
+    BPLib_CLA_ContactRunState_t RunState;
+
+    for (ContactId = 0; ContactId < BPLIB_MAX_NUM_CONTACTS; ContactId++)
+    {
+        Status = BPLib_CLA_GetContactRunState(ContactId, &RunState);
+        if (Status == BPLIB_SUCCESS)
+        {
+            BPLib_NC_ChannelContactStatsPayload.ContactStatus[ContactId].State = RunState;
+        }
+        else
+        {
+            // BPLib_EM_SendEvent()
+        }
+    }
 
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_NC_ChannelContactStatsPayload);
 

@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc.h"
+#include "bplib_fwp.h"
 #include "bplib_crc.h"
 #include "bplib_nc_rwlock.h"
 
