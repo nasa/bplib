@@ -123,7 +123,7 @@ if (IS_CFS_ARCH_BUILD)
   add_cfe_app(bplib ${BPLIB_SRC})
 
   # link with the requisite dependencies
-  target_link_libraries(bplib qcbor m)
+  target_link_libraries(bplib qcbor m sqlite3)
 
 else()
 
@@ -134,7 +134,7 @@ else()
   add_library(bplib ${BPLIB_SRC})
 
   # link with the requisite dependencies
-  target_link_libraries(bplib qcbor m)
+  target_link_libraries(bplib qcbor m sqlite3)
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done
@@ -176,6 +176,7 @@ else()
 
   endif()
 
+  # Build bpcat always
   add_subdirectory(app)
 
 endif()

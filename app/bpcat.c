@@ -27,6 +27,7 @@
 #include "bpcat_cla.h"
 
 #include "osapi.h"
+#include <unistd.h>
 
 /*******************************************************************************
 ** Configuration Definitions
@@ -63,10 +64,10 @@ static BPLib_Status_t BPCat_GenWorkerTaskTeardown()
 
 static void* BPCat_GenWorkerTaskFunc(BPCat_AppData_t* gAppData)
 {
-    while (gAppData->Running)
-    {
-        BPLib_QM_RunJob(&gAppData->BPLibInst, BPCAT_GEN_WORKER_TIMEOUT);
-    }
+    // while (gAppData->Running)
+    // {
+    //     BPLib_QM_RunJob(&gAppData->BPLibInst, BPCAT_GEN_WORKER_TIMEOUT);
+    // }
     return NULL;
 }
 
@@ -242,8 +243,7 @@ void BPCat_Main()
     /* Run until a SIGINT (CTRL-C) sets AppRun to 0 */
     while (AppData.Running)
     {
-        BPLib_QM_SortJobs(&AppData.BPLibInst, BPCAT_JOBS_PER_CYCLE);
-        /* BPLib_ScanCache goes here */
+        sleep(1);
     }
 
     /* Exit Signal Received */

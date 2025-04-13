@@ -14,9 +14,9 @@ project(BPLIB_TEST_APP C)
 # Sanity check: bpcat assumes a POSIX system
 # and uses pthread calls.  If not POSIX, then
 # this tool will not build.
-# if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
-#   message(FATAL_ERROR "BPLib Test applications require POSIX")
-# endif()
+#if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
+#  message(FATAL_ERROR "BPLib Test applications require POSIX")
+#endif()
 
 set(BPAPP_COMPILE_FEATURES "c_std_99")
 set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
@@ -28,6 +28,7 @@ add_executable(bpcat
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_fwp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_cla.c
 )
+target_include_directories(bpcat PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 # compile this app as c99 (but this does not impose the same requirement on other users)
 target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})
@@ -36,7 +37,7 @@ target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})
 target_compile_options(bpcat PRIVATE ${BPAPP_COMPILE_OPTIONS})
 
 # Low level test apps may include "private" headers, whereas higher level tests should not
-target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
+target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 
 # link with bplib
 target_link_libraries(bpcat ${BPAPP_LINK_LIBRARIES})

@@ -25,6 +25,7 @@
  */
 
 #include "bpa_fwp_stubs.h"
+#include "bplib_cla.h"
 #include "utgenstub.h"
 
 /*
@@ -89,6 +90,67 @@ BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
     UT_GenStub_Execute(BPA_ADUP_StopApplication, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPA_ADUP_StopApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactSetup()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactSetup, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, uint32, ContactId);
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, BPLib_CLA_ContactsSet_t, ContactInfo);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactSetup, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_CLAP_ContactSetup, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactStart()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_CLAP_ContactStart(uint32_t ContactId)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactStart, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_CLAP_ContactStart, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactStart, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_CLAP_ContactStart, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactStop()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_CLAP_ContactStop(uint32_t ContactId)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactStop, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_CLAP_ContactStop, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactStop, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_CLAP_ContactStop, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_CLAP_ContactTeardown()
+ * ----------------------------------------------------
+ */
+void BPA_CLAP_ContactTeardown(uint32_t ContactId)
+{
+    UT_GenStub_AddParam(BPA_CLAP_ContactTeardown, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPA_CLAP_ContactTeardown, Basic, NULL);
 }
 
 /*

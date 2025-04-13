@@ -23,15 +23,23 @@
 /* ======== */
 
 #include "bplib_nc.h"
+#include "bplib_fwp.h"
+#include "bplib_crc.h"
+#include "bplib_nc_rwlock.h"
 
 /* ======= */
 /* Globals */
 /* ======= */
-
+static BPLib_NC_RWLock_t BPLib_NC_CfgLock;
 BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
 BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
 BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 BPLib_NC_ConfigPtrs_t                   BPLib_NC_ConfigPtrs;
+
+/* ==================== */
+/* Prototypes           */
+/* ==================== */
+static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void);
 
 /* ==================== */
 /* Function Definitions */
@@ -44,6 +52,13 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     memset((void*) &BPLib_NC_SourceMibConfigPayload,     0, sizeof(BPLib_NC_SourceMibConfigPayload));
     memset((void*) &BPLib_NC_NodeMibConfigPayload,       0, sizeof(BPLib_NC_NodeMibConfigPayload));
     memset((void*) &BPLib_NC_ChannelContactStatsPayload, 0, sizeof(BPLib_NC_ChannelContactStatsPayload));
+
+    /* Initialize the configuration lock */
+    Status = BPLib_NC_RWLock_Init(&BPLib_NC_CfgLock);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }
 
     /* Set bundle protocol version */
     BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
@@ -79,9 +94,36 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
         BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
         BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
 
+        /* Initialize CRC tables */
+        BPLib_CRC_Init();
+
         /* Initialize AS */
         Status = BPLib_AS_Init();
     }
+
+    return Status;
+}
+
+/*******************************************************************************
+* Locked Wrapper Functions
+*/
+void BPLib_NC_ReaderLock()
+{
+    BPLib_NC_RWLock_RLock(&BPLib_NC_CfgLock);
+}
+
+void BPLib_NC_ReaderUnlock()
+{
+    BPLib_NC_RWLock_RUnlock(&BPLib_NC_CfgLock);
+}
+
+BPLib_Status_t BPLib_NC_ConfigUpdate()
+{
+    BPLib_Status_t Status;
+
+    BPLib_NC_RWLock_WLock(&BPLib_NC_CfgLock);
+    Status = BPLib_NC_ConfigUpdateUnlocked();
+    BPLib_NC_RWLock_WUnlock(&BPLib_NC_CfgLock);
 
     return Status;
 }
@@ -128,7 +170,7 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
     return BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State;
 }
 
-BPLib_Status_t BPLib_NC_ConfigUpdate(void)
+static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
 {
     BPLib_Status_t FWP_UpdateStatus;
     // BPLib_Status_t ModuleStatus;

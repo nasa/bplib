@@ -27,13 +27,11 @@
 
 #include "bplib_api_types.h"
 #include "bplib_nc_payloads.h"
-#include "bplib_nc_directives.h"
-#include "bplib_as.h"
 #include "bplib_pi.h"
 #include "bplib_cla.h"
 #include "bplib_arp.h"
 #include "bplib_pdb.h"
-#include "bplib_fwp.h"
+#include "bplib_stor.h"
 
 /* ======== */
 /* Typedefs */
@@ -103,6 +101,23 @@ extern BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
   * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration is NULL
   */
 BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs);
+
+/**
+ * \brief Acquires the reader lock on the node configuration.
+ *
+ * \details This function acquires the reader lock on the node configuration,
+ * allowing multiple readers to access the configuration data simultaneously
+ * as long as no writer holds the lock.
+ */
+void BPLib_NC_ReaderLock(void);
+
+/**
+ * \brief Releases the reader lock on the node configuration.
+ *
+ * \details This function releases the reader lock on the node configuration,
+ * allowing other threads (readers or writers) to acquire the lock as needed.
+ */
+void BPLib_NC_ReaderUnlock(void);
 
 /**
  * \brief Validate MIB Per Node Configuration Table configurations

@@ -60,7 +60,11 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         Callbacks->BPA_TLMP_SendPerSourceMibCounterPkt   == NULL ||
         Callbacks->BPA_TLMP_SendChannelContactPkt        == NULL ||
         Callbacks->BPA_TLMP_SendStoragePkt               == NULL ||
-        Callbacks->BPA_TABLEP_TableUpdate                == NULL)
+        Callbacks->BPA_TABLEP_TableUpdate                == NULL ||
+        Callbacks->BPA_CLAP_ContactSetup                 == NULL ||
+        Callbacks->BPA_CLAP_ContactStart                 == NULL ||
+        Callbacks->BPA_CLAP_ContactStop                  == NULL ||
+        Callbacks->BPA_CLAP_ContactTeardown              == NULL)
     {
         Status = BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -96,6 +100,12 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
 
         /* Initialize Table Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate = Callbacks->BPA_TABLEP_TableUpdate;
+
+        /* Initialize CLA Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactSetup    = Callbacks->BPA_CLAP_ContactSetup;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart    = Callbacks->BPA_CLAP_ContactStart;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStop     = Callbacks->BPA_CLAP_ContactStop;
+        BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown = Callbacks->BPA_CLAP_ContactTeardown;
 
         /* Initialize other proxies' callbacks TODO */
     }

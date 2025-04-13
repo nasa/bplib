@@ -21,51 +21,110 @@
 #ifndef BPLIB_CRC_PRIVATE_H
 #define BPLIB_CRC_PRIVATE_H
 
-/******************************************************************************
- INCLUDES
- ******************************************************************************/
+/*
+** Include
+*/
 
 #include "bplib_api_types.h"
 
-/******************************************************************************
- DEFINES
- ******************************************************************************/
+
+/*
+** Macro Definitions
+*/
 
 #define BPLIB_CRC16_X25_POLY 0x1021U
 #define BPLIB_CRC32_C_POLY   0x1EDC6F41U
 
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
-
 /*
- * Definition of generic-ish CRC data digest function.
- * Updates the CRC based on the data in the given buffer.
- */
-typedef BPLib_CRC_Val_t (*BPLib_CRC_DigestFunc_t)(BPLib_CRC_Val_t crc, const void *data, size_t size);
+** Type Definitions
+*/
 
-/*
- * Actual definition of CRC parameters
+/**
+ * @brief Generic CRC digest function definition
  */
-struct BPLib_CRC_Parameters
+typedef BPLib_CRC_Val_t (*BPLib_CRC_DigestFunc_t)(const void *Data, size_t DataLen);
+
+/**
+ * @brief Parameters associated with each CRC implementation
+ */
+typedef struct
 {
-    const char *name;                  /* Name of the CRC. */
-    uint8_t     length;                /* The number of bits in the CRC. */
-    bool        should_reflect_output; /* Whether to reflect the bits of the output crc. */
+    uint8_t Length;                /** \brief The number of bits in the CRC */
+    bool    ShouldReflectOutput;   /** \brief Whether to reflect the bits of the final CRC */
+    BPLib_CRC_DigestFunc_t Digest; /** \brief Function to run particular CRC algorithm with */
+    BPLib_CRC_Val_t FinalXor;      /** \brief The final value to XOR the CRC with before returning (normalized) */
+} BPLib_CRC_Parameters_t;
 
-    const uint8_t *input_table; /* A ptr to a table for input translation (reflect or direct) */
-    const void    *xor_table;   /* A ptr to a table with the precomputed XOR values. */
 
-    BPLib_CRC_DigestFunc_t digest; /* externally-callable "digest" routine to update CRC with new data */
+/*
+** Internal Functions 
+*/
 
-    BPLib_CRC_Val_t initial_value; /* The value used to initialize a CRC (normalized). */
-    BPLib_CRC_Val_t final_xor;     /* The final value to xor with the crc before returning (normalized). */
-};
+/**
+ * \brief Get CRC-16/X.25
+ *
+ *  \par Description
+ *       Calculates the CRC of the provided data using the CRC-16/X.25 algorithm
+ * 
+ *  \param[in] DataPtr Pointer to byte array to calculate CRC for
+ *  \param[in] DataLen Length of data
+ *
+ *  \return CRC-16 Value
+ */
+uint16_t BPLib_CRC_GetCrc16X25(const uint8_t *DataPtr, size_t DataLen);
 
-BPLib_CRC_Val_t PrecomputeCrcByte(uint8_t width, uint8_t byte, BPLib_CRC_Val_t polynomial);
-uint8_t     BPLib_STOR_CACHE_PrecomputeReflection(uint8_t byte);
+/**
+ * \brief Get CRC-32/Castagnoli
+ *
+ *  \par Description
+ *       Calculates the CRC of the provided data using the CRC-32/Castagnoli algorithm
+ * 
+ *  \param[in] DataPtr Pointer to byte array to calculate CRC for
+ *  \param[in] DataLen Length of data
+ *
+ *  \return CRC-16 Value
+ */
+uint32_t BPLib_CRC_GetCrc32Castagnoli(const uint8_t *DataPtr, size_t DataLen);
 
-extern uint8_t BPLIB_CRC_DIRECT_TABLE[256];
-extern uint8_t BPLIB_CRC_REFLECT_TABLE[256];
+/**
+ * \brief Precompute CRC byte
+ *
+ *  \par Description
+ *       Compute a byte for a CRC table
+ * 
+ *  \param[in] Width Width of the table data type
+ *  \param[in] Byte Byte
+ *  \param[in] Polynomial The polynomial associated with the CRC algorithm
+ *
+ *  \return CRC table byte value
+ */
+uint32_t BPLib_CRC_PrecomputeCrcByte(uint8_t Width, uint8_t Byte, uint32_t Polynomial);
+
+/**
+ * \brief Precompute reflection
+ *
+ *  \par Description
+ *       Compute a byte for the reflection table.
+ * 
+ *  \param[in] Byte Byte
+ *
+ *  \return Reflection table byte value
+ */
+uint8_t BPLib_CRC_PrecomputeReflection(uint8_t Byte);
+
+/**
+ * \brief Finalize CRC
+ *
+ *  \par Description
+ *       Takes a CRC value and finalizes it by optionally reflecting the value, XOR-ing
+ *       it with the final XOR value, and ensuring its length is limited to the length of
+ *       its CRC type
+ * 
+ *  \param[in] Params Pointer to parameters for the particular CRC algorithm
+ *  \param[in] Crc Current value of the CRC
+ *
+ *  \return Final CRC Value
+ */
+BPLib_CRC_Val_t BPLib_CRC_Finalize(BPLib_CRC_Parameters_t *Params, BPLib_CRC_Val_t Crc);
 
 #endif /* BPLIB_CRC_PRIVATE_H */

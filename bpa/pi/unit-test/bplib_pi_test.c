@@ -75,6 +75,10 @@ void Test_BPLib_PI_Ingress_Nominal(void)
     UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BundleAlloc), 1, (UT_IntReturn_t) &Bundle);
 
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+
+    /* Ensure Node Config is locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderLock, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderUnlock, 1);
 }
 
 /* Test ingress function null checks */

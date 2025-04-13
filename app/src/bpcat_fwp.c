@@ -141,6 +141,26 @@ static BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
     return BPLIB_SUCCESS;
 }
 
+static BPLib_Status_t BPA_CLAP_ContactSetup(uint32_t ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+{
+    return BPLIB_SUCCESS;
+}
+
+static BPLib_Status_t BPA_CLAP_ContactStart(uint32_t ContactId)
+{
+    return BPLIB_SUCCESS;
+}
+
+static BPLib_Status_t BPA_CLAP_ContactStop(uint32_t ContactId)
+{
+    return BPLIB_SUCCESS;
+}
+
+static void BPA_CLAP_ContactTeardown(uint32_t ContactId)
+{
+    return;
+}
+
 static BPLib_FWP_ProxyCallbacks_t Callbacks = {
     /* Time Proxy */
     .BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime,
@@ -171,7 +191,13 @@ static BPLib_FWP_ProxyCallbacks_t Callbacks = {
     .BPA_TLMP_SendNodeMibCounterPkt = BPA_TLMP_SendNodeMibCounterPkt,
     .BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt,
     .BPA_TLMP_SendChannelContactPkt = BPA_TLMP_SendChannelContactPkt,
-    .BPA_TLMP_SendStoragePkt = BPA_TLMP_SendStoragePkt
+    .BPA_TLMP_SendStoragePkt = BPA_TLMP_SendStoragePkt,
+
+    /* CLA Proxy */
+    .BPA_CLAP_ContactSetup = BPA_CLAP_ContactSetup,
+    .BPA_CLAP_ContactStart = BPA_CLAP_ContactStart,
+    .BPA_CLAP_ContactStop = BPA_CLAP_ContactStop,
+    .BPA_CLAP_ContactTeardown = BPA_CLAP_ContactTeardown,
 };
 
 BPCat_Status_t BPCat_FWP_Init()

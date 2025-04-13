@@ -21,17 +21,25 @@
 #ifndef BPLIB_CLA_H
 #define BPLIB_CLA_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
+
+#include <stdio.h>
 
 #include "bplib_api_types.h"
+#include "bplib_eventids.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_qm.h"
+#include "bplib_em.h"
+
+/* ======== */
+/* Typedefs */
+/* ======== */
 
 /* There are 4 types of control message types, received from CL*/
-typedef enum 
+typedef enum
 {
     SentIt              = 0, /* LTP Only, CL sends out */
     SessionComplete     = 1, /*For LTP, Other end received*/
@@ -39,13 +47,13 @@ typedef enum
     SessionStarted      = 3 /* Session started, do nothing*/
 }BPLib_CLA_CtrlMsgTypes_t;
 
-typedef enum 
+typedef enum
 {
     UDPType = 0x00000000,
     TCPType = 0x00000001,
     EPPType = 0x00000002,
     LTPType = 0x00000003,
-}CLAType_t;
+} CLAType_t;
 
 typedef struct
 {
@@ -56,44 +64,59 @@ typedef struct
     uint8_t     MsgTypes;
 } BPLib_CLA_CtrlMsg_t;
 
-/*
-** Contacts Table
-*/
+typedef enum
+{
+    BPLIB_CLA_TORNDOWN = 0, /* Default to torn down */
+    BPLIB_CLA_SETUP    = 1,
+    BPLIB_CLA_STARTED  = 2,
+    BPLIB_CLA_STOPPED  = 3,
+    BPLIB_CLA_EXITED   = 4,
+} BPLib_CLA_ContactRunState_t;
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+/**
+  * \brief Array use to track the run states of all active contacts. The run states
+  *        are associated with the contact ID via the index into the array.
+  *        Ex: BPLib_CLA_ContactRunStates[0] is the contact run state for contact ID 0
+  */
+ extern BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[];
+
+/**
+ * \brief Global Contacts Configuration
+ */
 typedef struct
 {
-    uint32_t            ContactID;
     BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
     CLAType_t           CLAType;
      /**
       * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
-      * pnode_contact_tbl.c is
+      * bpnode_contact_tbl.c is
       * .CLAddr = "127.0.0.1"
       * which makes it a string containing an IP address, not an EID.
       */
-    char                     CLAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t                  PortNum;
-    uint32_t                 DestLTPEngineID;
-    uint32_t                 SendBytePerCycle;
-    uint32_t                 ReceiveBytePerCycle;
-    uint32_t                 RetransmitTimeout;
-    uint32_t                 CSTimeTrigger;
-    uint32_t                 CSSizeTrigger;
+    char                ClaInAddr[BPLIB_MAX_EID_LENGTH];
+    char                ClaOutAddr[BPLIB_MAX_EID_LENGTH];
+    int32_t             ClaInPort;
+    int32_t             ClaOutPort;
+    uint32_t            DestLTPEngineID;
+    uint32_t            SendBytePerCycle;
+    uint32_t            ReceiveBytePerCycle;
+    uint32_t            RetransmitTimeout;
+    uint32_t            CSTimeTrigger;
+    uint32_t            CSSizeTrigger;
 } BPLib_CLA_ContactsSet_t;
 
-struct BPLib_CLA_ContactsTable
+typedef struct
 {
     BPLib_CLA_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
-};
+} BPLib_CLA_ContactsTable_t;
 
-/*
-** Table Type def
-*/
- typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;  
-
-/*
-** Exported Functions
-*/
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /* CLA I/O (bundle data units) */
 
@@ -101,11 +124,11 @@ struct BPLib_CLA_ContactsTable
  * \brief CLA Ingress function
  *
  *  \par Description
- *       Receive bundle from CL and pass it Bundle Interface 
+ *       Receive bundle from CL and pass it Bundle Interface
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
- * 
+ *
  *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContId Contact ID
  *  \param[in] Bundle Pointer to bundle to ingress
@@ -115,18 +138,18 @@ struct BPLib_CLA_ContactsTable
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, 
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId,
                                     const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
  *
  *  \par Description
- *       Receive bundle from Bundle Interface and send it to CL 
+ *       Receive bundle from Bundle Interface and send it to CL
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
- * 
+ *
  *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContId Contact ID
  *  \param[in] BundleOut Pointer to put egressing bundle into
@@ -137,17 +160,18 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut, 
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *BundleOut,
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
+
 /**
- * \brief Validate Contact Table configurations
+ * \brief Validate Contacts Configuration
  *
  *  \par Description
- *       Validate configuration table parameters
+ *       Validate configuration parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
- *         Every time a new Contact table is loaded, this function should be called to
+ *       - This function is called by whatever external task handles table management.
+ *         Every time a new Contacts Configuration is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
@@ -156,5 +180,81 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
  *  \retval BPLIB_SUCCESS Validation was successful
  */
 BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
+
+/**
+ * \brief     Find the requested contact ID in the Contacts Configuration and pass that information to the
+ *            CLA proxy to configure the CLA with
+ * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to setup
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Contact ID could not be found in the Contacts Configuration
+ * \retval    BPLIB_CLA_CONTACTS_MAX_REACHED: Setting up contact would exceed maximum simultaneous
+ *                                            contacts allowed
+ */
+BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId);
+
+/**
+ * \brief     Pass Contact ID to start, on to CLA proxy
+ * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to start
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ * \retval    BPLIB_CLA_IO_ERROR: A UDP conntection couldn't be set to running
+ */
+BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
+
+/**
+ * \brief     Pass Contact ID to stop, on to CLA proxy
+ * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to stop
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ */
+BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
+
+/**
+ * \brief     If the contact has been stopped, deconfigure the CLA via BI, CT, EBP, and CLA
+ * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration to teardown
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_CLA_UNKNOWN_CONTACT: Provided contact ID does not match a contact ID in
+ *                                       the Contacts Configuration
+ * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
+ *                                       successful operation
+ * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ */
+BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
+
+/**
+  * \brief      Get access to the run state of a particular contact
+  * \param[in]  ContactId (uint32_t) Contact ID from the Contacts Configuration of whose run
+  *                                  state should be returned
+  * \param[out] ReturnState (BPLib_CLA_ContactRunState_t*) If the contact ID is deemed valid,
+  *                                                        this will be the state of the request
+  *                                                        contact at the contact ID
+  * \return     Execution Status
+  * \retval     BPLIB_SUCCESS: Successful execution
+  * \retval     BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+  */
+BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState);
+
+/**
+  * \brief     Set the run state of the provided contact to BPLIB_CLA_EXITED
+  * \note      This function is for external use of the contact run state accessor. Only exiting the application is allowed
+  *            for the non-BPLib-CLA scope.
+  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration whose run state is being requested to change
+  * \return    Execution status (Status assigned by BPLib_CLA_SetContactRunState)
+  * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
+  * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID does not match a contact ID in the Contacts Configuration
+  */
+BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
 
 #endif /* BPLIB_CLA_H */

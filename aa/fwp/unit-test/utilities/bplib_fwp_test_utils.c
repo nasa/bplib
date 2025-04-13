@@ -59,6 +59,10 @@ void BPLib_FWP_Test_Setup(void)
     TestCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
     TestCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
     TestCallbacks.BPA_TABLEP_TableUpdate              = BPA_TABLEP_TableUpdate;
+    TestCallbacks.BPA_CLAP_ContactSetup               = BPA_CLAP_ContactSetup;
+    TestCallbacks.BPA_CLAP_ContactStart               = BPA_CLAP_ContactStart;
+    TestCallbacks.BPA_CLAP_ContactStop                = BPA_CLAP_ContactStop;
+    TestCallbacks.BPA_CLAP_ContactTeardown            = BPA_CLAP_ContactTeardown;
 
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
