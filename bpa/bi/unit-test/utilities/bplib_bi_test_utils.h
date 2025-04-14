@@ -34,6 +34,13 @@
 
 
 /*
+** Global Data
+*/
+
+extern BPLib_Bundle_t DeserializedBundle;
+
+
+/*
 ** Function Definitions
 */
 

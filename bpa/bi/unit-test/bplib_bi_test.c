@@ -94,12 +94,10 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 {
     BPLib_Status_t ReturnStatus;
     BPLib_Instance_t Instance;
-    BPLib_Bundle_t AllocatedBundleMem;
     char BundleIn[32];
     size_t Size = 0;
 
-    memset(&AllocatedBundleMem, 0, sizeof(AllocatedBundleMem));
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &AllocatedBundleMem);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
