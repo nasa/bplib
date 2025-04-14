@@ -60,6 +60,7 @@ target_include_directories(coverage-bplib_nc-testrunner PRIVATE
     $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_em_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
@@ -72,6 +73,7 @@ target_link_libraries(coverage-bplib_nc-testrunner PUBLIC
     bpa_fwp_stubs
     bplib_stor_stubs
     bplib_eid_stubs
+    bplib_cla_stubs
     bplib_crc_stubs
 )
 

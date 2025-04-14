@@ -11,10 +11,12 @@
 add_library(bplib_cla_stubs STATIC
     stubs/bplib_cla_stubs.c
     stubs/bplib_cla_internal_stubs.c
+    stubs/bplib_cla_handlers.c
 )
 
 target_include_directories(bplib_cla_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    stubs
     ../src
 )
 
@@ -57,6 +59,9 @@ target_include_directories(coverage-bplib_cla-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_bi,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
@@ -66,6 +71,9 @@ target_link_libraries(coverage-bplib_cla-testrunner PUBLIC
     bplib_bi_stubs
     bplib_mem_stubs
     bplib_qm_stubs
+    bplib_nc_stubs
+    bplib_fwp_stubs
+    bpa_fwp_stubs
     bplib_em_stubs
 )
 

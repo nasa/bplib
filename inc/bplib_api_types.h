@@ -75,7 +75,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 ** Macros
 */
 
-#define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
+#define BPLIB_BUNDLE_PROTOCOL_VERSION                   (7u)     /** @brief Version of Bundle Protocol being implemented */
 
 
 /** 
@@ -114,28 +114,28 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 /*
  * \brief Job egress ID to use before a bundle's route is known 
 */
-#define BPLIB_UNKNOWN_ROUTE_ID          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
+#define BPLIB_UNKNOWN_ROUTE_ID                          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
 
 /** 
  * @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
-#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Configuration has been updated */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
-#define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
-#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Configuration validation error code */
-#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
-#define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
-#define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
-#define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
-#define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
-#define BPLIB_INVALID_CRC_ERROR             ((BPLib_Status_t) -11) /* Invalid CRC */
-#define BPLIB_OS_ERROR                      ((BPLib_Status_t) -12)
-#define BPLIB_INVALID_CHAN_ID_ERR           ((BPLib_Status_t) -13) /* Invalid Channel ID */
+#define BPLIB_TBL_UPDATED                               ((BPLib_Status_t)  1)  /* Configuration has been updated */
+#define BPLIB_SUCCESS                                   ((BPLib_Status_t)  0)  /* Successful execution */
+#define BPLIB_ERROR                                     ((BPLib_Status_t) -1)  /* Failed execution */
+#define BPLIB_UNIMPLEMENTED                             ((BPLib_Status_t) -2)  /* Unimplemented function */
+#define BPLIB_UNKNOWN                                   ((BPLib_Status_t) -3)  /* Unknown return status */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE               ((BPLib_Status_t) -4)  /* Configuration validation error code */
+#define BPLIB_RBT_DUPLICATE                             ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
+#define BPLIB_TIMEOUT                                   ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
+#define BPLIB_NULL_PTR_ERROR                            ((BPLib_Status_t) -7)  /* Null pointer error */
+#define BPLIB_BUF_LEN_ERROR                             ((BPLib_Status_t) -8)  /* Buffer length error */
+#define BPLIB_INVALID_EID                               ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
+#define BPLIB_INVALID_EID_PATTERN                       ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
+#define BPLIB_INVALID_CRC_ERROR                         ((BPLib_Status_t) -11) /* Invalid CRC */
+#define BPLIB_OS_ERROR                                  ((BPLib_Status_t) -12)
+#define BPLIB_INVALID_CHAN_ID_ERR                       ((BPLib_Status_t) -13) /* Invalid Channel ID */
 
 /*
 
@@ -151,59 +151,59 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 */
 
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -26)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR                   ((BPLib_Status_t) -26)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -27)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -28)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -29)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -30)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR                    ((BPLib_Status_t) -27)
+#define BPLIB_TIME_WRITE_ERROR                          ((BPLib_Status_t) -28)
+#define BPLIB_TIME_READ_ERROR                           ((BPLib_Status_t) -29)
+#define BPLIB_TIME_UNINIT_ERROR                         ((BPLib_Status_t) -30)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -31)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -32)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -33)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -34)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -35)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -36)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -37)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -38)
+#define BPLIB_EM_STRING_TRUNCATED                       ((BPLib_Status_t) -31)
+#define BPLIB_EM_ILLEGAL_APP_ID                         ((BPLib_Status_t) -32)
+#define BPLIB_EM_UNKNOWN_FILTER                         ((BPLib_Status_t) -33)
+#define BPLIB_EM_BAD_ARGUMENT                           ((BPLib_Status_t) -34)
+#define BPLIB_EM_INVALID_PARAMETER                      ((BPLib_Status_t) -35)
+#define BPLIB_EM_APP_NOT_REGISTERED                     ((BPLib_Status_t) -36)
+#define BPLIB_EM_APP_SQUELCHED                          ((BPLib_Status_t) -37)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR                    ((BPLib_Status_t) -38)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -39)
+#define BPLIB_PL_NULL_CALLBACK_ERROR                    ((BPLib_Status_t) -39)
 
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR     ((BPLib_Status_t) -40)
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -41)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -42)
+#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR                 ((BPLib_Status_t) -40)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX                 ((BPLib_Status_t) -41)
+#define BPLIB_NC_INVALID_MID_VALUE                      ((BPLib_Status_t) -42)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -43)
+#define BPLIB_CLA_TIMEOUT                               ((BPLib_Status_t) -43)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -44)
-#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -45)
+#define BPLIB_PI_INVALID_CONFIG_ERROR                   ((BPLib_Status_t) -44)
+#define BPLIB_PI_TIMEOUT                                ((BPLib_Status_t) -45)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -46)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -47)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -48)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -49)
-#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -50)
-#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -51)
-#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -52)
-#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -53)
-#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -54)
+#define BPLIB_AS_INIT_MUTEX_ERR                         ((BPLib_Status_t) -46)
+#define BPLIB_AS_INVALID_EID                            ((BPLib_Status_t) -47)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR                      ((BPLib_Status_t) -48)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR                       ((BPLib_Status_t) -49)
+#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID                  ((BPLib_Status_t) -50)
+#define BPLIB_AS_MIB_KEY_ARRAY_FULL                     ((BPLib_Status_t) -51)
+#define BPLIB_AS_MIB_KEYS_OVERLAP                       ((BPLib_Status_t) -52)
+#define BPLIB_AS_INVALID_MIB_INDEX                      ((BPLib_Status_t) -53)
+#define BPLIB_AS_NO_KEYS_GIVEN                          ((BPLib_Status_t) -54)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -55)
+#define BPLIB_QM_PUSH_ERROR                             ((BPLib_Status_t) -55)
 
 /* MEM Errors */
-#define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
-#define BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR     ((BPLib_Status_t) -57) /* BPLib_MEM_CopyOutFromOffset: bytes copied != requested */
+#define BPLIB_MEM_INITMEM_UNALIGN                       ((BPLib_Status_t) -56)
+#define BPLIB_MEM_CPY_FRM_OFFSET_NE_ERR                 ((BPLib_Status_t) -57) /* BPLib_MEM_CopyOutFromOffset: bytes copied != requested */
 
 /* Node Config Errors */
-#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -80)
+#define BPLIB_NC_TBL_UPDATE_ERR                         ((BPLib_Status_t) -80)
 
 /* CBOR Decode Errors */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR            ((BPLib_Status_t) -120) /* CBOR decode error: bundle too short */
@@ -291,9 +291,9 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CLA_CONT_ID_INPUT_ERR                     ((BPLib_Status_t) -210)
 
 /* QM Errors */
-#define BPLIB_QM_INIT_ERROR                            ((BPLib_Status_t) -220)
-#define BPLIB_QM_BAD_WRKR_ID                           ((BPLib_Status_t) -221)
-#define BPLIB_QM_WRKR_REGISTER_ERROR                   ((BPLib_Status_t) -222)
+#define BPLIB_QM_INIT_ERROR                             ((BPLib_Status_t) -220)
+#define BPLIB_QM_BAD_WRKR_ID                            ((BPLib_Status_t) -221)
+#define BPLIB_QM_WRKR_REGISTER_ERROR                    ((BPLib_Status_t) -222)
 
 /* Storage Errors: SQL */
 #define BPLIB_STOR_SQL_INIT_ERR                         ((BPLib_Status_t) -240)
@@ -302,7 +302,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
 #define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
 
-/* Bundle Interfae Errors */
+/* Bundle Interface Errors */
 #define BPLIB_BI_INVALID_BUNDLE_ERR                     ((BPLib_Status_t) -260)
 
 /** @} */

@@ -1,9 +1,9 @@
 /*
- * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core
- * Flight System Application (BP) v6.5”
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
  *
- * Copyright © 2020 United States Government as represented by the Administrator
- * of the National Aeronautics and Space Administration. All Rights Reserved.
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,8 +21,7 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in
- * bplib_cla_internal header
+ * Auto-Generated stub implementations for functions defined in bplib_cla_internal header
  */
 
 #include "bplib_cla_internal.h"
@@ -33,15 +32,15 @@
  * Generated stub function for BPLib_CLA_IsAControlMsg()
  * ----------------------------------------------------
  */
-bool BPLib_CLA_IsAControlMsg(const void *Bundle) 
+bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 {
-  UT_GenStub_SetupReturnBuffer(BPLib_CLA_IsAControlMsg, bool);
+    UT_GenStub_SetupReturnBuffer(BPLib_CLA_IsAControlMsg, bool);
 
-  UT_GenStub_AddParam(BPLib_CLA_IsAControlMsg, const void *, Bundle);
+    UT_GenStub_AddParam(BPLib_CLA_IsAControlMsg, const void *, Bundle);
 
-  UT_GenStub_Execute(BPLib_CLA_IsAControlMsg, Basic, NULL);
+    UT_GenStub_Execute(BPLib_CLA_IsAControlMsg, Basic, NULL);
 
-  return UT_GenStub_GetReturnValue(BPLib_CLA_IsAControlMsg, bool);
+    return UT_GenStub_GetReturnValue(BPLib_CLA_IsAControlMsg, bool);
 }
 
 /*
@@ -49,15 +48,13 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle)
  * Generated stub function for BPLib_CLA_ProcessControlMessage()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t *CtrlMsg) 
+BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t *CtrlMsgPtr)
 {
-  UT_GenStub_SetupReturnBuffer(BPLib_CLA_ProcessControlMessage, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_CLA_ProcessControlMessage, BPLib_Status_t);
 
-  UT_GenStub_AddParam(BPLib_CLA_ProcessControlMessage, BPLib_CLA_CtrlMsg_t *,
-                      CtrlMsg);
+    UT_GenStub_AddParam(BPLib_CLA_ProcessControlMessage, BPLib_CLA_CtrlMsg_t *, CtrlMsgPtr);
 
-  UT_GenStub_Execute(BPLib_CLA_ProcessControlMessage, Basic, NULL);
+    UT_GenStub_Execute(BPLib_CLA_ProcessControlMessage, Basic, NULL);
 
-  return UT_GenStub_GetReturnValue(BPLib_CLA_ProcessControlMessage,
-                                   BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_CLA_ProcessControlMessage, BPLib_Status_t);
 }

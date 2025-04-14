@@ -18,32 +18,18 @@
  *
  */
 
-#ifndef BPLIB_CLA_TEST_UTILS_H
-#define BPLIB_CLA_TEST_UTILS_H
-
-/* ======== */
-/* Includes */
-/* ======== */
-
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
+#include "bplib_cla_handlers.h"
 #include "bplib_cla.h"
-#include "bplib_api_types.h"
-#include "bplib_cla_internal.h"
-#include "bplib_qm_handlers.h"
 
-/* ==================== */
-/* Function Definitions */
-/* ==================== */
+void UT_Handler_BPLib_CLA_GetContactRunState(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    BPLib_CLA_ContactRunState_t* ReturnState = UT_Hook_GetArgValueByName(Context, "ReturnState", BPLib_CLA_ContactRunState_t*);
+    int32 Status;
 
-void BPLib_CLA_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
+    UT_Stub_GetInt32StatusCode(Context, &Status);
 
-void BPLib_CLA_Test_Setup(void);
-void BPLib_CLA_Test_Teardown(void);
-
-void TestBplibCla_Register(void);
-void TestBplibClaInternal_Register(void);
-
-#endif /* BPLIB_CLA_TEST_UTILS_H */
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_CLA_GetContactRunState), ReturnState, sizeof(BPLib_CLA_ContactRunState_t*));
+    }
+}
