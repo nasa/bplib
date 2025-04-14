@@ -18,45 +18,23 @@
  *
  */
 
-#ifndef BPLIB_EBP_TEST_UTILS_H
-#define BPLIB_EBP_TEST_UTILS_H
+/**
+ * @file
+ *
+ * Handlers for TIME function stubs
+ */
 
-/*
-** Include
-*/
+#include "bplib_time_handlers.h"
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
+void UT_Handler_BPLib_TIME_GetTimeDelta(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int64_t *Delta = UT_Hook_GetArgValueByName(Context, "Delta", int64_t *);
+    int32 Status;
 
-#include "bplib_api_types.h"
-#include "bplib_ebp.h"
-#include "bplib_pi.h"
-#include "bplib_nc.h"
+    UT_Stub_GetInt32StatusCode(Context, &Status);
 
-
-/*
-** Global Data
-*/
-
-extern BPLib_PI_ChannelTable_t TestChanConfigPtr;
-
-
-/*
-** Macro Definitions
-*/
-
-/* Macro to add test case */
-#define ADD_TEST(test) UtTest_Add(test, BPLib_EBP_Test_Setup, BPLib_EBP_Test_Teardown, #test)
-
-
-/*
-** Function Definitions
-*/
-
-void BPLib_EBP_Test_Setup(void);
-void BPLib_EBP_Test_Teardown(void);
-
-void TestBplibEbp_Register(void);
-
-#endif /* BPLIB_EBP_TEST_UTILS_H */
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetTimeDelta), Delta, sizeof(int64_t *));
+    }
+}
