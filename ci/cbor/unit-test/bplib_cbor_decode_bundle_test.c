@@ -427,6 +427,19 @@ void Test_BPLib_CBOR_DecodeBundle_Crc32(void)
    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcVal, 0x3C30C058);
 }
 
+void Test_BPLib_CBOR_DecodeBundle_TooBig(void)
+{
+    BPLib_Status_t Status;
+    size_t BundleLength = 100;
+    BPLib_Bundle_t Bundle;
+
+    TestMibConfigPnTbl.ParamSetMaxBundleLength = 10;
+
+    Status = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks, BundleLength, &Bundle);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+}
 
 
 void TestBplibCborDecode_Register(void)
@@ -438,5 +451,5 @@ void TestBplibCborDecode_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_CrcNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_CrcNone");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Crc32, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Crc32");
-
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_TooBig, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_TooBig");    
 }

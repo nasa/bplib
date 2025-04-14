@@ -56,6 +56,7 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 
     if (Status != BPLIB_SUCCESS)
     {
+        BPLib_MEM_BundleFree(&Inst->pool, Bundle);
         BPLib_EM_SendEvent(BPLIB_QM_EBP_OUT_ERR_EID, BPLib_EM_EventType_ERROR, 
                 "Error updating extension blocks, Status = %d.", Status);
 

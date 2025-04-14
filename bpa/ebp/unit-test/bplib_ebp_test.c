@@ -54,6 +54,8 @@ void Test_BPLib_EBP_InitBlocks_PrevNode(void)
 
     memset(&DeserializedBundle, 0, sizeof(DeserializedBundle));
 
+    DeserializedBundle.blocks.PrimaryBlock.Timestamp.CreateTime = 1000;
+
     TestChanConfigPtr.Configs[ChanId].PrevNodeBlkConfig.IncludeBlock = true;
     TestChanConfigPtr.Configs[ChanId].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
     TestChanConfigPtr.Configs[ChanId].PrevNodeBlkConfig.BlockNum = 1;
@@ -138,6 +140,8 @@ void Test_BPLib_EBP_InitBlocks_HopCount(void)
     uint32_t ChanId = 0;
 
     memset(&DeserializedBundle, 0, sizeof(DeserializedBundle));
+
+    DeserializedBundle.blocks.PrimaryBlock.Timestamp.CreateTime = 1000;
 
     TestChanConfigPtr.Configs[ChanId].HopCountBlkConfig.IncludeBlock = true;
     TestChanConfigPtr.Configs[ChanId].HopCountBlkConfig.CrcType = BPLib_CRC_Type_CRC16;

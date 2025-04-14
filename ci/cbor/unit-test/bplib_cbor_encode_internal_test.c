@@ -248,6 +248,28 @@ void Test_BPLib_CBOR_EncodeExtensionBlock_Nominal(void)
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
 }
 
+/* Test extension block encode when the block is to be skipped */
+void Test_BPLib_CBOR_EncodeExtensionBlock_Skip(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Bundle_t StoredBundleIn;
+    char OutputBuffer[512];
+    size_t OutputBufferSize = sizeof(OutputBuffer);
+    size_t NumBytesCopied = 0;
+    BPLib_MEM_Block_t Blob;
+
+    /* Setup nominal inputs */
+    memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
+    StoredBundleIn.blob = &Blob;
+
+    StoredBundleIn.blocks.ExtBlocks[0].Header.RequiresDiscard = true;
+
+    /* Call UUT and check status */
+    ReturnStatus = BPLib_CBOR_EncodeExtensionBlock(&StoredBundleIn, 0, OutputBuffer, OutputBufferSize, &NumBytesCopied);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(NumBytesCopied, 0);
+}
+
 
 /*
 ** BPLib_CBOR_EncodePayload Tests
@@ -305,6 +327,7 @@ void TestBplibCborEncodeInternal_Register(void)
 
     UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_Nominal");
+    UtTest_Add(Test_BPLib_CBOR_EncodeExtensionBlock_Skip, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodeExtensionBlock_Skip");
 
     UtTest_Add(Test_BPLib_CBOR_EncodePayload_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePayload_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_EncodePayload_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_EncodePayload_Nominal");
