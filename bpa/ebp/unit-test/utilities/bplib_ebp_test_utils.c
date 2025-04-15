@@ -23,6 +23,14 @@
 */
 
 #include "bplib_ebp_test_utils.h"
+#include "bplib_time_handlers.h"
+
+/*
+** Global Data
+*/
+
+BPLib_PI_ChannelTable_t TestChanConfigPtr;
+
 
 /*
 ** Function Definitions
@@ -32,6 +40,12 @@ void BPLib_EBP_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_TIME_GetTimeDelta), UT_Handler_BPLib_TIME_GetTimeDelta, NULL);
+
+    memset(&TestChanConfigPtr, 0, sizeof(TestChanConfigPtr));
+
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanConfigPtr;
 }
 
 void BPLib_EBP_Test_Teardown(void)

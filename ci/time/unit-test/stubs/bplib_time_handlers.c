@@ -18,30 +18,23 @@
  *
  */
 
-/*
-** Include
-*/
+/**
+ * @file
+ *
+ * Handlers for TIME function stubs
+ */
 
-#include "../test_bplib_stor_cache.h"
-#include "bplib_stor_cache_utils.h"
+#include "bplib_time_handlers.h"
 
-/*
-** Function Definitions
-*/
-
-void BPLib_STOR_CACHE_Test_Setup(void)
+void UT_Handler_BPLib_TIME_GetTimeDelta(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
-}
+    int64_t *Delta = UT_Hook_GetArgValueByName(Context, "Delta", int64_t *);
+    int32 Status;
 
-void BPLib_STOR_CACHE_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
+    UT_Stub_GetInt32StatusCode(Context, &Status);
 
-void UtTest_Setup(void)
-{
-    Test_BplibStorCache_Register();
-    Test_BplibStorCacheFsm_Register();
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetTimeDelta), Delta, sizeof(int64_t *));
+    }
 }

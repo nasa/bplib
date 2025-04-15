@@ -180,4 +180,7 @@
 #define BPLIB_PI_EGRESS_ERR_EID                         (681u)
 #define BPLIB_PI_INGRESS_DBG_EID                        (682u)
 
+/* QM event IDs */
+#define BPLIB_QM_EBP_OUT_ERR_EID                        (690u)
+
 #endif /* BPLIB_EVENTIDS_H */

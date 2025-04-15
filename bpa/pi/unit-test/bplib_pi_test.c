@@ -109,7 +109,7 @@ void Test_BPLib_PI_Ingress_BadChanId(void)
     uint8_t AduPtr[10];
     size_t AduSize = 0;
 
-    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_PI_CHAN_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_INVALID_CHAN_ID_ERR);
 }
 
 /* Test nominal egress function */
@@ -183,7 +183,7 @@ void Test_BPLib_PI_Egress_BadChanId(void)
     size_t AduSize = 10;
     uint32_t Timeout = 1000;
 
-    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_PI_CHAN_ID_INPUT_ERR);
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_INVALID_CHAN_ID_ERR);
     UtAssert_INT32_EQ(AduSize, 0);
 }
 

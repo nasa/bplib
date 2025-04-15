@@ -23,12 +23,112 @@
 */
 
 #include "bplib_ebp.h"
-
+#include "bplib_pi.h"
+#include "bplib_nc.h"
 
 /*
 ** Function Definitions
 */
 
-int BPLib_EBP_Init(void) {
+BPLib_Status_t BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId)
+{
+    BPLib_PI_Config_t *CurrCanonConfig;
+
+    if (Bundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    BPLib_NC_ReaderLock();
+
+    CurrCanonConfig = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId];
+
+    /* Initialize previous node block */
+    if (CurrCanonConfig->PrevNodeBlkConfig.IncludeBlock)
+    {
+        Bundle->blocks.ExtBlocks[0].Header.BlockType = BPLib_BlockType_PrevNode;
+        Bundle->blocks.ExtBlocks[0].Header.CrcType = CurrCanonConfig->PrevNodeBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[0].Header.BlockNum = CurrCanonConfig->PrevNodeBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[0].Header.BlockProcFlags = CurrCanonConfig->PrevNodeBlkConfig.BlockProcFlags;        
+
+        Bundle->blocks.ExtBlocks[0].Header.RequiresEncode = true;
+    }
+
+    /* Initialize age block */
+    if (CurrCanonConfig->AgeBlkConfig.IncludeBlock || Bundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
+    {
+        Bundle->blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Age;
+        Bundle->blocks.ExtBlocks[1].Header.CrcType = CurrCanonConfig->AgeBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[1].Header.BlockNum = CurrCanonConfig->AgeBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[1].Header.BlockProcFlags = CurrCanonConfig->AgeBlkConfig.BlockProcFlags;          
+
+        Bundle->blocks.ExtBlocks[1].Header.RequiresEncode = true;
+    }
+
+    /* Initialize hop count block */
+    if (CurrCanonConfig->HopCountBlkConfig.IncludeBlock)
+    {
+        Bundle->blocks.ExtBlocks[2].Header.BlockType = BPLib_BlockType_HopCount;
+        Bundle->blocks.ExtBlocks[2].Header.CrcType = CurrCanonConfig->HopCountBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[2].Header.BlockNum = CurrCanonConfig->HopCountBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[2].Header.BlockProcFlags = CurrCanonConfig->HopCountBlkConfig.BlockProcFlags;
+
+        Bundle->blocks.ExtBlocks[2].Header.RequiresEncode = true;
+
+        Bundle->blocks.ExtBlocks[2].BlockData.HopCountData.HopLimit = CurrCanonConfig->HopLimit;
+    }
+
+    BPLib_NC_ReaderUnlock();
+
     return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    uint32_t ExtBlkIdx = 0;
+    BPLib_TIME_MonotonicTime_t CurrTime;
+    int64_t TimeOnNode = 0;
+
+    if (Bundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    for (ExtBlkIdx = 0; ExtBlkIdx < BPLIB_MAX_NUM_EXTENSION_BLOCKS; ExtBlkIdx++)
+    {
+        /* Increment hop count */
+        if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_HopCount)
+        {
+            Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.HopCountData.HopCount++;
+            Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
+        }
+
+        /* Add time on node to age block */
+        if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_Age)
+        {
+            BPLib_TIME_GetMonotonicTime(&CurrTime);
+            Status = BPLib_TIME_GetTimeDelta(CurrTime, Bundle->Meta.MonoTime, &TimeOnNode);
+
+            /* Can't do anything about a time error here, just return the status */
+
+            Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.AgeBlockData.Age += TimeOnNode;
+            Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
+        }
+
+        /* Set previous node to this node */
+        if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
+        {
+            BPLib_EID_CopyEids(&Bundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.PrevNodeBlockData.PrevNodeId,
+                                BPLIB_EID_INSTANCE);
+            Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.RequiresEncode = true;
+        }
+    }
+    
+    return Status;
 }

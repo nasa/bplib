@@ -99,8 +99,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     {
         return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
+
     /* Check flags to make sure we support the requested options */
-    if (bundle->blocks.PrimaryBlock.BundleProcFlags != 4)
+    if ((bundle->blocks.PrimaryBlock.BundleProcFlags | BPLIB_VALID_BUNDLE_PROC_FLAG_MASK) != BPLIB_VALID_BUNDLE_PROC_FLAG_MASK)
     {
         return BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR;
     }
@@ -111,11 +112,14 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     {
         return BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR;
     }
-    /*
-    ** TODO: since we don't support BPSec yet,
-    ** technically we could throw an error here when CRC is "none".
-    ** Ref: https://www.rfc-editor.org/rfc/rfc9171.html#section-4.3.1-5.6
-    */
+
+    /* Validate CRC Type */
+    /* Note: CRC NONE is not currently supported since bundle security blocks are not allowed yet */
+    if (bundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_CRC16 && 
+        bundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_CRC32C)
+    {
+        return BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR;
+    }
 
     /* Dest EID */
     Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
@@ -169,8 +173,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Grab the current offset, to be kept in the primary block's metadata */
     bundle->blocks.PrimaryBlock.BlockOffsetEnd = QCBORDecode_Tell(ctx) - 1;
-
-    //printf("BlockOffsetEnd is %ld\n", bundle->blocks.PrimaryBlock.BlockOffsetEnd);
 
     /* Clear the primary block's "dirty bit", so we know we can skip re-encoding it */
     bundle->blocks.PrimaryBlock.RequiresEncode = false;

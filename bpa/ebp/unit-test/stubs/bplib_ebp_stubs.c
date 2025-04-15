@@ -29,14 +29,33 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_EBP_Init()
+ * Generated stub function for BPLib_EBP_InitializeExtensionBlocks()
  * ----------------------------------------------------
  */
-int BPLib_EBP_Init(void)
+BPLib_Status_t BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_EBP_Init, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_EBP_InitializeExtensionBlocks, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_EBP_Init, Basic, NULL);
+    UT_GenStub_AddParam(BPLib_EBP_InitializeExtensionBlocks, BPLib_Bundle_t *, Bundle);
+    UT_GenStub_AddParam(BPLib_EBP_InitializeExtensionBlocks, uint32_t, ChanId);
 
-    return UT_GenStub_GetReturnValue(BPLib_EBP_Init, int);
+    UT_GenStub_Execute(BPLib_EBP_InitializeExtensionBlocks, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_EBP_InitializeExtensionBlocks, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_EBP_UpdateExtensionBlocks()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_EBP_UpdateExtensionBlocks, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_EBP_UpdateExtensionBlocks, BPLib_Bundle_t *, Bundle);
+
+    UT_GenStub_Execute(BPLib_EBP_UpdateExtensionBlocks, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_EBP_UpdateExtensionBlocks, BPLib_Status_t);
 }

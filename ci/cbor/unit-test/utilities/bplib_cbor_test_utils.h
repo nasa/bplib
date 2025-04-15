@@ -34,6 +34,12 @@
 #include "bplib_cbor_internal.h"
 #include "bplib_crc.h"
 
+/*
+** Global Data
+*/
+
+extern BPLib_NC_MIBConfigPNTable_t TestMibConfigPnTbl;
+
 
 /*
 ** Function Definitions

@@ -24,6 +24,13 @@
 
 #include "bplib_bi_test_utils.h"
 
+
+/*
+** Global Data
+*/
+
+BPLib_Bundle_t DeserializedBundle;
+
 /*
 ** Function Definitions
 */
@@ -32,6 +39,14 @@ void BPLib_BI_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    memset(&DeserializedBundle, 0, sizeof(DeserializedBundle));
+
+    DeserializedBundle.blocks.PayloadHeader.BlockType = BPLib_BlockType_Payload;
+    DeserializedBundle.blocks.ExtBlocks[0].Header.BlockType = BPLib_BlockType_HopCount;
+    DeserializedBundle.blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Age;
+    DeserializedBundle.blocks.ExtBlocks[2].Header.BlockType = BPLib_BlockType_PrevNode;
+    DeserializedBundle.blocks.ExtBlocks[3].Header.BlockType = BPLib_BlockType_Reserved;
 }
 
 void BPLib_BI_Test_Teardown(void)

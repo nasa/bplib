@@ -74,8 +74,14 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     {
         BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
 
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
+        
         return Status;
     }
+
+    /* Get reception time of bundle */
+    BPLib_TIME_GetMonotonicTime(&(CandidateBundle->Meta.MonoTime));
     
     BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                 "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
@@ -109,14 +115,75 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
 /* Validate deserialized bundle after CBOR decoding */
 BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 {
-    BPLib_Status_t  Status = BPLIB_SUCCESS;
+    uint32_t ExtBlkIdx       = 0;
+    bool     PrevNodePresent = false;
+    bool     AgeBlockPresent = false;
+    bool     HopCountPresent = false;
 
-    /* Bundle version was already verified by CBOR Decode to be v7 */
+    if (CandidateBundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* 
+    ** Most validation is done in CBOR as fields are being decoded. The remaining
+    ** validation done here is for anything that requires a fully decoded bundle to
+    ** determine.
+    */
+
+    /* Verify a payload is present */
+    if (CandidateBundle->blocks.PayloadHeader.BlockType != BPLib_BlockType_Payload)
+    {
+        return BPLIB_BI_INVALID_BUNDLE_ERR;
+    }
+
+    /* Verify no extension block is duplicated */
+    for (ExtBlkIdx = 0; ExtBlkIdx < BPLIB_MAX_NUM_EXTENSION_BLOCKS; ExtBlkIdx++)
+    {
+        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_HopCount)
+        {
+            if (HopCountPresent)
+            {
+                return BPLIB_BI_INVALID_BUNDLE_ERR;
+            }
+            else
+            {
+                HopCountPresent = true;
+            }
+        }
+        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_Age)
+        {
+            if (AgeBlockPresent)
+            {
+                return BPLIB_BI_INVALID_BUNDLE_ERR;
+            }
+            else
+            {
+                AgeBlockPresent = true;
+            }
+        }
+        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
+        {
+            if (PrevNodePresent)
+            {
+                return BPLIB_BI_INVALID_BUNDLE_ERR;
+            }
+            else
+            {
+                PrevNodePresent = true;
+            }
+        }
+    }
+
+    /* Verify that there is either an age block or a valid DTN timestamp */
+    if (AgeBlockPresent == false && CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
+    {
+        return BPLIB_BI_INVALID_BUNDLE_ERR;
+    }
+
+    /* TODO Check against Policy Database for authorized source EID, etc */
     
-    /* Check against Policy Database for authorized source EID */
-    /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
-    
-    return Status;
+    return BPLIB_SUCCESS;
 }
 
 
