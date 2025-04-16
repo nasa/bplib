@@ -216,7 +216,7 @@ typedef struct
     uint32_t BundleDeliveryRateBundlesPerSec;   /** \brief Rate of bundles delivered locally in bundles per second */
     uint32_t BundleDeliveryRateBytesPerSec;     /** \brief Rate of bundles delivered locally in bytes per second */
     uint32_t BundleEgressRateBundlesPerSec;     /** \brief Rate of bundle forwarded from CLAs in bundles per second */
-} BPLib_NC_MIBConfigPNTable_t;
+} BPLib_NC_MibPerNodeConfig_t;
 
 
 /*
@@ -287,7 +287,7 @@ typedef struct
  */
 typedef struct
 {
-    BPLib_NC_MIBConfigPNTable_t Values; /** \brief All configuration values as recorded in the MIB per Node Configuration */
+    BPLib_NC_MibPerNodeConfig_t Values; /** \brief All configuration values as recorded in the MIB per Node Configuration */
 
     uint32_t TimeBootEra;               /** \brief Boot Era for Monotonic Time */
     uint64_t MonotonicTime;             /** \brief Monotonic Time Counter */

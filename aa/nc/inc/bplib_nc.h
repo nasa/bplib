@@ -44,7 +44,7 @@ typedef struct
     BPLib_ARP_CRSTable_t*        CrsConfigPtr;
     BPLib_PDB_CustodianTable_t*  CustodianConfigPtr;
     BPLib_PDB_CustodyTable_t*    CustodyConfigPtr;
-    BPLib_NC_MIBConfigPNTable_t* MibPnConfigPtr;
+    BPLib_NC_MibPerNodeConfig_t* MibPnConfigPtr;
     BPLib_NC_MIBConfigPSTable_t* MibPsConfigPtr;
     BPLib_PDB_ReportToTable_t*   ReportConfigPtr;
     BPLib_PDB_SrcAuthTable_t*    AuthConfigPtr;

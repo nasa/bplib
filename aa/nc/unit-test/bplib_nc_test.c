@@ -1505,7 +1505,7 @@ void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
 {
-    BPLib_NC_MIBConfigPNTable_t TestTblData;
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
     TestTblData.BundleAgentNum = 10;
     UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
@@ -1513,7 +1513,7 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid(void)
 {
-    BPLib_NC_MIBConfigPNTable_t TestTblData;
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
 
     /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
