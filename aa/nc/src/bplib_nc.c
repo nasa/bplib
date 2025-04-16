@@ -61,7 +61,7 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     }
 
     /* Set bundle protocol version */
-    BPLib_NC_NodeMibConfigPayload.Values.BundleAgentSoftwareVersion = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    sprintf(BPLib_NC_NodeMibConfigPayload.Values.BundleAgentSoftwareVersion, "%d", BPLIB_BUNDLE_PROTOCOL_VERSION);
 
     /* Capture configuration pointers in the global configuration struct */
     if (ConfigPtrs                     == NULL ||
