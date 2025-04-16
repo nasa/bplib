@@ -213,11 +213,11 @@ typedef struct
  */
 typedef struct
 {
-    BPLib_NC_MIBConfigPNTable_t TableValues; /** \brief All configuration values as recorded in the MIB per Node Configuration */
+    BPLib_NC_MIBConfigPNTable_t Values; /** \brief All configuration values as recorded in the MIB per Node Configuration */
 
-    uint32_t TimeBootEra;                    /** \brief Boot Era for Monotonic Time */
-    uint64_t MonotonicTime;                  /** \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;              /** \brief Time Correlation Factor */
+    uint32_t TimeBootEra;               /** \brief Boot Era for Monotonic Time */
+    uint64_t MonotonicTime;             /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;         /** \brief Time Correlation Factor */
 } BPLib_NodeMibConfigHkTlm_Payload_t;
 
 /**
