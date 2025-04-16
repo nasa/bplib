@@ -61,7 +61,7 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     }
 
     /* Set bundle protocol version */
-    BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    BPLib_NC_NodeMibConfigPayload.Values.BundleAgentSoftwareVersion = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Capture configuration pointers in the global configuration struct */
     if (ConfigPtrs                     == NULL ||
@@ -129,13 +129,13 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
 }
 
 /* Validate MIB Config PN configuration data */
-BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
-    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
-    BPLib_NC_MIBConfigPNTable_t *TblDataPtr = (BPLib_NC_MIBConfigPNTable_t *)TblData;
+    BPLib_Status_t               ReturnCode = BPLIB_SUCCESS;
+    BPLib_NC_MIBConfigPNTable_t* TblDataPtr = (BPLib_NC_MIBConfigPNTable_t*) TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr->BundleAgentNum <= 0)
+    /* if (TblDataPtr->BundleAgentNum <= 0) */
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
