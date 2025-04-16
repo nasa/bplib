@@ -281,33 +281,40 @@ typedef struct
 */
 typedef struct
 {
-    char        SysNodeName[BPLIB_MAX_EID_LENGTH];
-    char        SysNodeOwner[BPLIB_MAX_EID_LENGTH];
-    char        SysSoftExec[BPLIB_MAX_EID_LENGTH];
-    char        SysSoftExecVer[BPLIB_MAX_EID_LENGTH];
-    uint32_t    BundleAgentNum;
-    char        BundleAgentVer[BPLIB_MAX_EID_LENGTH];
-    char        BundleAgentOpState[BPLIB_MAX_EID_LENGTH];
-    char        BundleAgentConfig[BPLIB_MAX_EID_LENGTH];
-    uint32_t    BundleAgentAvailStorage;
-    uint32_t    BundleAgentCtdbSize;
-    uint32_t    BundleSizeNoFrag;
-    uint32_t    ParamSetMaxSeqenceNum;
-    uint32_t    ParamSetMaxPayloadLength;
-    uint32_t    ParamSetMaxBundleLength;
-    uint32_t    ParamSetMaxTransmissionID;
-    uint32_t    ParamSetMaxForwardingRetries;
-    uint32_t    ParamSetMaxSimultaneousContacts;
-    uint32_t    ParamSetBehaviorEventReporting;
-    bool        ParamSetBehaviorReturnToSender;
-    bool        ParamSetBehaviorTransIDReuse;
-    bool        ParamSetBehaviorTransIDRollover;
-    bool        ParamSetBehaviorWrapResponse;
-    bool        ParamSupportBIBE;
-    bool        ParamSupportCustody;
-    bool        ParamSupportConfidentiality;
-    bool        Spare;
+    BPLib_EID_t InstanceEID; /* Endpoint ID of this instance of FSW for this endpoint */
 
+    /* Node only */
+    char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /* Human readable name given to entity */
+    char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /* ID of the OS or executive controlling the resources */
+    char     SystemSoftwareExecVersion[BPLIB_MAX_EID_LENGTH];   /* Version of software */
+    char     BundleAgentSoftwareVersion[BPLIB_MAX_EID_LENGTH];  /* Version of the Bundle Protocol Agent */
+    char     BundleAgentOperationalState[BPLIB_MAX_EID_LENGTH]; /* Operational state of Bundle Protocol Agent */
+    char     BundleAgentConfiguration[BPLIB_MAX_EID_LENGTH];    /* Configuration of Bundle Protocol Agent */
+    char     ParamSupportedCLAs[BPLIB_MAX_EID_LENGTH];          /* Supported CLAs */
+    char     NodeActiveEndpoints[BPLIB_MAX_EID_LENGTH];         /* List of active endpoints on the Node */
+    uint32_t SystemNodeUpTime;                                  /* The time in seconds since this node has been reinitialized */
+    uint32_t BundleAgentAvailableStorage;                       /* Total amount of memory allocated for bundle storage for the node  */
+    uint32_t ParamSetMaxSequenceNum;                            /* Max bundle sequence number allowable */
+    uint32_t ParamSetMaxPayloadLength;                          /* Max payload length for fragmentation */
+    uint32_t ParamSetMaxBundleLength;                           /* Max bundle length for processing */
+    uint32_t ParamSetBehaviorEventReporting;                    /* Inclusive level of events to be generated */
+    uint32_t BundleSizeNoFragment;                              /* Max bundle size before fragmentation */
+    uint32_t NodeStartupCounter;                                /* Number of times a node is started up */
+    uint32_t ParamSetNodeDTNTime;                               /* Time being tracked by the node */
+    uint32_t BundleIngressRejectedRateBytesPerSec;              /* Rate of bundles received from CLAs in bytes per second and then rejected */
+    uint32_t BundleIngressRejectedRateBundlesPerSec;            /* Rate of bundles received from CLAs in bundles per second and then rejected */
+
+    /* Per Node and per Source */
+    uint32_t ParamSetMaxLifetime;               /* Max bundle lifetime for retention of the bundle */
+    uint32_t KbytesCountStorageAvailable;       /* Kilobytes free space left to store additional Bundles */
+    uint32_t BundleIngressRateBytesPerSec;      /* Rate of bundles received from CLAs in bytes per second */
+    uint32_t BundleIngressRateBundlesPerSec;    /* Rate of bundles received from CLAs in bundles per second */
+    uint32_t BundleEgressRateBytesPerSec;       /* Rate of bundles forwarded from CLAs in bytes per second */
+    uint32_t BundleIngestedRateBundlesPerSec;   /* Rate of bundles ingested locally in bundles per second */
+    uint32_t BundleIngestedRateBytesPerSec;     /* Rate of bundles ingested locally in bytes per second */
+    uint32_t BundleDeliveryRateBundlesPerSec;   /* Rate of bundles delivered locally in bundles per second */
+    uint32_t BundleDeliveryRateBytesPerSec;     /* Rate of bundles delivered locally in bytes per second */
+    uint32_t BundleEgressRateBundlesPerSec;     /* Rate of bundle forwarded from CLAs in bundles per second */
 } BPLib_NC_MIBConfigPNTable_t;
 
 
