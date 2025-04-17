@@ -136,10 +136,10 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 
     /* Validate data values are within allowed range */
     /* if (TblDataPtr->BundleAgentNum <= 0) */
-    {
+    /* { */
         /* element is out of range, return an appropriate error code */
-        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
-    }
+        /* ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE; */
+    /* } */
 
     return ReturnCode;
 }
