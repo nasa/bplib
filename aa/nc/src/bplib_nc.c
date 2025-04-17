@@ -132,7 +132,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
     BPLib_Status_t               ReturnCode = BPLIB_SUCCESS;
-    BPLib_NC_MibPerNodeConfig_t* TblDataPtr = (BPLib_NC_MibPerNodeConfig_t*) TblData;
+    /* BPLib_NC_MibPerNodeConfig_t* TblDataPtr = (BPLib_NC_MibPerNodeConfig_t*) TblData; */
 
     /* Validate data values are within allowed range */
     /* if (TblDataPtr->BundleAgentNum <= 0) */
