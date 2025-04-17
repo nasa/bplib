@@ -184,6 +184,9 @@ typedef struct
 {
     BPLib_EID_t InstanceEID; /** \brief Endpoint ID of this instance of FSW for this endpoint */
 
+    /* Alignment spares */
+    uint64_t Spare[3];
+
     /* Node only */
     char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /** \brief Human readable name given to entity */
     char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
