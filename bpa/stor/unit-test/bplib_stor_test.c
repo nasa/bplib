@@ -57,6 +57,72 @@ void Test_BPLib_STOR_StorageTblValidateFunc_Nominal(void)
 }
 
 /*******************************************************************************
+** FlushPending Tests
+*/
+void Test_BPLib_STOR_FlushPending_NullParams(void)
+{
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(NULL), BPLIB_NULL_PTR_ERROR);
+}
+
+void Test_BPLib_STOR_FlushPending_NoBundles(void)
+{
+    BplibInst.BundleStorage.InsertBatchSize = 0
+;
+    /* Flush to disk */
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Ensure no events */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPLib_STOR_FlushPending_Nominal(void)
+{
+    BPLib_Bundle_t Bundle;
+    BPLib_STOR_Test_CreateTestBundle(&Bundle);
+
+    /* Place bundle in storage batch */
+    BplibInst.BundleStorage.InsertBatch[0] = &Bundle;
+    BplibInst.BundleStorage.InsertBatchSize = 1;
+
+    /* Flush to disk */
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Ensure the bundle was freed from memory after being stored */
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
+
+    /* Ensure no events */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Ensure batch size was reset */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 0);
+
+    /* Free the test bundle (for most test cases this is done in utils.c) */
+    BPLib_STOR_Test_FreeTestBundle(&Bundle);
+}
+
+void Test_BPLib_STOR_FlushPending_SQLFail(void)
+{
+    BPLib_Bundle_t Bundle;
+
+    /* Place bundle in storage batch */
+    BplibInst.BundleStorage.InsertBatch[0] = &Bundle;
+    BplibInst.BundleStorage.InsertBatchSize = 1;
+
+    /* Break the SQL layer by setting the sql instance to null */
+    BplibInst.BundleStorage.db = NULL;
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_STOR_SQL_STORAGE_ERR);
+
+    /* Ensure the bundle was still freed despite the SQL error */
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
+
+    /* Look for event message */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_STOR_SQL_STORE_ERR_EID);
+}
+
+/*******************************************************************************
 ** StoreBundle Tests
 */
 
@@ -75,8 +141,13 @@ void Test_BPLib_STOR_StoreBundle_Nominal(void)
     BPLib_Bundle_t Bundle;
     BPLib_STOR_Test_CreateTestBundle(&Bundle);
 
-    /* Store and flush bundle */
+    /* Store a bundle */
     UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+
+    /* At this point, batch size should be 1, and nothing should have been flushed*/
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 1);
+
+    /* Flush to disk */
     UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 
@@ -110,6 +181,8 @@ void Test_BPLib_STOR_StoreBundle_SQLFail(void)
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_STOR_SQL_STORE_ERR_EID);
 
+    /* Ensure batch size was reset */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 0);
 }
 
 /*******************************************************************************
@@ -417,6 +490,12 @@ void TestBplibStor_Register(void)
 
     /* Storage Table Tests */
     UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
+
+    /* FlushPending Tests */
+    UtTest_Add(Test_BPLib_STOR_FlushPending_NullParams, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_FlushPending_NullParams");
+    UtTest_Add(Test_BPLib_STOR_FlushPending_NoBundles, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_FlushPending_NoBundles");
+    UtTest_Add(Test_BPLib_STOR_FlushPending_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_FlushPending_Nominal");
+    UtTest_Add(Test_BPLib_STOR_FlushPending_SQLFail, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_FlushPending_SQLFail");
 
     /* Store Tests */
     UtTest_Add(Test_BPLib_STOR_StoreBundle_NullParams, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StoreBundle_NullParams");
