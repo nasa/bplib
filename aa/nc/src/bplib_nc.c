@@ -330,24 +330,11 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        ModuleStatus = BPLib_NC_NodeConfigTblUpdate();
+        BPLIB_EID_INSTANCE = BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID;
 
-        if (ModuleStatus != BPLIB_SUCCESS)
-        {
-            Status = BPLIB_ERROR;
-
-            BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Failed to update MIB Configuration per Node configuration");
-        }
-        else
-        */
-        {
-            BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
-                                BPLib_EM_EventType_INFORMATION,
-                                "Updated MIB Configuration per Node configuration");
-        }
+        BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
+                            BPLib_EM_EventType_INFORMATION,
+                            "Updated MIB Configuration per Node configuration");
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {
