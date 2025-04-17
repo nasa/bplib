@@ -75,8 +75,9 @@ void Test_BPLib_STOR_StoreBundle_Nominal(void)
     BPLib_Bundle_t Bundle;
     BPLib_STOR_Test_CreateTestBundle(&Bundle);
 
-    /* Store a bundle */
+    /* Store and flush bundle */
     UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
 
     /* Ensure the bundle was freed from memory after being stored */
@@ -97,9 +98,10 @@ void Test_BPLib_STOR_StoreBundle_SQLFail(void)
 {
     BPLib_Bundle_t Bundle;
 
-    /* Store a bundle */
+    /* Store and flush bundle */
     BplibInst.BundleStorage.db = NULL;
-    UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_STOR_SQL_STORAGE_ERR);
+    UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_STOR_FlushPending(&BplibInst), BPLIB_STOR_SQL_STORAGE_ERR);
 
     /* Ensure the bundle was still freed despite the SQL error */
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
