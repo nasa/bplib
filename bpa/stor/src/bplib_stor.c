@@ -103,6 +103,10 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
             BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
                 "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
         }
+        else
+        {
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, BPLIB_STOR_INSERTBATCHSIZE);
+        }
 
         /* Free the bundles, as they're now persistent
         ** Note: even if the storage fails, we free everything to avoid a leak.
@@ -199,6 +203,8 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
 
     pthread_mutex_unlock(&CacheInst->lock);
 
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
+
     *NumEgressed = EgressCnt;
     return Status;
 }
@@ -222,6 +228,12 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisc
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
             "BPLib_SQL_Store failed to run garbage collection. RC=%d", Status);
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
+        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
     }
 
     pthread_mutex_unlock(&CacheInst->lock);

@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
         BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Error decoding bundle, RC = %d", Status);
 
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
 
         return Status;
@@ -74,7 +74,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     {
         BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
 
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
         
         return Status;
@@ -119,6 +119,7 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     bool     PrevNodePresent = false;
     bool     AgeBlockPresent = false;
     bool     HopCountPresent = false;
+    uint32_t i;
 
     if (CandidateBundle == NULL)
     {
@@ -173,6 +174,17 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
                 PrevNodePresent = true;
             }
         }
+
+        /* Verify that no block number is duplicated */
+        for (i = 0; i < ExtBlkIdx; i++)
+        {
+            if (CandidateBundle->blocks.ExtBlocks[i].Header.BlockNum == 
+                CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockNum)
+            {
+                return BPLIB_BI_INVALID_BUNDLE_ERR;
+            }
+        }
+
     }
 
     /* Verify that there is either an age block or a valid DTN timestamp */
