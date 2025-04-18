@@ -144,10 +144,11 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_GENERATED_ACCEPTED, 1);
         BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-            "[ADU In #%d]: Ingressed ADU of %lu bytes via channel #%d.", AduSize, ChanId);
+            "[ADU In #%d]: Ingressed ADU of %lu bytes.", ChanId, AduSize);
     }
     else 
     {
+        BPLib_MEM_BundleFree(&Inst->pool, NewBundle);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_GENERATED_REJECTED, 1);
         BPLib_EM_SendEvent(BPLIB_PI_INGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
             "[ADU In #%d]: Failed to ingress an ADU. Error = %d.",

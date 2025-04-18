@@ -42,15 +42,16 @@
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
- *  \param[in] inst Pointer to a valid BPLib_Instance_t
+ *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] BundleInPtr Pointer to the bundle
  *  \param[in] Size Bundle size
+ *  \param[in] ContId Contact ID
  * 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleInPtr, size_t Size);
-
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *BundleIn, 
+                                                            size_t Size, uint32_t ContId);
 
 /**
  * \brief Function for receiving control message from CLA

@@ -33,9 +33,9 @@ void Test_BPLib_BI_RecvFullBundleIn_NullInputErrors(void)
     size_t Size = 0;
 
     // Test the NULL pointer checks.
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, NULL, Size), BPLIB_NULL_PTR_ERROR);
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, BundleIn, Size), BPLIB_NULL_PTR_ERROR);
-    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(&instance, NULL, Size), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, NULL, Size, 0), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(NULL, BundleIn, Size, 0), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_BI_RecvFullBundleIn(&instance, NULL, Size, 0), BPLIB_NULL_PTR_ERROR);
 
     // Make sure we didn't get past the null pointer checks
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 0);
@@ -55,7 +55,7 @@ void Test_BPLib_BI_RecvFullBundleIn_MemAllocError(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) NULL);
 
-    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
@@ -78,14 +78,14 @@ void Test_BPLib_BI_RecvFullBundleIn_CborDecodeError(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &AllocatedBundleMem);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
 
-    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_BUNDLE_TOO_SHORT_ERR);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
     UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
@@ -100,7 +100,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
 
-    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
@@ -124,14 +124,14 @@ void Test_BPLib_BI_RecvFullBundleIn_Invalid(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
 
-    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_BI_INVALID_BUNDLE_ERR);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
     UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
@@ -147,14 +147,14 @@ void Test_BPLib_BI_RecvFullBundleIn_JobFail(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_CreateJob), BPLIB_ERROR);
 
-    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size);
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_ERROR);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
     UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
-    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 2);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
     UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 1);
 }
 

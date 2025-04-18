@@ -202,7 +202,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
- * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID is invalid
  * \retval    BPLIB_CLA_IO_ERROR: A UDP conntection couldn't be set to running
  */
 BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
@@ -216,7 +216,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
- * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID is invalid
  */
 BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
 
@@ -229,7 +229,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
  *                                       the Contacts Configuration
  * \retval    BPLIB_CLA_INCORRECT_STATE: CLA task not in the correct state for
  *                                       successful operation
- * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+ * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID is invalid
  */
 BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
 
@@ -242,7 +242,7 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
   *                                                        contact at the contact ID
   * \return     Execution Status
   * \retval     BPLIB_SUCCESS: Successful execution
-  * \retval     BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID is invalid
+  * \retval     BPLIB_INVALID_CONT_ID_ERR: Provided contact ID is invalid
   */
 BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState);
 
@@ -253,7 +253,7 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
   * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration whose run state is being requested to change
   * \return    Execution status (Status assigned by BPLib_CLA_SetContactRunState)
   * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
-  * \retval    BPLIB_CLA_INVALID_CONTACT_ID: Provided contact ID does not match a contact ID in the Contacts Configuration
+  * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not match a contact ID in the Contacts Configuration
   */
 BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
 

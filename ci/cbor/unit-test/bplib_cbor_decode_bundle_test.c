@@ -438,7 +438,6 @@ void Test_BPLib_CBOR_DecodeBundle_TooBig(void)
     Status = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks, BundleLength, &Bundle);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR);
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 }
 
 

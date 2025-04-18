@@ -83,7 +83,7 @@ BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
     }
 
     return Status;
