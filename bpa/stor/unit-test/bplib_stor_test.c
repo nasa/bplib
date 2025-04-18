@@ -185,6 +185,40 @@ void Test_BPLib_STOR_StoreBundle_SQLFail(void)
     UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 0);
 }
 
+/* Test that storing a batch worth of bundles places the bundles in persistent storage */
+void Test_BPLib_STOR_StoreBundle_StoreBatch(void)
+{
+    BPLib_Bundle_t Bundle;
+    int i;
+    BPLib_STOR_Test_CreateTestBundle(&Bundle);
+
+    /* Store a batch worth of bundles */
+    for (i = 0; i < BPLIB_STOR_INSERTBATCHSIZE - 1; i++)
+    {
+        UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+        Bundle.blocks.PrimaryBlock.Timestamp.CreateTime += 1;
+    }
+
+    /* At this point, batch size should be INSERTBATCHSIZE - 1, and nothing should have been flushed */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, BPLIB_STOR_INSERTBATCHSIZE - 1);
+
+    /* Store the bundle that triggers the batch */
+    UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 0);
+
+    /* No events */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Ensure the bundle was freed from memory after being stored */
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, BPLIB_STOR_INSERTBATCHSIZE);
+
+    /* Ensure batch size was reset */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.InsertBatchSize, 0);
+
+    /* Free the test bundle (for most test cases this is done in utils.c) */
+    BPLib_STOR_Test_FreeTestBundle(&Bundle);
+}
+
 /*******************************************************************************
 ** GarbageCollect Tests
 */
@@ -501,6 +535,7 @@ void TestBplibStor_Register(void)
     UtTest_Add(Test_BPLib_STOR_StoreBundle_NullParams, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StoreBundle_NullParams");
     UtTest_Add(Test_BPLib_STOR_StoreBundle_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPlib_STOR_StoreBundleNominal");
     UtTest_Add(Test_BPLib_STOR_StoreBundle_SQLFail, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StoreBundle_SQLFail");
+    UtTest_Add(Test_BPLib_STOR_StoreBundle_StoreBatch, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StoreBundle_StoreBatch");
 
     /* Load(Egress) Tests */
     UtTest_Add(Test_BPLib_STOR_EgressForDestEid_NullParams, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_NullParams");
