@@ -32,12 +32,25 @@
 /* ======= */
 
 const BPLib_EID_t BPLIB_EID_INSTANCE = {
-                                .Scheme       = BPLIB_LOCAL_EID_SCHEME,
-                                .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
-                                .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
-                                .Node         = BPLIB_LOCAL_EID_NODE_NUM,
-                                .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
+    .Scheme       = BPLIB_LOCAL_EID_SCHEME,
+    .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
+    .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
+    .Node         = BPLIB_LOCAL_EID_NODE_NUM,
+    .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
 };
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_EID_CopyEidPatterns()
+ * ----------------------------------------------------
+ */
+void BPLib_EID_CopyEidPatterns(BPLib_EID_Pattern_t *EID_Actual, BPLib_EID_Pattern_t EID_Reference)
+{
+    UT_GenStub_AddParam(BPLib_EID_CopyEidPatterns, BPLib_EID_Pattern_t *, EID_Actual);
+    UT_GenStub_AddParam(BPLib_EID_CopyEidPatterns, BPLib_EID_Pattern_t, EID_Reference);
+
+    UT_GenStub_Execute(BPLib_EID_CopyEidPatterns, Basic, NULL);
+}
 
 /*
  * ----------------------------------------------------

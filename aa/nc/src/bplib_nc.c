@@ -26,14 +26,12 @@
 #include "bplib_fwp.h"
 #include "bplib_crc.h"
 #include "bplib_nc_rwlock.h"
+#include "bplib_nc_internal.h"
 
 /* ======= */
 /* Globals */
 /* ======= */
 static BPLib_NC_RWLock_t BPLib_NC_CfgLock;
-BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
-BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 BPLib_NC_ConfigPtrs_t                   BPLib_NC_ConfigPtrs;
 
 /* ==================== */
@@ -93,6 +91,10 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
         BPLib_NC_ConfigPtrs.AuthConfigPtr      = ConfigPtrs->AuthConfigPtr;
         BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
         BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
+
+        /* Initialize contact/channel status telemetry with table values */
+        BPLib_NC_UpdateContactHkTlm();
+        BPLib_NC_UpdateChannelHkTlm();
 
         /* Initialize CRC tables */
         BPLib_CRC_Init();
@@ -195,6 +197,9 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         else
         */
         {
+            /* Update channel telemetry with new table values */
+            BPLib_NC_UpdateChannelHkTlm();
+
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
                                 "Updated Channel configuration");
@@ -225,6 +230,9 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         else
         */
         {
+            /* Update contact telemetry with new table values */
+            BPLib_NC_UpdateContactHkTlm();
+            
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
                                 "Updated Contacts configuration");

@@ -167,6 +167,8 @@ bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
  */
 void BPLib_EID_CopyEids(BPLib_EID_t *EID_Actual, BPLib_EID_t EID_Reference);
 
+void BPLib_EID_CopyEidPatterns(BPLib_EID_Pattern_t *EID_Actual, BPLib_EID_Pattern_t EID_Reference);
+
 /**
  * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence

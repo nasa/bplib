@@ -204,6 +204,10 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
     pthread_mutex_unlock(&CacheInst->lock);
 
     BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
+
+    /* Automatically increment discard since we're not currently maintaining any metadata */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, EgressCnt);
 
     *NumEgressed = EgressCnt;
     return Status;
