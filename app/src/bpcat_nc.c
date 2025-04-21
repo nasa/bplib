@@ -1,21 +1,67 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
+#include "bpcat_nc.h"
 
-BPCat_Status_t BPCat_NC_Init()
+static BPLib_PI_ChannelTable_t     ChanTbl;
+static BPLib_CLA_ContactsTable_t   ContactsTbl;
+static BPLib_ARP_CRSTable_t        CrsTbl;
+static BPLib_PDB_CustodianTable_t  CustodianTbl;
+static BPLib_PDB_CustodyTable_t    CustodyTbl;
+static BPLib_NC_MIBConfigPNTable_t MibPnTbl = {
+    .ParamSetMaxBundleLength = 4096
+};
+
+static BPLib_NC_MIBConfigPSTable_t MibPsTbl;
+static BPLib_PDB_ReportToTable_t   ReportTbl;
+static BPLib_PDB_SrcAuthTable_t    AuthTbl;
+static BPLib_PDB_SrcLatencyTable_t LatencyTbl;
+static BPLib_STOR_StorageTable_t   StorTbl;
+
+BPCat_Status_t BPCat_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
 {
-    /*
-    
-    BPNode_AppData.AduProxyTablePtr                     = &TestAduTbl;
-    BPNode_AppData.ConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
-    BPNode_AppData.ConfigPtrs.ChanConfigPtr      = &TestChanTbl;
-    BPNode_AppData.ConfigPtrs.ContactsConfigPtr  = &TestContactsTbl;
-    BPNode_AppData.ConfigPtrs.CrsConfigPtr       = &TestCrsTbl;
-    BPNode_AppData.ConfigPtrs.CustodianConfigPtr = &TestCustodianTbl;
-    BPNode_AppData.ConfigPtrs.CustodyConfigPtr   = &TestCustodyTbl;
-    BPNode_AppData.ConfigPtrs.LatConfigPtr       = &TestLatencyTbl;
-    BPNode_AppData.ConfigPtrs.MibPnConfigPtr     = &TestMibPnTbl;
-    BPNode_AppData.ConfigPtrs.MibPsConfigPtr     = &TestMibPsTbl;
-    BPNode_AppData.ConfigPtrs.ReportConfigPtr    = &TestReportTbl;
-    BPNode_AppData.ConfigPtrs.StorConfigPtr      = &TestStorTbl;
-        
-    */
+    BPLib_Status_t NCStatus;
+
+    if (ConfigPtrs == NULL)
+    {
+        return BPCAT_NULL_PTR_ERR;
+    }
+
+    ConfigPtrs->ChanConfigPtr      = &ChanTbl;
+    ConfigPtrs->ContactsConfigPtr  = &ContactsTbl;
+    ConfigPtrs->CrsConfigPtr       = &CrsTbl;
+    ConfigPtrs->CustodianConfigPtr = &CustodianTbl;
+    ConfigPtrs->CustodyConfigPtr   = &CustodyTbl;
+    ConfigPtrs->MibPnConfigPtr     = &MibPnTbl;
+    ConfigPtrs->MibPsConfigPtr     = &MibPsTbl;
+    ConfigPtrs->ReportConfigPtr    = &ReportTbl;
+    ConfigPtrs->AuthConfigPtr      = &AuthTbl;
+    ConfigPtrs->LatConfigPtr       = &LatencyTbl;
+    ConfigPtrs->StorConfigPtr      = &StorTbl;    
+
+    NCStatus = BPLib_NC_Init(ConfigPtrs);
+    if (NCStatus != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to Initialize Node Config, RC=%d\n", NCStatus);
+        //return BPCAT_NC_INIT_ERR;
+    }
+
+    return BPCAT_SUCCESS;
 }

@@ -33,6 +33,7 @@
 #define BPCAT_FWP_ERR         (-2L)
 #define BPCAT_SOCKET_ERR      (-3L)
 #define BPCAT_TASK_INIT_ERR   (-4L)
+#define BPCAT_NC_INIT_ERR     (-5L)
 
 typedef int BPCat_Status_t;
 

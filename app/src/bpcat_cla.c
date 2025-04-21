@@ -160,6 +160,7 @@ void* BPCat_CLAInTaskFunc(BPCat_AppData_t* AppData)
     uint8_t buffer[BPCAT_CLA_BUFLEN] = {0};
     struct pollfd pfd;
     int BytesRx, PollRc;
+    BPLib_Status_t BpStatus;
 
     while(AppData->Running)
     {
@@ -171,9 +172,10 @@ void* BPCat_CLAInTaskFunc(BPCat_AppData_t* AppData)
             BytesRx = recv(RxCLAConfig.SockFd, buffer, BPCAT_CLA_BUFLEN, 0);
             if (BytesRx > 0)
             {
-                if (BPLib_CLA_Ingress(&AppData->BPLibInst, 0, buffer, BytesRx, 0) != BPLIB_SUCCESS)
+                BpStatus = BPLib_CLA_Ingress(&AppData->BPLibInst, 0, buffer, BytesRx, 0);
+                if (BpStatus != BPLIB_SUCCESS)
                 {
-                    fprintf(stderr, "BPLib_CLA_Ingress Fail\n");
+                    fprintf(stderr, "BPLib_CLA_Ingress Fail RC=%d\n", BpStatus);
                 }
             }
             else if (BytesRx < 0)

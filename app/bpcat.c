@@ -25,6 +25,7 @@
 #include "bpcat_fwp.h"
 #include "bpcat_task.h"
 #include "bpcat_cla.h"
+#include "bpcat_nc.h"
 
 #include "osapi.h"
 #include <unistd.h>
@@ -64,10 +65,16 @@ static BPLib_Status_t BPCat_GenWorkerTaskTeardown()
 
 static void* BPCat_GenWorkerTaskFunc(BPCat_AppData_t* gAppData)
 {
-    // while (gAppData->Running)
-    // {
-    //     BPLib_QM_RunJob(&gAppData->BPLibInst, BPCAT_GEN_WORKER_TIMEOUT);
-    // }
+    int WorkerID; // DO NOT MERGE THIS: THIS ONLY WORKS IF THERE'S ONE WORKER ID!!!
+    if (BPLib_QM_RegisterWorker(&gAppData->BPLibInst, &WorkerID) != BPLIB_SUCCESS)
+    {
+        return NULL;
+    }
+
+    while (gAppData->Running)
+    {
+        BPLib_QM_WorkerRunJob(&gAppData->BPLibInst, 0, BPCAT_GEN_WORKER_TIMEOUT);
+    }
     return NULL;
 }
 
@@ -173,7 +180,8 @@ static void BPCat_StopTasks()
 
 /*******************************************************************************
 ** Main
-**   Note: Because BPLib is dependent on OSAL, we have to use OS_Application_Startup().
+**  Note: Because BPLib is dependent on OSAL, we have to use OS_Application_Startup()
+**  to enter into this function 
 */
 void BPCat_Main()
 {
@@ -210,13 +218,12 @@ void BPCat_Main()
     */
 
     /* Node Config */
-    BPLibStatus = BPLib_NC_Init(&AppData.ConfigPtrs);
-    if (BPLibStatus != BPLIB_SUCCESS)
+    Status = BPCat_NC_Init(&AppData.ConfigPtrs);
+    if (Status != BPCAT_SUCCESS)
     {
-        fprintf(stderr, "Failed to init NC %d\n", BPLibStatus);
+        fprintf(stderr, "Failed to init NC\n");
         return;
     }
-
 
     /* MEM */
     AppData.PoolMem = (void *)calloc(BPCAT_MEMPOOL_LEN, 1);

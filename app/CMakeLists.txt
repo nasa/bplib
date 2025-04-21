@@ -26,6 +26,7 @@ add_executable(bpcat
     bpcat.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_task.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_fwp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_nc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_cla.c
 )
 target_include_directories(bpcat PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
