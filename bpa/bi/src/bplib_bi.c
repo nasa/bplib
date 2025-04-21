@@ -47,7 +47,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    if (ContId > BPLIB_MAX_NUM_CONTACTS)
+    if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
         return BPLIB_INVALID_CONT_ID_ERR;
     }
