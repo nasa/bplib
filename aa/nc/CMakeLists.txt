@@ -10,6 +10,7 @@ add_library(bplib_nc OBJECT
     src/bplib_nc.c
     src/bplib_nc_directives.c
     src/bplib_nc_rwlock.c
+    src/bplib_nc_internal.c
 )
 
 target_include_directories(bplib_nc PUBLIC
