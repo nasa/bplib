@@ -52,6 +52,36 @@ BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
 #endif
 
 /*******************************************************************************
+* Static Functions
+*/
+static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
+{
+    BPLib_Status_t Status;
+    BPLib_BundleCache_t* CacheInst;
+    int i;
+
+    Status = BPLib_SQL_Store(Inst);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+    }
+
+    /* Free the bundles, as they're now persistent
+    ** Note: even if the storage fails, we free everything to avoid a leak.
+    */
+    CacheInst = &Inst->BundleStorage;
+    for (i = 0; i < CacheInst->InsertBatchSize; i++)
+    {
+        BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
+    }
+
+    CacheInst->InsertBatchSize = 0;
+
+    return Status;
+}
+
+/*******************************************************************************
 * Exported Functions
 */
 BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst)
@@ -79,11 +109,37 @@ void BPLib_STOR_Destroy(BPLib_Instance_t* Inst)
     pthread_mutex_destroy(&Inst->BundleStorage.lock);
 }
 
+BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst)
+{
+    BPLib_Status_t Status;
+    BPLib_BundleCache_t* CacheInst;
+
+    if (Inst == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    CacheInst = &Inst->BundleStorage;
+
+    pthread_mutex_lock(&Inst->BundleStorage.lock);
+    if (CacheInst->InsertBatchSize > 0)
+    {
+        Status = BPLib_STOR_FlushPendingUnlocked(Inst);
+    }
+    else
+    {
+        /* Don't go further if there's nothing to store */
+        Status = BPLIB_SUCCESS;
+    }
+    pthread_mutex_unlock(&Inst->BundleStorage.lock);
+
+    return Status;
+}
+
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
-    int i;
 
     if ((Inst == NULL) || (Bundle == NULL) || (Bundle->blob == NULL))
     {
@@ -97,22 +153,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     CacheInst->InsertBatch[CacheInst->InsertBatchSize++] = Bundle;
     if (CacheInst->InsertBatchSize == BPLIB_STOR_INSERTBATCHSIZE)
     {
-        Status = BPLib_SQL_Store(Inst);
-        if (Status != BPLIB_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
-                "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
-        }
-
-        /* Free the bundles, as they're now persistent
-        ** Note: even if the storage fails, we free everything to avoid a leak.
-        */
-        for (i = 0; i < CacheInst->InsertBatchSize; i++)
-        {
-            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
-        }
-
-        CacheInst->InsertBatchSize = 0;
+        Status = BPLib_STOR_FlushPendingUnlocked(Inst);
     }
     pthread_mutex_unlock(&CacheInst->lock);
 
@@ -145,7 +186,7 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
     if (Status != BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+            "BPLib_SQL_EgressForDestEID failed to load bundle. RC=%d", Status);
     }
 
     /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
@@ -221,7 +262,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisc
     if (Status != BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_Store failed to run garbage collection. RC=%d", Status);
+            "BPLib_SQL_GarbageCollect failed to run garbage collection. RC=%d", Status);
     }
 
     pthread_mutex_unlock(&CacheInst->lock);
@@ -274,7 +315,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
             if (Status != BPLIB_SUCCESS)
             {
                 BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "BPLib_SQL_Store failed to egress bundle for local channel %d, RC=%d", i, Status);
+                    "Failed to egress bundle for local channel %d, RC=%d", i, Status);
             }
         }
     }
@@ -293,7 +334,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
             if (Status != BPLIB_SUCCESS)
             {
                 BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "BPLib_SQL_Store failed to egress bundle for contact %d, RC=%d", i, Status);
+                    "Failed to egress bundle for contact %d, RC=%d", i, Status);
             }
         }
     }

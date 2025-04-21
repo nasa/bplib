@@ -65,6 +65,22 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t *Inst, uint16_t Egre
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_FlushPending()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t *Inst)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_FlushPending, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_FlushPending, BPLib_Instance_t *, Inst);
+
+    UT_GenStub_Execute(BPLib_STOR_FlushPending, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_FlushPending, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_GarbageCollect()
  * ----------------------------------------------------
  */
