@@ -41,6 +41,7 @@ typedef struct BPCat_AppData
     volatile sig_atomic_t Running;
     void* PoolMem;
     BPLib_Instance_t BPLibInst;
+    BPLib_NC_ConfigPtrs_t ConfigPtrs;
 } BPCat_AppData_t;
 
 #endif /* BPLIB_BPCAT_TYPES_H */

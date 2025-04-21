@@ -171,10 +171,9 @@ void* BPCat_CLAInTaskFunc(BPCat_AppData_t* AppData)
             BytesRx = recv(RxCLAConfig.SockFd, buffer, BPCAT_CLA_BUFLEN, 0);
             if (BytesRx > 0)
             {
-                printf("Received Candidate Bundle with len %d\n", BytesRx);
                 if (BPLib_CLA_Ingress(&AppData->BPLibInst, 0, buffer, BytesRx, 0) != BPLIB_SUCCESS)
                 {
-                    printf("BPLib_CLA_Ingress Fail\n");
+                    fprintf(stderr, "BPLib_CLA_Ingress Fail\n");
                 }
             }
             else if (BytesRx < 0)

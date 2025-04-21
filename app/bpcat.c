@@ -184,7 +184,7 @@ void BPCat_Main()
     Status = BPCat_FWP_Init();
     if (Status != BPLIB_SUCCESS)
     {
-        printf("Failed to init FWP\n");
+        fprintf(stderr, "Failed to init FWP\n");
         return;
     }
 
@@ -192,7 +192,7 @@ void BPCat_Main()
     BPLibStatus = BPLib_EM_Init();
     if (BPLibStatus != BPLIB_SUCCESS)
     {
-        printf("Failed to init EM\n");
+        fprintf(stderr, "Failed to init EM\n");
         return;
     }
 
@@ -208,6 +208,15 @@ void BPCat_Main()
         return;
     }
     */
+
+    /* Node Config */
+    BPLibStatus = BPLib_NC_Init(&AppData.ConfigPtrs);
+    if (BPLibStatus != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to init NC %d\n", BPLibStatus);
+        return;
+    }
+
 
     /* MEM */
     AppData.PoolMem = (void *)calloc(BPCAT_MEMPOOL_LEN, 1);

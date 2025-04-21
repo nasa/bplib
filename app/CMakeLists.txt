@@ -19,7 +19,7 @@ project(BPLIB_TEST_APP C)
 #endif()
 
 set(BPAPP_COMPILE_FEATURES "c_std_99")
-set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
+set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror;-g;>")
 set(BPAPP_LINK_LIBRARIES bplib)
 
 add_executable(bpcat
