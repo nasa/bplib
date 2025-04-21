@@ -112,6 +112,7 @@ void BPLib_STOR_Test_SetupOneBundleStored(void)
     BPLib_STOR_Test_Setup();
     BPLib_STOR_Test_CreateTestBundle(&TestBundle);
     BPLib_STOR_StoreBundle(&BplibInst, &TestBundle);
+    BPLib_STOR_FlushPending(&BplibInst);
 
     /* We expect load bundle to MEM_Alloc twice for the test bundle: Setup BlockAlloc
     ** to return 2 chunks
