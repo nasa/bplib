@@ -42,6 +42,22 @@ extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPaylo
 ** Function Definitions
 */
 
+/**
+ * \brief Update contact telemetry
+ *
+ * \par Description
+ *      Update the contact telemetry values to new contact configuration values
+ *
+ */
 void BPLib_NC_UpdateContactHkTlm(void);
+
+/**
+ * \brief Update channel telemetry
+ *
+ * \par Description
+ *      Update the channel telemetry values to new channel configuration values
+ *
+ */
+void BPLib_NC_UpdateChannelHkTlm(void);
 
 #endif // BPLIB_NC_INTERNAL_H

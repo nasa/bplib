@@ -1599,6 +1599,9 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
 {
     BPLib_Status_t Status;
 
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = TestConfigPtrs.ChanConfigPtr;
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr = TestConfigPtrs.ContactsConfigPtr;
+
     /* Force configuration updates to report only success */
     UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
 
