@@ -184,18 +184,6 @@ typedef struct
 {
     BPLib_EID_t InstanceEID; /** \brief Endpoint ID of this instance of FSW for this endpoint */
 
-    /* Alignment spares */
-    uint64_t Spare[3];
-
-    /* Node only */
-    char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /** \brief Human readable name given to entity */
-    char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
-    char     SystemSoftwareExecVersion[BPLIB_MAX_EID_LENGTH];   /** \brief Version of software */
-    char     BundleAgentSoftwareVersion[BPLIB_MAX_EID_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
-    char     BundleAgentOperationalState[BPLIB_MAX_EID_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
-    char     BundleAgentConfiguration[BPLIB_MAX_EID_LENGTH];    /** \brief Configuration of Bundle Protocol Agent */
-    char     ParamSupportedCLAs[BPLIB_MAX_EID_LENGTH];          /** \brief Supported CLAs */
-    char     NodeActiveEndpoints[BPLIB_MAX_EID_LENGTH];         /** \brief List of active endpoints on the Node */
     uint32_t SystemNodeUpTime;                                  /** \brief The time in seconds since this node has been reinitialized */
     uint32_t NodeStartupCounter;                                /** \brief Number of times a node is started up */
     uint32_t BundleAgentAvailableStorage;                       /** \brief Total amount of memory allocated for bundle storage for the node  */
@@ -219,6 +207,19 @@ typedef struct
     uint32_t BundleDeliveryRateBundlesPerSec;   /** \brief Rate of bundles delivered locally in bundles per second */
     uint32_t BundleDeliveryRateBytesPerSec;     /** \brief Rate of bundles delivered locally in bytes per second */
     uint32_t BundleEgressRateBundlesPerSec;     /** \brief Rate of bundle forwarded from CLAs in bundles per second */
+
+    /* Spares for alignment */
+    uint32_t Spare[3];
+
+    /* Node only */
+    char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /** \brief Human readable name given to entity */
+    char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
+    char     SystemSoftwareExecVersion[BPLIB_MAX_EID_LENGTH];   /** \brief Version of software */
+    char     BundleAgentSoftwareVersion[BPLIB_MAX_EID_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
+    char     BundleAgentOperationalState[BPLIB_MAX_EID_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
+    char     BundleAgentConfiguration[BPLIB_MAX_EID_LENGTH];    /** \brief Configuration of Bundle Protocol Agent */
+    char     ParamSupportedCLAs[BPLIB_MAX_EID_LENGTH];          /** \brief Supported CLAs */
+    char     NodeActiveEndpoints[BPLIB_MAX_EID_LENGTH];         /** \brief List of active endpoints on the Node */
 } BPLib_NC_MibPerNodeConfig_t;
 
 
