@@ -141,7 +141,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        fprintf(stderr, "Failed to start transaction\n");
+        fprintf(stderr, "Failed to start transaction: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
 

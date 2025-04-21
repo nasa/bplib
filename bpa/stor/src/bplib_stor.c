@@ -120,14 +120,17 @@ BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst)
     }
 
     CacheInst = &Inst->BundleStorage;
-    if (CacheInst->InsertBatchSize == 0)
-    {
-        /* Don't go further if there's nothing to store */
-        return BPLIB_SUCCESS;
-    }
 
     pthread_mutex_lock(&Inst->BundleStorage.lock);
-    Status = BPLib_STOR_FlushPendingUnlocked(Inst);
+    if (CacheInst->InsertBatchSize > 0)
+    {
+        Status = BPLib_STOR_FlushPendingUnlocked(Inst);
+    }
+    else
+    {
+        /* Don't go further if there's nothing to store */
+        Status = BPLIB_SUCCESS;
+    }
     pthread_mutex_unlock(&Inst->BundleStorage.lock);
 
     return Status;
