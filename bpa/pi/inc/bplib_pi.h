@@ -40,7 +40,8 @@
 */
 typedef struct
 {
-    BPLib_BlockType_t BlockType;
+
+    bool              IncludeBlock;
     BPLib_CRC_Type_t  CrcType;
     uint16_t          Spare;
     uint32_t          BlockNum;
@@ -63,8 +64,6 @@ typedef struct
 {
     bool                    AddAutomatically;
     bool                    RequestCustody;
-    bool                    IncludePrevNodeBlk;
-    bool                    IncludeHopCountBlk;
     bool                    AduWrapping;
     bool                    AduUnwrapping;
     uint8_t                 RegState;
@@ -77,7 +76,10 @@ typedef struct
     BPLib_EID_t             DestEID;
     BPLib_EID_t             ReportToEID;
     uint64_t                Lifetime;
-    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_CANONICAL_BLOCKS];
+    BPLib_PI_CanBlkConfig_t PrevNodeBlkConfig;
+    BPLib_PI_CanBlkConfig_t AgeBlkConfig;
+    BPLib_PI_CanBlkConfig_t HopCountBlkConfig;
+    BPLib_PI_CanBlkConfig_t PayloadBlkConfig;
 } BPLib_PI_Config_t;
 
 /**

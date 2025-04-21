@@ -98,6 +98,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     uint64_t BlockType;
     uint32_t HeaderStartOffset;
     UsefulBufC CanonBlockDataByteStrInfo;
+    QCBORItem PeekItem;
 
     if ((ctx == NULL) || (bundle == NULL))
     {
@@ -158,9 +159,21 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         return BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR;
     }
 
+    /* A payload block's block number must be 1 */
+    if (BlockType == BPLib_BlockType_Payload && CanonicalBlockHdr->BlockNum != 1)
+    {
+        return BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR;
+    }
+
     /* Flags */
     Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BlockProcFlags);
     if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
+    }
+
+    /* Check flags to make sure we support the requested options */
+    if ((CanonicalBlockHdr->BlockProcFlags | BPLIB_VALID_BLOCK_PROC_FLAG_MASK) != BPLIB_VALID_BLOCK_PROC_FLAG_MASK)
     {
         return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
     }
@@ -172,8 +185,16 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         return BPLIB_CBOR_DEC_CANON_CRC_TYPE_DEC_ERR;
     }
 
+    /* Validate CRC Type */
+    if (CanonicalBlockHdr->CrcType != BPLib_CRC_Type_None && 
+        CanonicalBlockHdr->CrcType != BPLib_CRC_Type_CRC16 && 
+        CanonicalBlockHdr->CrcType != BPLib_CRC_Type_CRC32C)
+    {
+        return BPLIB_CBOR_DEC_CANON_CRC_TYPE_DEC_ERR;
+    }    
+
     /*
-    ** next should be the canonical-block-specific data
+    ** Next should be the canonical-block-specific data
     ** this should be wrapped in a CBOR byte-string
     */
     QCBORDecode_EnterBstrWrapped(ctx, QCBOR_TAG_REQUIREMENT_NOT_A_TAG, &CanonBlockDataByteStrInfo);
@@ -190,6 +211,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     */
     CanonicalBlockHdr->DataOffsetStart = QCBORDecode_Tell(ctx);
     CanonicalBlockHdr->DataSize = CanonBlockDataByteStrInfo.len;
+
+    /* Set discard to false by default */
+    CanonicalBlockHdr->RequiresDiscard = false;
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
@@ -224,11 +248,28 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         {
             return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR;
         }
+
+        /* Validate hop limit is within allowed range */
+        if (bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit < 1 || 
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit > 255)
+        {
+            return BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR;
+        }
+
         Status = HopCountBlockDataParser.BundleHopCountParser(ctx,
             &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
         if (Status != BPLIB_SUCCESS)
         {
             return BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR;
+        }
+
+        /* Validate hop count has not exceeded hop limit */
+        if (bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount > 
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit)
+        {
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_HOP_EXCEEDED, 1);
+
+            return BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR;
         }
 
         /* Exit the hop count block data array */
@@ -240,16 +281,31 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     }
     else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
-        /* payload blocks shouldn't need to be re-encoded */
+        /* Payload blocks shouldn't need to be re-encoded */
         CanonicalBlockHdr->RequiresEncode = false;
         /* TODO: Should we do anything with this data? */
     }
     else
     {
-        /* TODO: Should we return an error here? */
+        /* Block control flag says to delete bundle when block can't be processed */
+        if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
+        {
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK, 1);
+
+            return BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR;
+        }
+        /* Block control flag says to discard just this block when it can't be processed */
+        if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DISCARD_BLOCK_FLAG)
+        {
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_UNPROCESSED_BLOCKS, 1);
+
+            CanonicalBlockHdr->RequiresDiscard = true;
+        }
+
+        /* If neither flag is set, the block will be kept and copied out on egress */
     }
 
-    /* exit the byte-string */
+    /* Exit the byte-string */
     QCBORDecode_ExitBstrWrapped(ctx);
     QStatus = QCBORDecode_GetError(ctx);
     if (QStatus != QCBOR_SUCCESS)
@@ -279,6 +335,13 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
     {
         CanonicalBlockHdr->BlockOffsetEnd = QCBORDecode_Tell(ctx) - 2;
+
+        /* Verify there is nothing following the payload block */
+        QStatus = QCBORDecode_PeekNext(ctx, &PeekItem);
+        if (QStatus != QCBOR_ERR_NO_MORE_ITEMS)
+        {
+            return BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR;
+        }
     }
     else
     {

@@ -11,11 +11,13 @@
 add_library(bplib_time_stubs STATIC
     stubs/bplib_time_stubs.c
     stubs/bplib_time_internal_stubs.c
+    stubs/bplib_time_handlers.c
 )
 
 target_include_directories(bplib_time_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
     ../src
+    stubs/
 )
 
 target_link_libraries(bplib_time_stubs PUBLIC ut_assert)

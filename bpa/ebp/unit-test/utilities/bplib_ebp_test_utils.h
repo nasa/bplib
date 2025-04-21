@@ -31,6 +31,23 @@
 
 #include "bplib_api_types.h"
 #include "bplib_ebp.h"
+#include "bplib_pi.h"
+#include "bplib_nc.h"
+
+
+/*
+** Global Data
+*/
+
+extern BPLib_PI_ChannelTable_t TestChanConfigPtr;
+
+
+/*
+** Macro Definitions
+*/
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_EBP_Test_Setup, BPLib_EBP_Test_Teardown, #test)
 
 
 /*
