@@ -60,6 +60,8 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     BPLib_BundleCache_t* CacheInst;
     int i;
 
+    CacheInst = &Inst->BundleStorage;
+
     Status = BPLib_SQL_Store(Inst);
     if (Status != BPLIB_SUCCESS)
     {
@@ -74,7 +76,6 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     /* Free the bundles, as they're now persistent
     ** Note: even if the storage fails, we free everything to avoid a leak.
     */
-    CacheInst = &Inst->BundleStorage;
     for (i = 0; i < CacheInst->InsertBatchSize; i++)
     {
         BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
