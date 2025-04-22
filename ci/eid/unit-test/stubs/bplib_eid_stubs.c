@@ -31,12 +31,12 @@
 /* Globals */
 /* ======= */
 
-const BPLib_EID_t BPLIB_EID_INSTANCE = {
-                                .Scheme       = BPLIB_LOCAL_EID_SCHEME,
-                                .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
-                                .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
-                                .Node         = BPLIB_LOCAL_EID_NODE_NUM,
-                                .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
+BPLib_EID_t BPLIB_EID_INSTANCE = {
+    .Scheme       = BPLIB_LOCAL_EID_SCHEME,
+    .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
+    .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
+    .Node         = BPLIB_LOCAL_EID_NODE_NUM,
+    .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
 };
 
 /*

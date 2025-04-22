@@ -151,6 +151,8 @@ void BPLib_NC_Test_Setup(void)
 
     memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
 
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr = &TestMibPnTbl;
+
     TestConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
     TestConfigPtrs.ChanConfigPtr      = &TestChanTbl;
     TestConfigPtrs.ContactsConfigPtr  = &TestContactsTbl;
