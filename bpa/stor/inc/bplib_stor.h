@@ -34,7 +34,7 @@
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
-#define BPLIB_STOR_INSERTBATCHSIZE 1 /* To raise from 1, we need a "flush timer" */
+#define BPLIB_STOR_INSERTBATCHSIZE 100
 #define BPLIB_STOR_LOADBATCHSIZE 100
 
 struct BPLib_BundleCache
@@ -108,6 +108,7 @@ extern BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
  */
 BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst);
 
+
 void BPLib_STOR_Destroy(BPLib_Instance_t* Inst);
 
 /**
@@ -148,5 +149,7 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
     BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed);
 
 BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
+
+BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
 
 #endif /* BPLIB_STOR_H */
