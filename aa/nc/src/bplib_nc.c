@@ -330,7 +330,11 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
+        /* Update the instance EID */
         BPLIB_EID_INSTANCE = BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID;
+
+        /* Update telemetry value */
+        BPLib_NC_NodeMibConfigPayload.Values = *BPLib_NC_ConfigPtrs.MibPnConfigPtr;
 
         BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                             BPLib_EM_EventType_INFORMATION,
