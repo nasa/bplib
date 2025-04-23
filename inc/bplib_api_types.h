@@ -136,6 +136,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_INVALID_CRC_ERROR                         ((BPLib_Status_t) -11) /* Invalid CRC */
 #define BPLIB_OS_ERROR                                  ((BPLib_Status_t) -12)
 #define BPLIB_INVALID_CHAN_ID_ERR                       ((BPLib_Status_t) -13) /* Invalid Channel ID */
+#define BPLIB_INVALID_CONT_ID_ERR                       ((BPLib_Status_t) -14) /* Invalid Contact ID */
 
 /*
 
@@ -245,10 +246,11 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_LIMIT_DEC_ERR     ((BPLib_Status_t) -151) /* CBOR Hop Count block decode error: hop limit decode */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_HOP_COUNT_DEC_ERR     ((BPLib_Status_t) -152) /* CBOR Hop Count block decode error: hop count decode */
 #define BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR       ((BPLib_Status_t) -153) /* CBOR Hop Count block decode error: invalid block data values */
+#define BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR          ((BPLib_Status_t) -154) /* CBOR Hop Count block decode error: hop limit exceeded */
 
-#define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -154) /* CBOR canon block decode error: can't process block */
-#define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -155) /* CBOR decode error: bundle is too long */
-#define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -156) /* CBOR decode error: extra data after payload  */
+#define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -155) /* CBOR canon block decode error: can't process block */
+#define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -156) /* CBOR decode error: bundle is too long */
+#define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -157) /* CBOR decode error: extra data after payload  */
 
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR ((BPLib_Status_t) -160) /* CBOR decode types error: enter def array */
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR ((BPLib_Status_t) -161) /* CBOR decode types error: def array size */
@@ -290,7 +292,6 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 /* CLA errors */
 #define BPLIB_CLA_INCORRECT_STATE                       ((BPLib_Status_t) -200) /* Contact is in the incorrect state to be modified */
 #define BPLIB_CLA_IO_ERROR                              ((BPLib_Status_t) -201) /* PSP IO driver API call failed */
-#define BPLIB_CLA_INVALID_CONTACT_ID                    ((BPLib_Status_t) -202) /* Provided ID of the desired contact is invalid */
 
 /* QM Errors */
 #define BPLIB_QM_INIT_ERROR                             ((BPLib_Status_t) -220)

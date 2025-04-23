@@ -177,6 +177,34 @@ typedef struct
     uint32_t ExampleParameter;
 } BPLib_RemoveStorageAllocation_Payload_t;
 
+/**
+ * \brief Channel/contact status housekeeping payload
+ */
+typedef struct
+{
+    uint32_t LocalServiceNum;   /**< \brief Service number for application sending/receiving ADUs on this channel */
+    uint32_t State;             /**< \brief Added, started, stopped, or removed */
+    uint32_t RegistrationState; /**< \brief Active, PassiveDefered or PassiveAbandon */
+    uint32_t Spare;
+} BPLib_ChannelHkTlmPayloadSet_t;
+
+typedef struct
+{
+    uint32_t State;             /**< \brief Set up, started, stopped, or torn down */
+    uint32_t Spare;
+    BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];  /**< \brief Destination EIDs */
+} BPLib_ContactHkTlmPayloadSet_t;
+
+typedef struct
+{
+    BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Status for each channel */
+    BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /**< \brief Status for each contact */
+    uint32_t Spare;
+    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
+} BPLib_ChannelContactStatHkTlm_Payload_t;
+
 /*
 ** MIB Config Per Node Policy Table
 */
@@ -254,37 +282,6 @@ typedef struct
 {
     BPLib_NC_MIBConfigPSSet_t MIB_PS_Set[BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES];
 } BPLib_NC_MIBConfigPSTable_t;
-
-/**
- * \brief Channel/contact status housekeeping payload
- */
-typedef struct
-{
-    uint32_t LocalServiceNum;   /** \brief Service number for application sending/receiving ADUs on this channel */
-    uint32_t State;             /** \brief Configured, Running, or Off */
-    uint32_t RegistrationState; /** \brief Active, PassiveDefered or PassiveAbandon */
-    uint32_t OutputQueueID;     /** \brief Output queue ID */
-} BPLib_ChannelHkTlmPayloadSet_t;
-
-typedef struct
-{
-    uint32_t                    ContactID;                              /** \brief Unique ID for this contact */
-    BPLib_CLA_ContactRunState_t State;                                  /** \brief Configured, Running, or Off */
-    uint8_t                     Spare[3];
-    char                        EIDs[BPLIB_MAX_EID_LENGTH];             /** \brief List of EIDs */
-    uint32_t                    OutputQueueID;                          /** \brief Output queue ID */
-    uint32_t                    Spare1;
-} BPLib_ContactHkTlmPayloadSet_t;
-
-typedef struct
-{
-    BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /** \brief Status for each channel */
-    BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /** \brief Status for each contact */
-    uint32_t Spare2;
-    uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
-} BPLib_ChannelContactStatHkTlm_Payload_t;
 
 /**
  * \brief Node MIB configuration housekeeping payload

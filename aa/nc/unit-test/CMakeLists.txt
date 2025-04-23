@@ -25,6 +25,7 @@ add_library(utobj_bplib_nc OBJECT
     ../src/bplib_nc.c
     ../src/bplib_nc_directives.c
     ../src/bplib_nc_rwlock.c
+    ../src/bplib_nc_internal.c
 )
 
 target_compile_definitions(utobj_bplib_nc PRIVATE
@@ -51,9 +52,9 @@ add_executable(coverage-bplib_nc-testrunner
 )
 
 target_include_directories(coverage-bplib_nc-testrunner PRIVATE
-    ../src
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_stor,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>

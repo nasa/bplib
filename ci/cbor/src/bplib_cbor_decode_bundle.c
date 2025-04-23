@@ -60,7 +60,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     BPLib_NC_ReaderLock();
     if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->ParamSetMaxBundleLength)
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_TOO_LONG, 1);
         BPLib_NC_ReaderUnlock();
         return BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR;
     }
@@ -96,7 +95,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     Status = BPLib_CBOR_DecodePrimary(&ctx, bundle, CandBundle);
     if (Status != BPLIB_SUCCESS)
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_INVALID_PRIMARY_BLOCK, 1);
         return Status;
     }
 

@@ -18,36 +18,46 @@
  *
  */
 
-#ifndef BPLIB_BI_TEST_UTILS_H
-#define BPLIB_BI_TEST_UTILS_H
+#ifndef BPLIB_NC_INTERNAL_H
+#define BPLIB_NC_INTERNAL_H
 
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
 #include "bplib_api_types.h"
-#include "bplib_bi.h"
-#include "bplib_as_handlers.h"
+#include "bplib_nc_payloads.h"
 
 
 /*
 ** Global Data
 */
 
-extern BPLib_Bundle_t DeserializedBundle;
+extern BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
+extern BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload;
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_BI_Test_Setup(void);
-void BPLib_BI_Test_Teardown(void);
+/**
+ * \brief Update contact telemetry
+ *
+ * \par Description
+ *      Update the contact telemetry values to new contact configuration values
+ *
+ */
+void BPLib_NC_UpdateContactHkTlm(void);
 
-void TestBplibBi_Register(void);
+/**
+ * \brief Update channel telemetry
+ *
+ * \par Description
+ *      Update the channel telemetry values to new channel configuration values
+ *
+ */
+void BPLib_NC_UpdateChannelHkTlm(void);
 
-#endif /* BPLIB_BI_TEST_UTILS_H */
+#endif // BPLIB_NC_INTERNAL_H

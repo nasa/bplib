@@ -10,10 +10,12 @@ add_library(bplib_nc OBJECT
     src/bplib_nc.c
     src/bplib_nc_directives.c
     src/bplib_nc_rwlock.c
+    src/bplib_nc_internal.c
 )
 
 target_include_directories(bplib_nc PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>

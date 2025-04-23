@@ -112,6 +112,21 @@ void Test_BPLib_PI_Ingress_BadChanId(void)
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_INVALID_CHAN_ID_ERR);
 }
 
+/* Test ingress function null memory allocation */
+void Test_BPLib_PI_Ingress_NullMem(void)
+{
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t AduSize = 0;
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BundleAlloc), 1, (UT_IntReturn_t) NULL);
+
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_INGRESS_ERR_EID);
+}
+
+
 /* Test nominal egress function */
 void Test_BPLib_PI_Egress_Nominal(void)
 {
@@ -214,6 +229,7 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
     ADD_TEST(Test_BPLib_PI_Ingress_Null);
     ADD_TEST(Test_BPLib_PI_Ingress_BadChanId);
+    ADD_TEST(Test_BPLib_PI_Ingress_NullMem);
 
     ADD_TEST(Test_BPLib_PI_Egress_Nominal);
     ADD_TEST(Test_BPLib_PI_Egress_Null);

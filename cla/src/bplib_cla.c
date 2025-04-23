@@ -49,7 +49,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
 
     if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
-        return BPLIB_CLA_INVALID_CONTACT_ID;
+        return BPLIB_INVALID_CONT_ID_ERR;
     }
 
     /* Not a RFC 9171 bundle. Can be a control message or junk*/
@@ -61,11 +61,13 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
     }
     else
     {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_RECEIVED, 1);
+        
         /* Receive a RFC 9171 bundle and pass it to BI */
         /* Note: An argument can be made to simply implement RecvFullBundleIn here
         * and do away with BI_RecvFullBundleIn()
         */
-        return BPLib_BI_RecvFullBundleIn(Inst, Bundle, Size);
+        return BPLib_BI_RecvFullBundleIn(Inst, Bundle, Size, ContId);
     }
 }
 
@@ -84,7 +86,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
     else if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
         *Size = 0;
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
     }
 
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
@@ -93,12 +95,13 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED, 1);
+
             BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                            "Egressing packet of %lu bytes to CLA #%d", *Size, ContId);
+                            "[CLA Out #%d]: Forwarding bundle of %lu bytes", ContId, *Size);
         }
         else
         {
-            printf("blob copyout err %d\n", Status);
             *Size = 0;
         }
 
@@ -179,7 +182,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
         BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact ID must be less than %d, given %d",
@@ -225,7 +228,7 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
         BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact ID %d is invalid",
@@ -270,7 +273,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
         BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact ID %d is invalid",
@@ -313,7 +316,7 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
         BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Contact ID %d is invalid",
@@ -334,7 +337,7 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
     }
     else
     {
-        Status = BPLIB_CLA_INVALID_CONTACT_ID;
+        Status = BPLIB_INVALID_CONT_ID_ERR;
     }
 
     return Status;
