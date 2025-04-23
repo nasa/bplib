@@ -60,17 +60,22 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     BPLib_BundleCache_t* CacheInst;
     int i;
 
+    CacheInst = &Inst->BundleStorage;
+
     Status = BPLib_SQL_Store(Inst);
     if (Status != BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
             "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
     }
+    else 
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, CacheInst->InsertBatchSize);
+    }
 
     /* Free the bundles, as they're now persistent
     ** Note: even if the storage fails, we free everything to avoid a leak.
     */
-    CacheInst = &Inst->BundleStorage;
     for (i = 0; i < CacheInst->InsertBatchSize; i++)
     {
         BPLib_MEM_BundleFree(&Inst->pool, CacheInst->InsertBatch[i]);
@@ -240,6 +245,12 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
 
     pthread_mutex_unlock(&CacheInst->lock);
 
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
+
+    /* Automatically increment discard since we're not currently maintaining any metadata */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, EgressCnt);
+
     *NumEgressed = EgressCnt;
     return Status;
 }
@@ -263,6 +274,13 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisc
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
             "BPLib_SQL_GarbageCollect failed to run garbage collection. RC=%d", Status);
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, *NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, *NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, *NumDiscarded);
+        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, *NumDiscarded);
     }
 
     pthread_mutex_unlock(&CacheInst->lock);

@@ -431,6 +431,151 @@ void Test_BPLib_EID_IsMatch_MismatchService_Error(void)
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Actual, EID_Reference));
 }
 
+void Test_BPLib_EID_NodeIsMatch_Nominal(void)
+{
+    EID_Actual.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Actual.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Actual.Allocator    = 1;
+    EID_Actual.Node         = 2;
+
+    EID_Reference.Scheme       = EID_Actual.Scheme;
+    EID_Reference.IpnSspFormat = EID_Actual.IpnSspFormat;
+    EID_Reference.Allocator    = EID_Actual.Allocator;
+    EID_Reference.Node         = EID_Actual.Node;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_NodeIsMatch(EID_Actual, EID_Reference));
+}
+
+void Test_BPLib_EID_NodeIsMatch_DiffNode(void)
+{
+    EID_Actual.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Actual.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Actual.Allocator    = 1;
+    EID_Actual.Node         = 2;
+
+    EID_Reference.Scheme       = EID_Actual.Scheme;
+    EID_Reference.IpnSspFormat = EID_Actual.IpnSspFormat;
+    EID_Reference.Allocator    = EID_Actual.Allocator;
+    EID_Reference.Node         = EID_Actual.Node + 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_NodeIsMatch(EID_Actual, EID_Reference));
+}
+
+void Test_BPLib_EID_NodeIsMatch_DiffAlloc(void)
+{
+    EID_Actual.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Actual.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Actual.Allocator    = 1;
+    EID_Actual.Node         = 2;
+
+    EID_Reference.Scheme       = EID_Actual.Scheme;
+    EID_Reference.IpnSspFormat = EID_Actual.IpnSspFormat;
+    EID_Reference.Allocator    = EID_Actual.Allocator + 1;
+    EID_Reference.Node         = EID_Actual.Node;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_NodeIsMatch(EID_Actual, EID_Reference));
+}
+
+void Test_BPLib_EID_NodeIsMatch_DiffFormat(void)
+{
+    EID_Actual.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Actual.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Actual.Allocator    = 1;
+    EID_Actual.Node         = 2;
+
+    EID_Reference.Scheme       = EID_Actual.Scheme;
+    EID_Reference.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Reference.Allocator    = EID_Actual.Allocator;
+    EID_Reference.Node         = EID_Actual.Node;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_NodeIsMatch(EID_Actual, EID_Reference));
+}
+
+void Test_BPLib_EID_NodeIsMatch_DiffScheme(void)
+{
+    EID_Actual.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Actual.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Actual.Allocator    = 1;
+    EID_Actual.Node         = 2;
+
+    EID_Reference.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Reference.IpnSspFormat = EID_Actual.IpnSspFormat;
+    EID_Reference.Allocator    = EID_Actual.Allocator;
+    EID_Reference.Node         = EID_Actual.Node;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_NodeIsMatch(EID_Actual, EID_Reference));
+}
+
+void Test_BPLib_EID_CopyEids_Null(void)
+{
+    BPLib_EID_t *Actual = NULL;
+    BPLib_EID_t Ref;
+
+    BPLib_EID_CopyEids(Actual, Ref);
+
+    UtAssert_NULL(Actual);
+}
+
+void Test_BPLib_EID_CopyEids_Nominal(void)
+{
+    BPLib_EID_t Actual;
+    BPLib_EID_t Ref;
+
+    memset(&Ref, 0, sizeof(Ref));
+
+    Actual.Allocator = 1;
+    Actual.IpnSspFormat = 2;
+    Actual.Node = 3;
+    Actual.Scheme = 4;
+    Actual.Service = 5;
+
+    BPLib_EID_CopyEids(&Actual, Ref);
+
+    UtAssert_EQ(uint64_t, Actual.Allocator, Ref.Allocator);
+    UtAssert_EQ(uint64_t, Actual.IpnSspFormat, Ref.IpnSspFormat);
+    UtAssert_EQ(uint64_t, Actual.Node, Ref.Node);
+    UtAssert_EQ(uint64_t, Actual.Scheme, Ref.Scheme);
+    UtAssert_EQ(uint64_t, Actual.Service, Ref.Service);
+}
+
+void Test_BPLib_EID_CopyEidPatterns_Null(void)
+{
+    BPLib_EID_Pattern_t *Actual = NULL;
+    BPLib_EID_Pattern_t Ref;
+
+    BPLib_EID_CopyEidPatterns(Actual, Ref);
+
+    UtAssert_NULL(Actual);
+}
+
+void Test_BPLib_EID_CopyEidPatterns_Nominal(void)
+{
+    BPLib_EID_Pattern_t Actual;
+    BPLib_EID_Pattern_t Ref;
+
+    memset(&Ref, 0, sizeof(Ref));
+
+    Actual.Scheme = 1;
+    Actual.IpnSspFormat = 2;
+    Actual.MaxAllocator = 3;
+    Actual.MinAllocator = 4;
+    Actual.MaxNode = 5;
+    Actual.MinNode = 6;
+    Actual.MinService = 7;
+    Actual.MaxService = 8;
+
+    BPLib_EID_CopyEidPatterns(&Actual, Ref);
+
+    UtAssert_EQ(uint64_t, Actual.Scheme, Ref.Scheme);
+    UtAssert_EQ(uint64_t, Actual.IpnSspFormat, Ref.IpnSspFormat);
+    UtAssert_EQ(uint64_t, Actual.MaxAllocator, Ref.MinAllocator);
+    UtAssert_EQ(uint64_t, Actual.MinAllocator, Ref.MinAllocator);
+    UtAssert_EQ(uint64_t, Actual.MaxNode, Ref.MaxNode);
+    UtAssert_EQ(uint64_t, Actual.MinNode, Ref.MinNode);
+    UtAssert_EQ(uint64_t, Actual.MaxService, Ref.MaxService);
+    UtAssert_EQ(uint64_t, Actual.MinService, Ref.MinService);
+}
+
 void TestBplibEid_Register(void)
 {
     ADD_TEST(Test_BPLib_EID_IsValid_DTN_Nominal);
@@ -445,6 +590,7 @@ void TestBplibEid_Register(void)
     ADD_TEST(Test_BPLib_EID_IsValid_IPN2dAllocator_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_IPN2dService_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_Format_Error);
+
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_Nominal);
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_AllocatorWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_NodeWildcard_Nominal);
@@ -455,10 +601,23 @@ void TestBplibEid_Register(void)
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_NodeMismatch_Error);
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_ServiceMismatch_Error);
     ADD_TEST(Test_BPLib_EID_Pattern_IsMatch_InvalidRanges_Error);
+
     ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_MismatchScheme_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_MismatchIpnSspFormat_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_MismatchAllocator_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_MismatchNode_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_MismatchService_Error);
+
+    ADD_TEST(Test_BPLib_EID_NodeIsMatch_Nominal);
+    ADD_TEST(Test_BPLib_EID_NodeIsMatch_DiffAlloc);
+    ADD_TEST(Test_BPLib_EID_NodeIsMatch_DiffFormat);
+    ADD_TEST(Test_BPLib_EID_NodeIsMatch_DiffNode);
+    ADD_TEST(Test_BPLib_EID_NodeIsMatch_DiffScheme);
+
+    ADD_TEST(Test_BPLib_EID_CopyEids_Null);
+    ADD_TEST(Test_BPLib_EID_CopyEids_Nominal);
+
+    ADD_TEST(Test_BPLib_EID_CopyEidPatterns_Null);
+    ADD_TEST(Test_BPLib_EID_CopyEidPatterns_Nominal);
 }

@@ -68,13 +68,14 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t *CtrlMsg)
  * Generated stub function for BPLib_BI_RecvFullBundleIn()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t *inst, const void *BundleInPtr, size_t Size)
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t *Inst, const void *BundleIn, size_t Size, uint32_t ContId)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_BI_RecvFullBundleIn, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, const void *, BundleInPtr);
+    UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, const void *, BundleIn);
     UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, size_t, Size);
+    UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, uint32_t, ContId);
 
     UT_GenStub_Execute(BPLib_BI_RecvFullBundleIn, Basic, NULL);
 
