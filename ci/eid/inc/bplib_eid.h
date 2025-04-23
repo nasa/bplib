@@ -115,48 +115,48 @@ extern const BPLib_EID_t BPLIB_EID_INSTANCE;
  * \brief     Checks if the EID consists of valid parts
  * \details   Validation is TBD
  * \note      Validity determined from this reference: https://datatracker.ietf.org/doc/draft-ietf-dtn-ipn-update/14/
- * \param[in] EID (BPLib_EID_t) EID struct whose validity is in question
+ * \param[in] EID (BPLib_EID_t*) EID struct whose validity is in question
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
  * \retval    false: The EID is invalid in some way
  * \ref       BPLib_EID_t
  */
-bool BPLib_EID_IsValid(BPLib_EID_t EID);
+bool BPLib_EID_IsValid(BPLib_EID_t* EID);
 
 /**
  * \brief     Checks if the EID pattern consists of valid parts
  * \note      Validity is based on max values being greater than the min valies
- * \param[in] EID_Pattern (BPLib_EID_Pattern_t) EID pattern struct whose validity is in question
+ * \param[in] EID_Pattern (BPLib_EID_Pattern_t*) EID pattern struct whose validity is in question
  * \return    EID pattern validity
  * \retval    true: The EID pattern matches the criteria required to be valid
  * \retval    false: The EID pattern is invalid in some way
  * \ref       BPLib_EID_Pattern_t
  */
-bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t EID_Pattern);
+bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t* EID_Pattern);
 
 /**
  * \brief     Checks if the one EID matches another EID
  * \details   The various members of each EID are compared for equivalence
- * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \param[in] EID_Actual (BPLib_EID_t*) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t*) EID that is to be matched
  * \return    EID-EID match
  * \retval    true: The actual EID does match the reference EID
  * \retval    false: The actual EID does not match the reference EID
  * \ref       BPLib_EID_t
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+bool BPLib_EID_IsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference);
 
 /**
  * \brief     Checks if two EIDs have the same node
  * \details   The various members of each EID are compared for equivalence
- * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \param[in] EID_Actual (BPLib_EID_t*) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t*) EID that is to be matched
  * \return    EID-EID match
  * \retval    true: The actual EID does match the reference EID's node
  * \retval    false: The actual EID does not match the reference EID'd node
  * \ref       BPLib_EID_t
  */
-bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+bool BPLib_EID_NodeIsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference);
 
 /**
  * \brief     Copy one EID's values to another EID
@@ -176,14 +176,14 @@ void BPLib_EID_CopyEidPatterns(BPLib_EID_Pattern_t *EID_Actual, BPLib_EID_Patter
  * \note      Wildcards are represented as a BPLib_EID_Pattern_t::Min<Field> == 0
  *            and a BPLib_EID_Pattern_t::Max<Field> == 0xFFFF FFFF FFFF FFFF, where
  *            Field is Allocator, Node, or Service
- * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Pattern (BPLib_EID_Pattern_t) EID pattern that is to be matched
+ * \param[in] EID_Actual (BPLib_EID_t*) EID that is to be evaluated
+ * \param[in] EID_Pattern (BPLib_EID_Pattern_t*) EID pattern that is to be matched
  * \return    EID-Pattern match
  * \retval    true: The actual EID does match the reference EID pattern
  * \retval    false: The actual EID does not match the reference EID pattern
  * \ref       BPLib_EID_t
  * \ref       BPLib_EID_Pattern_t
  */
-bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
+bool BPLib_EID_PatternIsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_Pattern_t* EID_Pattern);
 
 #endif /* BPLIB_EID_H */
