@@ -144,7 +144,7 @@ bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t* EID_Pattern);
  * \retval    false: The actual EID does not match the reference EID
  * \ref       BPLib_EID_t
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference);
+bool BPLib_EID_IsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference);
 
 /**
  * \brief     Checks if two EIDs have the same node
@@ -156,7 +156,7 @@ bool BPLib_EID_IsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference);
  * \retval    false: The actual EID does not match the reference EID'd node
  * \ref       BPLib_EID_t
  */
-bool BPLib_EID_NodeIsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference);
+bool BPLib_EID_NodeIsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference);
 
 /**
  * \brief     Copy one EID's values to another EID

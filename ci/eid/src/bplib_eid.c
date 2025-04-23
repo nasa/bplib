@@ -168,7 +168,7 @@ bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t* EID_Pattern)
             EID_Pattern->MaxService   >= EID_Pattern->MinService);
 }
 
-bool BPLib_EID_IsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference)
+bool BPLib_EID_IsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference)
 {
     return (EID_Actual->Scheme       == EID_Reference->Scheme       &&
             EID_Actual->IpnSspFormat == EID_Reference->IpnSspFormat &&
@@ -177,7 +177,7 @@ bool BPLib_EID_IsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference)
             EID_Actual->Service      == EID_Reference->Service);
 }
 
-bool BPLib_EID_NodeIsMatch(BPLib_EID_t* EID_Actual, BPLib_EID_t* EID_Reference)
+bool BPLib_EID_NodeIsMatch(const BPLib_EID_t* EID_Actual, const BPLib_EID_t* EID_Reference)
 {
     return (EID_Actual->Scheme       == EID_Reference->Scheme       &&
             EID_Actual->IpnSspFormat == EID_Reference->IpnSspFormat &&
