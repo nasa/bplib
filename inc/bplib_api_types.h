@@ -273,6 +273,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_CBOR_DEC_TYPES_CRC_16_LEN_ERR            ((BPLib_Status_t) -176) /* CBOR decode types error: CRC Val length not 16 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_32_LEN_ERR            ((BPLib_Status_t) -177) /* CBOR decode types error: CRC Val length not 32 */
 #define BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR  ((BPLib_Status_t) -178) /* CBOR decode types error: CRC Val type */
+#define BPLIB_CBOR_DEC_TYPES_STRING_ERR                ((BPLib_Status_t) -179) /* CBOR decode types error: String decode failed */
 
 /* CBOR Encode Errors */
 #define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -182) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */

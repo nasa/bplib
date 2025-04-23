@@ -190,7 +190,7 @@ BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* p
  */
 BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
-
+BPLib_Status_t BPLib_QCBOR_AnyEidParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
 /**
  * \brief     Decodes a BPLib_CreationTimeStamp_t
