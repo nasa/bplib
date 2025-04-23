@@ -31,11 +31,7 @@
 /* Globals */
 /* ======= */
 
-<<<<<<< HEAD
 BPLib_EID_t BPLIB_EID_INSTANCE = {
-=======
-const BPLib_EID_t BPLIB_EID_INSTANCE = {
->>>>>>> 9b24488a778cd837dd977420534a66e8703bffb7
     .Scheme       = BPLIB_LOCAL_EID_SCHEME,
     .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
     .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
