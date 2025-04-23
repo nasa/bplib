@@ -117,7 +117,7 @@ void BPLib_NC_Test_Setup(void)
     BPLib_ARP_CRSTable_t        TestCrsTbl;
     BPLib_PDB_CustodianTable_t  TestCustodianTbl;
     BPLib_PDB_CustodyTable_t    TestCustodyTbl;
-    BPLib_NC_MIBConfigPNTable_t TestMibPnTbl;
+    BPLib_NC_MibPerNodeConfig_t TestMibPnTbl;
     BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
     BPLib_PDB_ReportToTable_t   TestReportTbl;
     BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
@@ -142,7 +142,7 @@ void BPLib_NC_Test_Setup(void)
     memset((void*) &TestCrsTbl,       1, sizeof(BPLib_ARP_CRSTable_t));
     memset((void*) &TestCustodianTbl, 1, sizeof(BPLib_PDB_CustodianTable_t));
     memset((void*) &TestCustodyTbl,   1, sizeof(BPLib_PDB_CustodyTable_t));
-    memset((void*) &TestMibPnTbl,     1, sizeof(BPLib_NC_MIBConfigPNTable_t));
+    memset((void*) &TestMibPnTbl,     1, sizeof(BPLib_NC_MibPerNodeConfig_t));
     memset((void*) &TestMibPsTbl,     1, sizeof(BPLib_NC_MIBConfigPSTable_t));
     memset((void*) &TestReportTbl,    1, sizeof(BPLib_PDB_ReportToTable_t));
     memset((void*) &TestAuthTbl,      1, sizeof(BPLib_PDB_SrcAuthTable_t));
@@ -150,6 +150,8 @@ void BPLib_NC_Test_Setup(void)
     memset((void*) &TestStorTbl,      1, sizeof(BPLib_STOR_StorageTable_t));
 
     memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
+
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr = &TestMibPnTbl;
 
     TestConfigPtrs.AuthConfigPtr      = &TestAuthTbl;
     TestConfigPtrs.ChanConfigPtr      = &TestChanTbl;

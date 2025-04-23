@@ -105,7 +105,7 @@ typedef struct
 extern const BPLib_EID_t BPLIB_EID_DTN_NONE;
 extern const BPLib_EID_t BPLIB_EID_IPN_2D_NONE;
 extern const BPLib_EID_t BPLIB_EID_IPN_3D_NONE;
-extern const BPLib_EID_t BPLIB_EID_INSTANCE;
+extern       BPLib_EID_t BPLIB_EID_INSTANCE;
 
 /* =================== */
 /* Function Prototypes */

@@ -38,7 +38,7 @@
 ** Global Data
 */
 
-extern BPLib_NC_MIBConfigPNTable_t TestMibConfigPnTbl;
+extern BPLib_NC_MibPerNodeConfig_t TestMibConfigPnTbl;
 
 
 /*
