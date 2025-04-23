@@ -334,7 +334,7 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         BPLib_EID_CopyEids(&BPLIB_EID_INSTANCE, BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID);
 
         /* Update telemetry value */
-        BPLib_NC_NodeMibConfigPayload.Values = *BPLib_NC_ConfigPtrs.MibPnConfigPtr;
+        memcpy((void*) &BPLib_NC_NodeMibConfigPayload.Values, (void*) BPLib_NC_ConfigPtrs.MibPnConfigPtr, sizeof(BPLib_NC_MibPerNodeConfig_t));
 
         BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                             BPLib_EM_EventType_INFORMATION,
