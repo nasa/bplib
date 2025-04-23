@@ -111,7 +111,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
     ** - If the bundle if for an un-available contact or channel, store
     */
     DestEID = &Bundle->blocks.PrimaryBlock.DestEID;
-    if (BPLib_EID_NodeIsMatch((*DestEID), BPLIB_EID_INSTANCE))
+    if (BPLib_EID_NodeIsMatch(DestEID, &BPLIB_EID_INSTANCE))
     {
         /* Go through each channel and find a match */
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
@@ -136,7 +136,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
             for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
             {
                 /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
-                if (BPLib_EID_PatternIsMatch((*DestEID), BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                if (BPLib_EID_PatternIsMatch(DestEID, &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
                 {
                     Bundle->Meta.EgressID = i;
                     BPLib_NC_ReaderUnlock();
