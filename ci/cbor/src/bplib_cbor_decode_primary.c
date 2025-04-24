@@ -42,9 +42,9 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
     .VersionParser = BPLib_QCBOR_UInt64ParserImpl,
     .FlagsParser = BPLib_QCBOR_UInt64ParserImpl,
     .CRCTypeParser = BPLib_QCBOR_UInt64ParserImpl,
-    .SrcEIDParser = BPLib_QCBOR_EIDParserImpl,
-    .DestEIDParser = BPLib_QCBOR_EIDParserImpl,
-    .ReportEIDParser = BPLib_QCBOR_EIDParserImpl,
+    .SrcEIDParser = BPLib_QCBOR_EidDtnNoneParserImpl,
+    .DestEIDParser = BPLib_QCBOR_EidDtnNoneParserImpl,
+    .ReportEIDParser = BPLib_QCBOR_ReportToEidParserImpl,
     .CreationTimestampParser = BPLib_QCBOR_TimestampParserImpl,
     .LifetimeParser = BPLib_QCBOR_UInt64ParserImpl,
     .CRCParser = BPLib_QCBOR_CRCParserImpl
@@ -122,21 +122,21 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Dest EID */
-    Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID, false);
+    Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_DEST_EID_DEC_ERR;
     }
 
     /* Source EID */
-    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID, false);
+    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR;
     }
 
     /* Report EID */
-    Status = PrimaryBlockParser.ReportEIDParser(ctx, &bundle->blocks.PrimaryBlock.ReportToEID, true);
+    Status = PrimaryBlockParser.ReportEIDParser(ctx, &bundle->blocks.PrimaryBlock.ReportToEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_REPORT_EID_DEC_ERR;
