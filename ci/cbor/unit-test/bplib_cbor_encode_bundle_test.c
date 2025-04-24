@@ -472,6 +472,7 @@ void Test_BPLib_CBOR_EncodeBundle_DtnNone(void)
     uint8_t OutputBuffer[1024];
     size_t OutputSize = 0xdeadbeef;
     BPLib_MEM_Block_t FirstBlock;
+    uint8_t i;
 
     memset(&InputBundle, 0, sizeof(InputBundle));
     memset(&FirstBlock, 0, sizeof(FirstBlock));
@@ -528,7 +529,7 @@ void Test_BPLib_CBOR_EncodeBundle_DtnNone(void)
     UtAssert_EQ(BPLib_Status_t, ReturnStatus, BPLIB_SUCCESS);
 
     // Just validate the primary block for this test
-    for (uint8 i = 0; i <= InputBundle.blocks.PrimaryBlock.BlockOffsetEnd; i++)
+    for (i = 0; i <= InputBundle.blocks.PrimaryBlock.BlockOffsetEnd; i++)
     {
         UtAssert_EQ(uint8_t, OutputBuffer[i], bundle_primary_and_payload_with_dtn_none[i]);
     }
