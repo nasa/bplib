@@ -22,8 +22,6 @@
 #include "bplib_eid.h"
 
 
-#define BPLIB_DTN_NONE_STR "dtn:none"
-
 /*******************************************************************************
 * Exported Parsing Helpers
 */
@@ -165,13 +163,13 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
         Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Node);
         if (Status != BPLIB_SUCCESS)
         {
-            return BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR;
+            return BPLIB_CBOR_DEC_TYPES_EID_DTN_ERR;
         }
 
         /* Only dtn:none EID allowed for DTN scheme */
         if (parsed->Node != 0)
         {
-            return BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR;
+            return BPLIB_CBOR_DEC_TYPES_EID_DTN_ERR;
         }
 
         /* Set EID to DTN None */
