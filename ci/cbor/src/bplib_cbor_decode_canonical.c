@@ -218,7 +218,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {
         Status = PrevNodeBlockDataParser.EidForwardedParser(ctx,
-            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId);
+            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId,
+            false);
         if (Status != BPLIB_SUCCESS)
         {
             return BPLIB_CBOR_DEC_PREV_NODE_EID_DEC_ERR;
