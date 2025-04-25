@@ -72,7 +72,7 @@ static struct _AgeBlockDataParser AgeBlockDataParser = {
 
 
 static struct _PrevNodeBlockDataParser PrevNodeBlockDataParser = {
-    .EidForwardedParser = BPLib_QCBOR_EIDParserImpl
+    .EidForwardedParser = BPLib_QCBOR_EidDtnNoneParserImpl
 };
 
 

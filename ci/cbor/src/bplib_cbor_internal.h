@@ -179,18 +179,25 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
  */
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
-
 /**
- * \brief     Decodes a BPLib_EID_t type
+ * \brief     Decodes a BPLib_EID_t type for EIDs that cannot have DTN schemes
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
  * \param[in] parsed (BPLib_EID_t*) pointer to the field that needs to be filled with decoded data
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
-BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
+BPLib_Status_t BPLib_QCBOR_EidDtnNoneParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
-
+/**
+ * \brief     Decodes a BPLib_EID_t type for report-to-EIDs
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (BPLib_EID_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ */
+BPLib_Status_t BPLib_QCBOR_ReportToEidParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
 /**
  * \brief     Decodes a BPLib_CreationTimeStamp_t

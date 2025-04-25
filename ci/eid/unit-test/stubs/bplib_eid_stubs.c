@@ -31,6 +31,30 @@
 /* Globals */
 /* ======= */
 
+const BPLib_EID_t BPLIB_EID_DTN_NONE = {
+    .Scheme       = BPLIB_EID_SCHEME_DTN,
+    .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+    .Allocator    = 0,
+    .Node         = 0,
+    .Service      = 0
+};
+
+const BPLib_EID_t BPLIB_EID_IPN_NONE_2D = {
+    .Scheme       = BPLIB_EID_SCHEME_IPN,
+    .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+    .Allocator    = 0,
+    .Node         = 0,
+    .Service      = 0
+};
+
+const BPLib_EID_t BPLIB_EID_IPN_NONE_3D = {
+    .Scheme       = BPLIB_EID_SCHEME_IPN,
+    .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
+    .Allocator    = 0,
+    .Node         = 0,
+    .Service      = 0
+};
+
 BPLib_EID_t BPLIB_EID_INSTANCE = {
     .Scheme       = BPLIB_LOCAL_EID_SCHEME,
     .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
