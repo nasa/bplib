@@ -119,6 +119,22 @@ extern "C" {
  */
 #define BPLIB_SYS_BIG_ENDIAN            false
 
+/**
+ * \brief This is the absolute maximum size a bundle payload is allowed to be. The real
+ *        max that channels will use is defined in the channel configurations but if
+ *        those configurations have MaxBundlePayloadSize values that are larger than this
+ *        value, the configurations will be rejected.
+ */
+#define BPLIB_MAX_PAYLOAD_SIZE          20000
+
+/**
+ * \brief This is the absolute maximum lifetime a bundle can have. Channel configurations
+ *        that specify a lifetime greater than this value will be rejected and bundles
+ *        received by Storage that have a lifetime greater than this value will have their
+ *        functional lifetime truncated to this value.
+ */
+#define BPLIB_MAX_LIFETIME_ALLOWED      0xffffffff
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

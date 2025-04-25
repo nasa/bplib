@@ -52,15 +52,101 @@ BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
     return BPLIB_SUCCESS;
 }
 
+BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConfig)
+{
+    if (CanBlkConfig->CrcType != BPLib_CRC_Type_None && 
+        CanBlkConfig->CrcType != BPLib_CRC_Type_CRC16 &&
+        CanBlkConfig->CrcType != BPLib_CRC_Type_CRC32C)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    if (CanBlkConfig->BlockProcFlags | BPLIB_VALID_BLOCK_PROC_FLAG_MASK != BPLIB_VALID_BLOCK_PROC_FLAG_MASK)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    return BPLIB_SUCCESS;
+}
+
 /* Validate channel configuration parameters */
 BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 {
     BPLib_PI_ChannelTable_t *TblDataPtr = (BPLib_PI_ChannelTable_t *)TblData;
+    uint32_t ChanId;
 
-    /* Temporary check, implement full validation TODO */
-    if (TblDataPtr->Configs[0].MaxBundlePayloadSize == -1)
+    for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
-        return BPLIB_PI_INVALID_CONFIG_ERROR;
+        /* TODO registration state validation */
+
+        if (TblDataPtr->Configs[ChanId].HopLimit == 0)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC16 && 
+            TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC32C)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].BundleProcFlags | BPLIB_VALID_BUNDLE_PROC_FLAG_MASK != BPLIB_VALID_BUNDLE_PROC_FLAG_MASK)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].DestEID.Scheme != BPLIB_EID_SCHEME_IPN ||
+            TblDataPtr->Configs[ChanId].DestEID.IpnSspFormat != BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].ReportToEID.Scheme == BPLIB_EID_SCHEME_DTN &&
+            !BPLib_EID_IsMatch(&TblDataPtr->Configs[ChanId].ReportToEID, &BPLIB_EID_DTN_NONE))
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].ReportToEID.Scheme != BPLIB_EID_SCHEME_IPN ||
+            TblDataPtr->Configs[ChanId].ReportToEID.IpnSspFormat != BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].MaxBundlePayloadSize > BPLIB_MAX_PAYLOAD_SIZE)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].Lifetime > BPLIB_MAX_LIFETIME_ALLOWED)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].PayloadBlkConfig.IncludeBlock == false ||
+            TblDataPtr->Configs[ChanId].PayloadBlkConfig.BlockNum != 1)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].PrevNodeBlkConfig)) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].AgeBlkConfig)) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].HopCountBlkConfig)) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].PayloadBlkConfig)) != BPLIB_SUCCESS)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        if (TblDataPtr->Configs[ChanId].PrevNodeBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].AgeBlkConfig.BlockNum ||
+            TblDataPtr->Configs[ChanId].PrevNodeBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].HopCountBlkConfig.BlockNum ||
+            TblDataPtr->Configs[ChanId].PrevNodeBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].PayloadBlkConfig.BlockNum ||
+            TblDataPtr->Configs[ChanId].AgeBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].HopCountBlkConfig.BlockNum ||
+            TblDataPtr->Configs[ChanId].AgeBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].PayloadBlkConfig.BlockNum ||
+            TblDataPtr->Configs[ChanId].HopCountBlkConfig.BlockNum == TblDataPtr->Configs[ChanId].PayloadBlkConfig.BlockNum)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
     }
 
     return BPLIB_SUCCESS;
