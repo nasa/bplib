@@ -55,14 +55,14 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ChanId;         /**< \brief Channel ID */
-    uint8_t Spare[3];       /**< \brief Spare bytes */
+    uint8_t ChanId;         /** \brief Channel ID */
+    uint8_t Spare[3];       /** \brief Spare bytes */
 } BPLib_AddApplication_Payload_t;
 
 typedef struct
 {
-    uint8_t ChanId;         /**< \brief Channel ID */
-    uint8_t Spare[3];       /**< \brief Spare bytes */
+    uint8_t ChanId;         /** \brief Channel ID */
+    uint8_t Spare[3];       /** \brief Spare bytes */
 } BPLib_RemoveApplication_Payload_t;
 
 typedef struct
@@ -72,14 +72,14 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ChanId;         /**< \brief Channel ID */
-    uint8_t Spare[3];       /**< \brief Spare bytes */
+    uint8_t ChanId;         /** \brief Channel ID */
+    uint8_t Spare[3];       /** \brief Spare bytes */
 } BPLib_StartApplication_Payload_t;
 
 typedef struct
 {
-    uint8_t ChanId;         /**< \brief Channel ID */
-    uint8_t Spare[3];       /**< \brief Spare bytes */
+    uint8_t ChanId;         /** \brief Channel ID */
+    uint8_t Spare[3];       /** \brief Spare bytes */
 } BPLib_StopApplication_Payload_t;
 
 typedef struct
@@ -183,132 +183,72 @@ typedef struct
 typedef struct
 {
     uint32_t LocalServiceNum;   /**< \brief Service number for application sending/receiving ADUs on this channel */
-    uint32_t State;             /**< \brief Configured, Running, or Off */
+    uint32_t State;             /**< \brief Added, started, stopped, or removed */
     uint32_t RegistrationState; /**< \brief Active, PassiveDefered or PassiveAbandon */
-    uint32_t OutputQueueID;     /**< \brief Output queue ID */
+    uint32_t Spare;
 } BPLib_ChannelHkTlmPayloadSet_t;
 
 typedef struct
 {
-    uint32_t                    ContactID;                              /**< \brief Unique ID for this contact */
-    BPLib_CLA_ContactRunState_t State;                                  /**< \brief Configured, Running, or Off */
-    uint8_t                     Spare[3];
-    char                        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
-    uint32_t                    OutputQueueID;                          /**< \brief Output queue ID */
-    uint32_t                    Spare1;
+    uint32_t State;             /**< \brief Set up, started, stopped, or torn down */
+    uint32_t Spare;
+    BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];  /**< \brief Destination EIDs */
 } BPLib_ContactHkTlmPayloadSet_t;
 
 typedef struct
 {
     BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Status for each channel */
     BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /**< \brief Status for each contact */
-    uint32_t Spare2;
+    uint32_t Spare;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_ChannelContactStatHkTlm_Payload_t;
-
-/**
- * \brief Node MIB configuration housekeeping payload
- */
-typedef struct
-{
-    char SystemNodeName[BPLIB_MAX_NUM_STRING];                  /**< \brief Textual name of a DTN Node entity */
-    char SystemNodeOwner[BPLIB_MAX_NUM_STRING];                 /**< \brief Textual identifier of the node manager */
-    char SystemSoftwareExec[BPLIB_MAX_NUM_STRING];              /**< \brief Textual identification of the underlying OS or excutive */
-    char SystemSoftwareExecVersion[BPLIB_MAX_NUM_STRING];       /**< \brief Textual representation of the version and patch-level */
-    char BundleAgentVersion[BPLIB_MAX_NUM_STRING];              /**< \brief Version of the executing Node */
-    char BundleAgentOperationalState[BPLIB_MAX_NUM_STRING];     /**< \brief Indication of the Node operational state */
-    char BundleAgentConfiguration[BPLIB_MAX_NUM_STRING];        /**< \brief Indication of the current Node configuration */
-    uint32_t BundleAgentNodeNumber;                             /**< \brief Node Number */
-    uint32_t BundleAgentAvailableStorage;                       /**< \brief Amount of memory initially allocated for bundle storage */
-    uint32_t BundleAgentCtdbSize;                               /**< \brief Storage allocatted to Custody Transfer Database (CTDB) use */
-    uint32_t ParamSetMaxSequenceNum;                            /**< \brief Maximum bundle sequence number */
-    uint32_t ParamSetMaxPayloadLength;                          /**< \brief Maximum payload length for fragmentation */
-    uint32_t ParamSetMaxBundleLength;                           /**< \brief Maximum bundle length */
-    uint32_t ParamSetMaxTransmissionId;                         /**< \brief Maximum value for the transmissionID before it wraps back around */
-    uint32_t ParamSetMaxForwardingRetries;                      /**< \brief Number of Bundle Forwarding Retries to attempt before giving up */
-    uint32_t ParamSetMaxSimultaneousContacts;                   /**< \brief Maximum number of simultaneous contacts */
-    uint32_t ParamSetBehaviorEventReporting;                    /**< \brief Indication that only events at specified level or above are generated and reported via the M&C interface */
-    bool ParamSupportBIBE;                                      /**< \brief Indication of node’s Bundle In Bundle Encapsulation (BIBE) capability */
-    bool ParamSupportCustody;                                   /**< \brief Indication of whether the node can become a Custodian */
-    bool ParamSupportConfidentiality;                           /**< \brief Indication of node’s confidentiality handling capabilities */
-    bool ParamSetBehaviorReturnToSender;                        /**< \brief Flag indicating that bundles which cannot be forwarded should be returned to sender */
-    bool ParamSetBehaviorTransIdReuse;                          /**< \brief Flag indicating whether transmission IDs should be reused on retries */
-    bool ParamSetBehaviorTransIdRollover;                       /**< \brief Flag indicating that the transmissionID has wrapped around */
-    bool ParamSetBehaviorWrapResponse;                          /**< \brief Indication of whether the oldest or newest bundle will be dropped when CTDB buffer is full */
-    uint8_t  Version;                                           /**< \brief Bundle Protocol version */
-    uint32_t BundleSizeFragment;                                /**< \brief Maximum size of bundles that can traverse DTN without additional bundle layer fragmentation */
-    uint32_t TimeBootEra;                                       /**< \brief Boot Era for Monotonic Time */
-    uint64_t MonotonicTime;                                     /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;                                 /**< \brief Time Correlation Factor */
-} BPLib_NodeMibConfigHkTlm_Payload_t;
-
-/**
- * \brief Source MIB configuration housekeeping payload
- */
-typedef struct
-{
-    char SourceEID[BPLIB_MAX_NUM_STRING];       /**< \brief Source EID to which this telemetry corresponds */
-    bool BundleSetBehaviorReceivedBSRGenerate;  /**< \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedBSRGenerate;  /**< \brief Flag indicating that BSR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedBSRGenerate; /**< \brief Flag indicating that BSR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredBSRGenerate; /**< \brief Flag indicating that BSR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedBSRGenerate;   /**< \brief Flag indicating that BSR should be generated for bundles deleted */ 
-    bool BundleSetBehaviorReceivedCBRGenerate;  /**< \brief Flag indicating that Compressed Bundle Reporting (CBR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedCBRGenerate;  /**< \brief Flag indicating that CBR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedCBRGenerate; /**< \brief Flag indicating that CBR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredCBRGenerate; /**< \brief Flag indicating that CBR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedCBRGenerate;   /**< \brief Flag indicating that CBR should be generated for bundles deleted */
-    uint16_t Spare1;
-    uint32_t ParamSetMaxLifetime;               /**< \brief Maximum bundle lifetime */
-    uint32_t ParamSetMaxBSRGenerationRate;      /**< \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
-    uint32_t ParamSetMaxCBRGenerationRate;      /**< \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
-} BPLib_SourceMibConfigSet_t;
-
-typedef struct
-{
-    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
-    uint32_t Spare2;
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
-} BPLib_SourceMibConfigHkTlm_Payload_t;
-
 
 /*
 ** MIB Config Per Node Policy Table
 */
 typedef struct
 {
-    char        SysNodeName[BPLIB_MAX_EID_LENGTH];
-    char        SysNodeOwner[BPLIB_MAX_EID_LENGTH];
-    char        SysSoftExec[BPLIB_MAX_EID_LENGTH];
-    char        SysSoftExecVer[BPLIB_MAX_EID_LENGTH];
-    uint32_t    BundleAgentNum;
-    char        BundleAgentVer[BPLIB_MAX_EID_LENGTH];
-    char        BundleAgentOpState[BPLIB_MAX_EID_LENGTH];
-    char        BundleAgentConfig[BPLIB_MAX_EID_LENGTH];
-    uint32_t    BundleAgentAvailStorage;
-    uint32_t    BundleAgentCtdbSize;
-    uint32_t    BundleSizeNoFrag;
-    uint32_t    ParamSetMaxSeqenceNum;
-    uint32_t    ParamSetMaxPayloadLength;
-    uint32_t    ParamSetMaxBundleLength;
-    uint32_t    ParamSetMaxTransmissionID;
-    uint32_t    ParamSetMaxForwardingRetries;
-    uint32_t    ParamSetMaxSimultaneousContacts;
-    uint32_t    ParamSetBehaviorEventReporting;
-    bool        ParamSetBehaviorReturnToSender;
-    bool        ParamSetBehaviorTransIDReuse;
-    bool        ParamSetBehaviorTransIDRollover;
-    bool        ParamSetBehaviorWrapResponse;
-    bool        ParamSupportBIBE;
-    bool        ParamSupportCustody;
-    bool        ParamSupportConfidentiality;
-    bool        Spare;
+    BPLib_EID_t InstanceEID; /** \brief Endpoint ID of this instance of FSW for this endpoint */
 
-} BPLib_NC_MIBConfigPNTable_t;
+    uint32_t SystemNodeUpTime;                                  /** \brief The time in seconds since this node has been reinitialized */
+    uint32_t NodeStartupCounter;                                /** \brief Number of times a node is started up */
+    uint32_t BundleAgentAvailableStorage;                       /** \brief Total amount of memory allocated for bundle storage for the node  */
+    uint32_t BundleSizeNoFragment;                              /** \brief Max bundle size before fragmentation */
+    uint32_t BundleIngressRejectedRateBytesPerSec;              /** \brief Rate of bundles received from CLAs in bytes per second and then rejected */
+    uint32_t BundleIngressRejectedRateBundlesPerSec;            /** \brief Rate of bundles received from CLAs in bundles per second and then rejected */
+    uint32_t ParamSetMaxSequenceNum;                            /** \brief Max bundle sequence number allowable */
+    uint32_t ParamSetMaxPayloadLength;                          /** \brief Max payload length for fragmentation */
+    uint32_t ParamSetMaxBundleLength;                           /** \brief Max bundle length for processing */
+    uint32_t ParamSetNodeDTNTime;                               /** \brief Time being tracked by the node */
+    uint32_t ParamSetBehaviorEventReporting;                    /** \brief Inclusive level of events to be generated */
+
+    /* Per Node and per Source */
+    uint32_t ParamSetMaxLifetime;               /** \brief Max bundle lifetime for retention of the bundle */
+    uint32_t KbytesCountStorageAvailable;       /** \brief Kilobytes free space left to store additional Bundles */
+    uint32_t BundleIngressRateBytesPerSec;      /** \brief Rate of bundles received from CLAs in bytes per second */
+    uint32_t BundleIngressRateBundlesPerSec;    /** \brief Rate of bundles received from CLAs in bundles per second */
+    uint32_t BundleEgressRateBytesPerSec;       /** \brief Rate of bundles forwarded from CLAs in bytes per second */
+    uint32_t BundleIngestedRateBundlesPerSec;   /** \brief Rate of bundles ingested locally in bundles per second */
+    uint32_t BundleIngestedRateBytesPerSec;     /** \brief Rate of bundles ingested locally in bytes per second */
+    uint32_t BundleDeliveryRateBundlesPerSec;   /** \brief Rate of bundles delivered locally in bundles per second */
+    uint32_t BundleDeliveryRateBytesPerSec;     /** \brief Rate of bundles delivered locally in bytes per second */
+    uint32_t BundleEgressRateBundlesPerSec;     /** \brief Rate of bundle forwarded from CLAs in bundles per second */
+
+    /* Spares for alignment */
+    uint32_t Spare[3];
+
+    /* Node only */
+    char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /** \brief Human readable name given to entity */
+    char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
+    char     SystemSoftwareExecVersion[BPLIB_MAX_EID_LENGTH];   /** \brief Version of software */
+    char     BundleAgentSoftwareVersion[BPLIB_MAX_EID_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
+    char     BundleAgentOperationalState[BPLIB_MAX_EID_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
+    char     BundleAgentConfiguration[BPLIB_MAX_EID_LENGTH];    /** \brief Configuration of Bundle Protocol Agent */
+    char     ParamSupportedCLAs[BPLIB_MAX_EID_LENGTH];          /** \brief Supported CLAs */
+    char     NodeActiveEndpoints[BPLIB_MAX_EID_LENGTH];         /** \brief List of active endpoints on the Node */
+} BPLib_NC_MibPerNodeConfig_t;
 
 
 /*
@@ -342,5 +282,48 @@ typedef struct
 {
     BPLib_NC_MIBConfigPSSet_t MIB_PS_Set[BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES];
 } BPLib_NC_MIBConfigPSTable_t;
+
+/**
+ * \brief Node MIB configuration housekeeping payload
+ */
+typedef struct
+{
+    BPLib_NC_MibPerNodeConfig_t Values; /** \brief All configuration values as recorded in the MIB per Node Configuration */
+
+    uint32_t TimeBootEra;               /** \brief Boot Era for Monotonic Time */
+    uint64_t MonotonicTime;             /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;         /** \brief Time Correlation Factor */
+} BPLib_NodeMibConfigHkTlm_Payload_t;
+
+/**
+ * \brief Source MIB configuration housekeeping payload
+ */
+typedef struct
+{
+    char SourceEID[BPLIB_MAX_NUM_STRING];       /** \brief Source EID to which this telemetry corresponds */
+    bool BundleSetBehaviorReceivedBSRGenerate;  /** \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
+    bool BundleSetBehaviorAcceptedBSRGenerate;  /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
+    bool BundleSetBehaviorForwardedBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles forwarded */
+    bool BundleSetBehaviorDeliveredBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles delivered */
+    bool BundleSetBehaviorDeletedBSRGenerate;   /** \brief Flag indicating that BSR should be generated for bundles deleted */ 
+    bool BundleSetBehaviorReceivedCBRGenerate;  /** \brief Flag indicating that Compressed Bundle Reporting (CBR) should be generated for bundles received */
+    bool BundleSetBehaviorAcceptedCBRGenerate;  /** \brief Flag indicating that CBR should be generated for bundles accepted to custody */
+    bool BundleSetBehaviorForwardedCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles forwarded */
+    bool BundleSetBehaviorDeliveredCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles delivered */
+    bool BundleSetBehaviorDeletedCBRGenerate;   /** \brief Flag indicating that CBR should be generated for bundles deleted */
+    uint16_t Spare1;
+    uint32_t ParamSetMaxLifetime;               /** \brief Maximum bundle lifetime */
+    uint32_t ParamSetMaxBSRGenerationRate;      /** \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
+    uint32_t ParamSetMaxCBRGenerationRate;      /** \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
+} BPLib_SourceMibConfigSet_t;
+
+typedef struct
+{
+    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
+    uint32_t                   Spare2;
+    uint32_t                   TimeBootEra;       /** \brief Boot Era for Monotonic Time */
+    int64_t                    MonotonicTime;     /** \brief Monotonic Time Counter */
+    int64_t                    CorrelationFactor; /** \brief Time Correlation Factor */
+} BPLib_SourceMibConfigHkTlm_Payload_t;
 
 #endif // BPLIB_NC_PAYLOADS_H

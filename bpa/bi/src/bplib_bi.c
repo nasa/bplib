@@ -36,65 +36,83 @@
 */
 
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *BundleIn, 
+                                            size_t Size, uint32_t ContId)
 {
     BPLib_Status_t Status;
     BPLib_Bundle_t* CandidateBundle;
 
-    if ((inst == NULL) || (BundleIn == NULL))
+    if ((Inst == NULL) || (BundleIn == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    if (ContId >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_INVALID_CONT_ID_ERR;
+    }
+
     /* Create the bundle from the incoming blob */
-    CandidateBundle = BPLib_MEM_BundleAlloc(&inst->pool, BundleIn, Size);
+    CandidateBundle = BPLib_MEM_BundleAlloc(&Inst->pool, BundleIn, Size);
     if (CandidateBundle == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    Status = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
-    if (Status != BPLIB_SUCCESS)
-    {
-        /* cease bundle processing and free the memory */
-        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
-
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error decoding bundle, RC = %d", Status);
-
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
-
-        return Status;
-    }
-
-    /* Validate the deserialized bundle */
-    Status = BPLib_BI_ValidateBundle(CandidateBundle);
-    if (Status != BPLIB_SUCCESS)
-    {
-        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
-
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
-        
-        return Status;
-    }
-
     /* Get reception time of bundle */
     BPLib_TIME_GetMonotonicTime(&(CandidateBundle->Meta.MonoTime));
-    
-    BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                "Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
-                (unsigned long) Size,
-                CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
-                CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
-                CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
-                CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
 
-    Status = BPLib_QM_CreateJob(inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    /* Decode the bundle */
+    Status = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
+
+    /* If decode was successful, try validating the bundle */
+    if (Status == BPLIB_SUCCESS)
+    {
+        Status = BPLib_BI_ValidateBundle(CandidateBundle);
+    }
+
+    /* Increment the case-specific counter for the failure of either decode or validation */
+    if (Status == BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_TOO_LONG, 1);
+    }
+    else if (Status == BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_HOP_EXCEEDED, 1);
+    }
+    else if (Status == BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK, 1);
+    }
+    else if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
+    }
+
+    /* If decode and validation were successful, create the job to ingress bundle */
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+            "[CLA In #%d]: Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
+            ContId, (unsigned long) Size,
+            CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
+            CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
+            CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
+            CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
+
+        Status = BPLib_QM_CreateJob(Inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    }
+    
+    /* If something failed, cease bundle processing and free memory */
     if (Status != BPLIB_SUCCESS)
     {
-        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
+        BPLib_MEM_BundleFree(&Inst->pool, CandidateBundle);
+
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[CLA In #%d]: Error ingressing bundle, RC = %d", ContId, Status);
+
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
     }
 
     return Status;
@@ -119,6 +137,7 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     bool     PrevNodePresent = false;
     bool     AgeBlockPresent = false;
     bool     HopCountPresent = false;
+    uint32_t i;
 
     if (CandidateBundle == NULL)
     {
@@ -171,6 +190,25 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
             else
             {
                 PrevNodePresent = true;
+            }
+        }
+
+        /* Verify that no block number is duplicated */
+        if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType != BPLib_BlockType_Reserved)
+        {
+            if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockNum == 
+                CandidateBundle->blocks.PayloadHeader.BlockNum)
+            {
+                return BPLIB_BI_INVALID_BUNDLE_ERR;
+            }
+            
+            for (i = 0; i < ExtBlkIdx; i++)
+            {
+                if (CandidateBundle->blocks.ExtBlocks[i].Header.BlockNum == 
+                    CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockNum)
+                {
+                    return BPLIB_BI_INVALID_BUNDLE_ERR;
+                }
             }
         }
     }

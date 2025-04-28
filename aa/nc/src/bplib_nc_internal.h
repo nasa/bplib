@@ -18,41 +18,46 @@
  *
  */
 
-#ifndef BPLIB_CBOR_TEST_UTILS_H
-#define BPLIB_CBOR_TEST_UTILS_H
+#ifndef BPLIB_NC_INTERNAL_H
+#define BPLIB_NC_INTERNAL_H
 
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
 #include "bplib_api_types.h"
-#include "bplib_cbor.h"
-#include "bplib_cbor_internal.h"
-#include "bplib_crc.h"
+#include "bplib_nc_payloads.h"
+
 
 /*
 ** Global Data
 */
 
-extern BPLib_NC_MibPerNodeConfig_t TestMibConfigPnTbl;
+extern BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
+extern BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload;
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_CBOR_Test_Setup(void);
-void BPLib_CBOR_Test_Teardown(void);
+/**
+ * \brief Update contact telemetry
+ *
+ * \par Description
+ *      Update the contact telemetry values to new contact configuration values
+ *
+ */
+void BPLib_NC_UpdateContactHkTlm(void);
 
-void TestBplibCborDecode_Register(void);
-void TestBplibCborDecodeInternal_Register(void);
+/**
+ * \brief Update channel telemetry
+ *
+ * \par Description
+ *      Update the channel telemetry values to new channel configuration values
+ *
+ */
+void BPLib_NC_UpdateChannelHkTlm(void);
 
-void TestBplibCborEncode_Register(void);
-void TestBplibCborEncodePrevNode_Register(void);
-void TestBplibCborEncodeInternal_Register(void);
-
-#endif /* BPLIB_CBOR_TEST_UTILS_H */
+#endif // BPLIB_NC_INTERNAL_H

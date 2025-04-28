@@ -46,7 +46,7 @@ void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
 {
     BPLib_Status_t Status;
 
-    if (BPLib_EID_IsMatch(EID, BPLIB_EID_INSTANCE))
+    if (BPLib_EID_IsMatch(&EID, &BPLIB_EID_INSTANCE))
     { /* Increment a node counter */
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
@@ -80,7 +80,7 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
 {
     BPLib_Status_t Status;
 
-    if (BPLib_EID_IsMatch(EID, BPLIB_EID_INSTANCE))
+    if (BPLib_EID_IsMatch(&EID, &BPLIB_EID_INSTANCE))
     { /* Increment a node counter */
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
@@ -402,7 +402,7 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
     for (InputIndex = 0; InputIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; InputIndex++)
     { /* Loop through each given pattern */
         InputPattern = EID_Patterns[InputIndex];
-        if (BPLib_EID_PatternIsValid(InputPattern))
+        if (BPLib_EID_PatternIsValid(&InputPattern))
         { /* Given pattern is valid, see if it can be added to the MIB array */
             if (InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
             { /* The key provided has values */

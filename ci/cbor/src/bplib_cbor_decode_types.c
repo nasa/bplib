@@ -99,7 +99,7 @@ BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* p
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed)
+BPLib_Status_t BPLib_QCBOR_EidDtnNoneParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed)
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
@@ -156,6 +156,96 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR;
+    }
+
+    /* Exit EID Array */
+    Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_TYPES_EID_EXIT_OUTER_ARRAY_ERR;
+    }
+
+    return BPLIB_SUCCESS;
+}
+
+
+BPLib_Status_t BPLib_QCBOR_ReportToEidParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed)
+{
+    BPLib_Status_t Status;
+    size_t CurrArrLen;
+
+    if ((ctx == NULL) || (parsed == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* Enter EID Array */
+    Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_TYPES_EID_ENTER_OUTER_ARRAY_ERR;
+    }
+
+    /* Parse URI Type: Note only IPN accepted */
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Scheme);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }
+    if (parsed->Scheme == BPLIB_EID_SCHEME_IPN)
+    {
+        /* Jam these extra fields, while we only support IPN two-digit EIDs */
+        parsed->IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+        parsed->Allocator = 0;
+
+        /* Enter SSP Array */
+        Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR;
+        }
+
+        /* Node Number */
+        Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Node);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_IPN_NODE_DEC_ERR;
+        }
+
+        /* Node Service */
+        Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Service);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_IPN_SERV_DEC_ERR;
+        }
+
+        /* Exit SSP Array */
+        Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_EXIT_SSP_ARRAY_ERR;
+        }
+    }
+    else if (parsed->Scheme == BPLIB_EID_SCHEME_DTN)
+    {
+        Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Node);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_DTN_ERR;
+        }
+
+        /* Only dtn:none EID allowed for DTN scheme */
+        if (parsed->Node != 0)
+        {
+            return BPLIB_CBOR_DEC_TYPES_EID_DTN_ERR;
+        }
+
+        /* Set EID to DTN None */
+        BPLib_EID_CopyEids(parsed, BPLIB_EID_DTN_NONE);
+    }
+    else
+    {
+        return BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR;
     }
 
     /* Exit EID Array */

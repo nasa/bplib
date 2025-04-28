@@ -391,8 +391,7 @@ void Test_BPLib_CBOR_DecodeCanonical_PastLimit(void)
     UBufC.len = sizeof(GoodHopCountBlk);
     QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
 
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, GoodHopCountBlk), BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR);    
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, GoodHopCountBlk), BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR);    
 }
 
 /* Test an unknown block type that will be deleted */
@@ -420,7 +419,6 @@ void Test_BPLib_CBOR_DecodeCanonical_UnknownDel(void)
     QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
 
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, UnknownBlk), BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR);    
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 }
 
 /* Test an unknown block type that will be discarded */
@@ -451,7 +449,6 @@ void Test_BPLib_CBOR_DecodeCanonical_UnknownDisc(void)
     UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xb5ee);
 
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, UnknownBlk), BPLIB_SUCCESS);
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
     UtAssert_BOOL_TRUE(Bundle.blocks.ExtBlocks[0].Header.RequiresDiscard);
 }
 

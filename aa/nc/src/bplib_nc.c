@@ -26,14 +26,12 @@
 #include "bplib_fwp.h"
 #include "bplib_crc.h"
 #include "bplib_nc_rwlock.h"
+#include "bplib_nc_internal.h"
 
 /* ======= */
 /* Globals */
 /* ======= */
 static BPLib_NC_RWLock_t BPLib_NC_CfgLock;
-BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
-BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 BPLib_NC_ConfigPtrs_t                   BPLib_NC_ConfigPtrs;
 
 /* ==================== */
@@ -61,7 +59,7 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     }
 
     /* Set bundle protocol version */
-    BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    sprintf(BPLib_NC_NodeMibConfigPayload.Values.BundleAgentSoftwareVersion, "%d", BPLIB_BUNDLE_PROTOCOL_VERSION);
 
     /* Capture configuration pointers in the global configuration struct */
     if (ConfigPtrs                     == NULL ||
@@ -93,6 +91,10 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
         BPLib_NC_ConfigPtrs.AuthConfigPtr      = ConfigPtrs->AuthConfigPtr;
         BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
         BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
+
+        /* Initialize contact/channel status telemetry with table values */
+        BPLib_NC_UpdateContactHkTlm();
+        BPLib_NC_UpdateChannelHkTlm();
 
         /* Initialize CRC tables */
         BPLib_CRC_Init();
@@ -129,17 +131,17 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
 }
 
 /* Validate MIB Config PN configuration data */
-BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
-    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
-    BPLib_NC_MIBConfigPNTable_t *TblDataPtr = (BPLib_NC_MIBConfigPNTable_t *)TblData;
+    BPLib_Status_t               ReturnCode = BPLIB_SUCCESS;
+    /* BPLib_NC_MibPerNodeConfig_t* TblDataPtr = (BPLib_NC_MibPerNodeConfig_t*) TblData; */
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr->BundleAgentNum <= 0)
-    {
+    /* if (TblDataPtr->BundleAgentNum <= 0) */
+    /* { */
         /* element is out of range, return an appropriate error code */
-        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
-    }
+        /* ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE; */
+    /* } */
 
     return ReturnCode;
 }
@@ -195,6 +197,9 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         else
         */
         {
+            /* Update channel telemetry with new table values */
+            BPLib_NC_UpdateChannelHkTlm();
+
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
                                 "Updated Channel configuration");
@@ -225,6 +230,9 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         else
         */
         {
+            /* Update contact telemetry with new table values */
+            BPLib_NC_UpdateContactHkTlm();
+            
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                                 BPLib_EM_EventType_INFORMATION,
                                 "Updated Contacts configuration");
@@ -330,24 +338,15 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
 
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        ModuleStatus = BPLib_NC_NodeConfigTblUpdate();
+        /* Update the instance EID */
+        BPLib_EID_CopyEids(&BPLIB_EID_INSTANCE, BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID);
 
-        if (ModuleStatus != BPLIB_SUCCESS)
-        {
-            Status = BPLIB_ERROR;
+        /* Update telemetry value */
+        memcpy((void*) &BPLib_NC_NodeMibConfigPayload.Values, (void*) BPLib_NC_ConfigPtrs.MibPnConfigPtr, sizeof(BPLib_NC_MibPerNodeConfig_t));
 
-            BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Failed to update MIB Configuration per Node configuration");
-        }
-        else
-        */
-        {
-            BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
-                                BPLib_EM_EventType_INFORMATION,
-                                "Updated MIB Configuration per Node configuration");
-        }
+        BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
+                            BPLib_EM_EventType_INFORMATION,
+                            "Updated MIB Configuration per Node configuration");
     }
     else if (FWP_UpdateStatus != BPLIB_SUCCESS)
     {

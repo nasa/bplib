@@ -23,7 +23,7 @@
 
 BPLib_Status_t BPLib_CBOR_EncodeEID(QCBOREncodeContext* Context, BPLib_EID_t* SourceData)
 {
-    BPLib_Status_t ReturnStatus;
+    BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
 
     if ((Context == NULL) || (SourceData == NULL))
     {
@@ -41,28 +41,39 @@ BPLib_Status_t BPLib_CBOR_EncodeEID(QCBOREncodeContext* Context, BPLib_EID_t* So
         */
         QCBOREncode_AddUInt64(Context, SourceData->Scheme);
 
+        if (SourceData->Scheme == BPLIB_EID_SCHEME_IPN)
+        {
+            /*
+            ** Open Inner Array (SSP)
+            */
+            QCBOREncode_OpenArray(Context);
 
-        /*
-        ** Open Inner Array (SSP)
-        */
-        QCBOREncode_OpenArray(Context);
+            /*
+            ** Add inner content (SSP)
+            */
+            QCBOREncode_AddUInt64(Context, SourceData->Node);
+            QCBOREncode_AddUInt64(Context, SourceData->Service);
 
-        /*
-        ** Add inner content (SSP)
-        */
-        QCBOREncode_AddUInt64(Context, SourceData->Node);
-        QCBOREncode_AddUInt64(Context, SourceData->Service);
-
-        /*
-        ** Close Inner Array (SSP)
-        */
-        QCBOREncode_CloseArray(Context);
+            /*
+            ** Close Inner Array (SSP)
+            */
+            QCBOREncode_CloseArray(Context);
+        }
+        else if (SourceData->Scheme == BPLIB_EID_SCHEME_DTN)
+        {
+            /* We only support the dtn:none encoding so just encode a 0 */
+            QCBOREncode_AddUInt64(Context, 0);
+        }
+        else
+        {
+            /* This should never happen on encode but just in case? */
+            ReturnStatus = BPLIB_ERROR;
+        }
 
         /*
         ** Close Outer Array (EID)
         */
         QCBOREncode_CloseArray(Context);
-        ReturnStatus = BPLIB_SUCCESS;
     }
 
     return ReturnStatus;

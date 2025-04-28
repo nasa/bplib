@@ -72,7 +72,7 @@ static struct _AgeBlockDataParser AgeBlockDataParser = {
 
 
 static struct _PrevNodeBlockDataParser PrevNodeBlockDataParser = {
-    .EidForwardedParser = BPLib_QCBOR_EIDParserImpl
+    .EidForwardedParser = BPLib_QCBOR_EidDtnNoneParserImpl
 };
 
 
@@ -267,9 +267,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         if (bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount > 
             bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit)
         {
-            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_HOP_EXCEEDED, 1);
-
-            return BPLIB_CBOR_DEC_HOP_BLOCK_INVALID_DEC_ERR;
+            return BPLIB_CBOR_DEC_HOP_BLOCK_EXCEEDED_ERR;
         }
 
         /* Exit the hop count block data array */
@@ -290,15 +288,11 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         /* Block control flag says to delete bundle when block can't be processed */
         if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
         {
-            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK, 1);
-
             return BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR;
         }
         /* Block control flag says to discard just this block when it can't be processed */
         if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DISCARD_BLOCK_FLAG)
         {
-            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_UNPROCESSED_BLOCKS, 1);
-
             CanonicalBlockHdr->RequiresDiscard = true;
         }
 

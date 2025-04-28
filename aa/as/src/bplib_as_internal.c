@@ -47,9 +47,9 @@ BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
 
     Status = BPLIB_SUCCESS;
 
-    if (BPLib_EID_IsValid(EID))
+    if (BPLib_EID_IsValid(&EID))
     {
-        if (BPLib_EID_IsMatch(EID, BPLIB_EID_INSTANCE))
+        if (BPLib_EID_IsMatch(&EID, &BPLIB_EID_INSTANCE))
         { /* EID denotes a node counter manipulation */
             if (Counter < BPLIB_AS_NUM_NODE_CNTRS)
             { // Counter is within range

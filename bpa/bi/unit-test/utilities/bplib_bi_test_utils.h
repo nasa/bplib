@@ -31,6 +31,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_bi.h"
+#include "bplib_as_handlers.h"
 
 
 /*

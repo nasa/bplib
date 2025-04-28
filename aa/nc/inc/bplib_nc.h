@@ -44,7 +44,7 @@ typedef struct
     BPLib_ARP_CRSTable_t*        CrsConfigPtr;
     BPLib_PDB_CustodianTable_t*  CustodianConfigPtr;
     BPLib_PDB_CustodyTable_t*    CustodyConfigPtr;
-    BPLib_NC_MIBConfigPNTable_t* MibPnConfigPtr;
+    BPLib_NC_MibPerNodeConfig_t* MibPnConfigPtr;
     BPLib_NC_MIBConfigPSTable_t* MibPsConfigPtr;
     BPLib_PDB_ReportToTable_t*   ReportConfigPtr;
     BPLib_PDB_SrcAuthTable_t*    AuthConfigPtr;
@@ -158,8 +158,22 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
 
+/**
+  * \brief     Mutator of the application state of a channel
+  * \note      This is primarily used in ADU operations
+  * \param[in] ChanId (uint8) ID of the channel whose application state is to be modified
+  * \param[in] State (BPLib_NC_ApplicationState_t) Application state to set the channel to
+  * \return    void
+  */
 void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State);
 
+/**
+  * \brief     Accessor to the application state of a channel
+  * \note      This is primarily used in ADU operations
+  * \param[in] ChanId (uint8) ID of the channel whose application state is requested
+  * \return    Application State of the Channel
+  * \retval    See BPLib_NC_ApplicationState_t for specific states
+  */
 BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
 
 /**
