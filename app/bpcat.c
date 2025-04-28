@@ -256,6 +256,11 @@ void BPCat_Main()
         return;
     }
 
+    /* Enable Contacts */
+    #include <assert.h>
+    assert(BPLib_CLA_ContactSetup(0) == BPLIB_SUCCESS);
+    assert(BPLib_CLA_ContactStart(0) == BPLIB_SUCCESS);
+
     /* Run until a SIGINT (CTRL-C) sets AppRun to 0 */
     while (AppData.Running)
     {

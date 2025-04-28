@@ -19,14 +19,41 @@
  */
 
 #include "bpcat_nc.h"
+#include "bplib.h"
 
 static BPLib_PI_ChannelTable_t     ChanTbl;
-static BPLib_CLA_ContactsTable_t   ContactsTbl;
+static BPLib_CLA_ContactsTable_t ContactsTbl =
+{
+    .ContactSet = {
+        {
+            .DestEIDs               = {{
+                                        .Scheme       = BPLIB_EID_SCHEME_IPN,
+                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                        .MaxAllocator = 0,
+                                        .MinAllocator = 0,
+                                        .MaxNode      = 200,
+                                        .MinNode      = 200,
+                                        .MaxService   = 64,
+                                        .MinService   = 64},},
+            .CLAType                = 1, /*CLA Type, uint32 */
+            .ClaInAddr              = "0.0.0.0",
+            .ClaOutAddr             = "127.0.0.1", /* CL ip address */
+            .ClaInPort              = 4501, /* Port Number, int32 */
+            .ClaOutPort             = 4551,
+            .DestLTPEngineID        = 1, /*Destination LTP engine ID*/
+            .SendBytePerCycle       = 101, /*Maximum bytes to send per wakeup, uint32*/
+            .ReceiveBytePerCycle    = 200, /*Maximum bytes to receive per wakeup, uint32*/
+            .RetransmitTimeout      = 102, /*bundle reforwarding timeout in seconds, uint32*/
+            .CSTimeTrigger          = 103, /*Custody Signal time trigger in seconds, uint32*/
+            .CSSizeTrigger          = 10 /*Custody signal size trigger in bytes, size_t*/
+        },
+    }
+};
 static BPLib_ARP_CRSTable_t        CrsTbl;
 static BPLib_PDB_CustodianTable_t  CustodianTbl;
 static BPLib_PDB_CustodyTable_t    CustodyTbl;
-static BPLib_NC_MIBConfigPNTable_t MibPnTbl = {
-    .ParamSetMaxBundleLength = 4096
+static BPLib_NC_MibPerNodeConfig_t MibPnTbl = {
+    .ParamSetMaxBundleLength = 8192
 };
 
 static BPLib_NC_MIBConfigPSTable_t MibPsTbl;
