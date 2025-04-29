@@ -458,4 +458,6 @@ void BPLib_NC_SendStorageHk(void);
   */
 void BPLib_NC_SendChannelContactStatHk(void);
 
+void BPLib_NC_SendNodeMibReportsHk(void);
+
 #endif /* BPLIB_NC_DIRECTIVES_H */

@@ -38,6 +38,7 @@ BPLib_Status_t BPLib_AS_Init(void)
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
+    BPLib_AS_InitializeReportsHkTlm();
 
     return Status;
 }
@@ -382,6 +383,15 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 
     /* Allow counters to be modified by other tasks after operation has finished */
     BPLib_AS_UnlockCounters();
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt(&BPLib_AS_NodeReportsPayload);
 
     return Status;
 }

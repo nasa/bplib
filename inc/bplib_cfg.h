@@ -35,7 +35,7 @@ extern "C" {
  */
 
 #define BPLIB_MAX_IP_LENGTH                 16  /* Maximum length of an IP address string */
-#define BPLIB_MAX_STR_LENGTH                24  /* Maximum length for a generic string */
+#define BPLIB_MAX_STR_LENGTH                32  /* Maximum length for a generic string */
 
 /**
  * \brief Configuration array constraints
@@ -151,6 +151,17 @@ extern "C" {
  *         TODO revisit value in 7.1 
  */
 #define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED    86000
+
+#define BPLIB_SYSTEM_NODE_NAME              "BPNode Development"
+
+#define BPLIB_SYSTEM_NODE_OWNER             "NASA GSFC"
+
+#define BPLIB_SYSTEM_SOFWARE_EXEC           "cFS"
+
+#define BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION  "cfe equuleus-rc1+dev235"
+
+#define BPLIB_SUPPORTED_CLAS                "UDP"
+
 
 #ifdef __cplusplus
 } // extern "C"

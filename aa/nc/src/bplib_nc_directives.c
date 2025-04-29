@@ -1111,7 +1111,7 @@ void BPLib_NC_PerformSelfTest(void)
     */
 }
 
-void BPLib_NC_SendNodeMibConfigHk()
+void BPLib_NC_SendNodeMibConfigHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1127,7 +1127,7 @@ void BPLib_NC_SendNodeMibConfigHk()
     }
 }
 
-void BPLib_NC_SendSourceMibConfigHk()
+void BPLib_NC_SendSourceMibConfigHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1143,7 +1143,7 @@ void BPLib_NC_SendSourceMibConfigHk()
     }
 }
 
-void BPLib_NC_SendNodeMibCountersHk()
+void BPLib_NC_SendNodeMibCountersHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1159,7 +1159,7 @@ void BPLib_NC_SendNodeMibCountersHk()
     }
 }
 
-void BPLib_NC_SendSourceMibCountersHk()
+void BPLib_NC_SendSourceMibCountersHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1175,7 +1175,7 @@ void BPLib_NC_SendSourceMibCountersHk()
     }
 }
 
-void BPLib_NC_SendStorageHk()
+void BPLib_NC_SendStorageHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1191,7 +1191,7 @@ void BPLib_NC_SendStorageHk()
     }
 }
 
-void BPLib_NC_SendChannelContactStatHk()
+void BPLib_NC_SendChannelContactStatHk(void)
 {
     BPLib_Status_t              Status;
     uint32_t                    ContactId;
@@ -1219,5 +1219,19 @@ void BPLib_NC_SendChannelContactStatHk()
                             BPLib_EM_EventType_ERROR,
                             "Could not send channel contact statistics packet, RC = %d",
                             Status);
+    }
+}
+
+void BPLib_NC_SendNodeMibReportsHk(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    Status = BPLib_AS_SendNodeMibReportsHk();
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+        BPLib_EM_SendEvent(BPLIB_NC_SEND_REPORTS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Could not send node MIB reports packet, RC = %d", Status);
     }
 }
