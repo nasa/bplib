@@ -220,7 +220,7 @@ typedef struct
     uint32_t BundleIngressRejectedRateBundlesPerSec;            /** \brief Rate of bundles received from CLAs in bundles per second and then rejected */
     uint32_t ParamSetMaxSequenceNum;                            /** \brief Max bundle sequence number allowable */
     uint32_t ParamSetMaxPayloadLength;                          /** \brief Max payload length for fragmentation */
-    uint32_t ParamSetMaxBundleLength;                           /** \brief Max bundle length for processing */
+    uint32_t ParamSetMaxBundleLength;                           /** \brief Max bundle length for processing */ // 8192
     uint32_t ParamSetNodeDTNTime;                               /** \brief Time being tracked by the node */
     uint32_t ParamSetBehaviorEventReporting;                    /** \brief Inclusive level of events to be generated */
 
@@ -240,14 +240,14 @@ typedef struct
     uint32_t Spare[3];
 
     /* Node only */
-    char     SystemNodeName[BPLIB_MAX_EID_LENGTH];              /** \brief Human readable name given to entity */
-    char     SystemSoftwareExec[BPLIB_MAX_EID_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
-    char     SystemSoftwareExecVersion[BPLIB_MAX_EID_LENGTH];   /** \brief Version of software */
-    char     BundleAgentSoftwareVersion[BPLIB_MAX_EID_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
-    char     BundleAgentOperationalState[BPLIB_MAX_EID_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
-    char     BundleAgentConfiguration[BPLIB_MAX_EID_LENGTH];    /** \brief Configuration of Bundle Protocol Agent */
-    char     ParamSupportedCLAs[BPLIB_MAX_EID_LENGTH];          /** \brief Supported CLAs */
-    char     NodeActiveEndpoints[BPLIB_MAX_EID_LENGTH];         /** \brief List of active endpoints on the Node */
+    char     SystemNodeName[BPLIB_MAX_STR_LENGTH];              /** \brief Human readable name given to entity */
+    char     SystemSoftwareExec[BPLIB_MAX_STR_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
+    char     SystemSoftwareExecVersion[BPLIB_MAX_STR_LENGTH];   /** \brief Version of software */
+    char     BundleAgentSoftwareVersion[BPLIB_MAX_STR_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
+    char     BundleAgentOperationalState[BPLIB_MAX_STR_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
+    char     BundleAgentConfiguration[BPLIB_MAX_STR_LENGTH];    /** \brief Configuration of Bundle Protocol Agent */
+    char     ParamSupportedCLAs[BPLIB_MAX_STR_LENGTH];          /** \brief Supported CLAs */
+    char     NodeActiveEndpoints[BPLIB_MAX_STR_LENGTH];         /** \brief List of active endpoints on the Node */
 } BPLib_NC_MibPerNodeConfig_t;
 
 
@@ -300,7 +300,7 @@ typedef struct
  */
 typedef struct
 {
-    char SourceEID[BPLIB_MAX_NUM_STRING];       /** \brief Source EID to which this telemetry corresponds */
+    char SourceEID[BPLIB_MAX_STR_LENGTH];       /** \brief Source EID to which this telemetry corresponds */
     bool BundleSetBehaviorReceivedBSRGenerate;  /** \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
     bool BundleSetBehaviorAcceptedBSRGenerate;  /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
     bool BundleSetBehaviorForwardedBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles forwarded */

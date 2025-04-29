@@ -53,14 +53,14 @@ typedef enum
     TCPType = 0x00000001,
     EPPType = 0x00000002,
     LTPType = 0x00000003,
-} CLAType_t;
+} BPLib_CLA_Type_t;
 
 typedef struct
 {
     char        CtrlMsgTag[8]; /* "BPNMSG" */
     uint32_t    SessionID;
     uint32_t    BundleID;
-    CLAType_t   ClaType;
+    BPLib_CLA_Type_t   ClaType;
     uint8_t     MsgTypes;
 } BPLib_CLA_CtrlMsg_t;
 
@@ -90,20 +90,13 @@ typedef enum
 typedef struct
 {
     BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
-    CLAType_t           CLAType;
-     /**
-      * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
-      * bpnode_contact_tbl.c is
-      * .CLAddr = "127.0.0.1"
-      * which makes it a string containing an IP address, not an EID.
-      */
-    char                ClaInAddr[BPLIB_MAX_EID_LENGTH];
-    char                ClaOutAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t             ClaInPort;
-    int32_t             ClaOutPort;
-    uint32_t            DestLTPEngineID;
-    uint32_t            SendBytePerCycle;
-    uint32_t            ReceiveBytePerCycle;
+    BPLib_CLA_Type_t    CLAType;
+
+    char                ClaInAddr[BPLIB_MAX_IP_LENGTH];
+    char                ClaOutAddr[BPLIB_MAX_IP_LENGTH];
+    uint16_t            ClaInPort;
+    uint16_t            ClaOutPort;
+
     uint32_t            RetransmitTimeout;
     uint32_t            CSTimeTrigger;
     uint32_t            CSSizeTrigger;

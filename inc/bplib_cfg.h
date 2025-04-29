@@ -34,8 +34,8 @@ extern "C" {
  * \brief Maximum length of EID strings and other strings
  */
 
-#define BPLIB_MAX_EID_LENGTH                256 /* Maximum EID string length */
-#define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
+#define BPLIB_MAX_IP_LENGTH                 16  /* Maximum length of an IP address string */
+#define BPLIB_MAX_STR_LENGTH                24  /* Maximum length for a generic string */
 
 /**
  * \brief Configuration array constraints
@@ -134,6 +134,23 @@ extern "C" {
  *        functional lifetime truncated to this value.
  */
 #define BPLIB_MAX_LIFETIME_ALLOWED      0xffffffff
+
+/**
+ *  \brief This is the maximum retransmit timeout allowed in the contacts configuration
+ */
+#define BPLIB_MAX_RETRANSMIT_ALLOWED    86000
+
+/**
+ *  \brief This is the maximum CS time trigger allowed in the contacts configuration. 
+ *         TODO revisit value in 7.1
+ */
+#define BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED    86000
+
+/**
+ *  \brief This is the maximum CS size trigger allowed in the contacts configuration. 
+ *         TODO revisit value in 7.1 
+ */
+#define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED    86000
 
 #ifdef __cplusplus
 } // extern "C"

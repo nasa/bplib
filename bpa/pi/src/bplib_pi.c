@@ -135,24 +135,15 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
             return BPLIB_INVALID_CONFIG_ERR;
         }
 
-        /* Validate that the destination ID uses the IPN scheme and a 2-digit format */
-        if (TblDataPtr->Configs[ChanId].DestEID.Scheme != BPLIB_EID_SCHEME_IPN &&
-            TblDataPtr->Configs[ChanId].DestEID.IpnSspFormat != BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT)
+        /* Validate that the destination ID is valid and doesn't use DTN scheme */
+        if (TblDataPtr->Configs[ChanId].DestEID.Scheme == BPLIB_EID_SCHEME_DTN ||
+            !BPLib_EID_IsValid(&TblDataPtr->Configs[ChanId].DestEID))
         {
             return BPLIB_INVALID_CONFIG_ERR;
         }
 
-        /* Validate that if the report-to EID scheme is DTN, the EID is dtn:none */
-        if (TblDataPtr->Configs[ChanId].ReportToEID.Scheme == BPLIB_EID_SCHEME_DTN)
-        {
-            if (!BPLib_EID_IsMatch(&TblDataPtr->Configs[ChanId].ReportToEID, &BPLIB_EID_DTN_NONE))
-            {
-                return BPLIB_INVALID_CONFIG_ERR;    
-            }
-        }
-        /* Validate that if the report-to EID is not dtn:none, it is a 2-digit IPN EID */
-        else if (TblDataPtr->Configs[ChanId].ReportToEID.Scheme != BPLIB_EID_SCHEME_IPN ||
-            TblDataPtr->Configs[ChanId].ReportToEID.IpnSspFormat != BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT)
+        /* Validate report-to EID */
+        if (!BPLib_EID_IsValid(&TblDataPtr->Configs[ChanId].ReportToEID))
         {
             return BPLIB_INVALID_CONFIG_ERR;
         }
