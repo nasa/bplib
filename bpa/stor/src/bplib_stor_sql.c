@@ -61,6 +61,8 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 {
     int SQLStatus;
     sqlite3* ActiveDB;
+    int ForeignKeysEnabled;
+    sqlite3_stmt* ForeignKeyCheckStmt;
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
@@ -80,10 +82,32 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     {
         return SQLStatus;
     }
+    SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA synchronous=OFF;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+
     /* Note: Apparently SQLite3 can have foreign_keys=ON fail SILENTLY if
     ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
     ** check if foreign keys were enabled by reading the setting back.
     */
+    ForeignKeysEnabled = 0;
+    SQLStatus = sqlite3_prepare_v2(ActiveDB, "PRAGMA foreign_keys;", -1, &ForeignKeyCheckStmt, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    if (sqlite3_step(ForeignKeyCheckStmt) == SQLITE_ROW)
+    {
+        ForeignKeysEnabled = sqlite3_column_int(ForeignKeyCheckStmt, 0);
+    }
+    sqlite3_finalize(ForeignKeyCheckStmt);
+    if (ForeignKeysEnabled != 1)
+    {
+        fprintf(stderr, "Please use a SQLite3 compiled with Foreign Key Support.\n");
+        return SQLITE_MISUSE;
+    }
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(ActiveDB, CreateTableSQL, 0, 0, NULL);
@@ -146,6 +170,7 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     {
         Status = BPLIB_STOR_SQL_INIT_ERR;
     }
+
     return Status;
 }
 
@@ -155,7 +180,7 @@ BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisca
     sqlite3* db = Inst->BundleStorage.db;
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    /* Prepare and reset the ExpireBundlesStmt with the current time */
+    /* Prepare the ExpireBundlesStmt with the current time */
     SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
