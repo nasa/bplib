@@ -148,7 +148,7 @@ typedef struct
       */
     uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
 
-    uint32_t TimeBootEra;       /** \brief Boot Era for Monotonic Time */
+    uint32_t Spare;
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
@@ -186,8 +186,6 @@ typedef struct
 {
     BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_MIB_SETS]; /** \brief Counters for each source */
 
-    uint32_t Spare2;
-    uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
@@ -209,8 +207,6 @@ typedef struct
     char     NodeActiveEndpoints[BPLIB_MAX_STR_LENGTH];         /** \brief List of active endpoints on the Node */
 
     uint32_t SystemNodeUpTime;                                  /** \brief The time in seconds since this node has been reinitialized */
-    uint32_t NodeStartupCounter;                                /** \brief Number of times a node is started up */
-
     uint32_t BundleAgentAvailableStorage;                       /** \brief Total amount of memory allocated for bundle storage for the node  */
     uint32_t KbytesCountStorageAvailable;                       /** \brief Kilobytes free space left to store additional Bundles */
 
@@ -225,6 +221,7 @@ typedef struct
     uint32_t BundleIngressRejectedRateBytesPerSec;              /** \brief Rate of bundles received from CLAs in bytes per second and then rejected */
     uint32_t BundleIngressRejectedRateBundlesPerSec;            /** \brief Rate of bundles received from CLAs in bundles per second and then rejected */
 
+    uint32_t Spare;
     int64_t  MonotonicTime;                                     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;                                 /** \brief Time Correlation Factor */
 

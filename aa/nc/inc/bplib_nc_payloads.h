@@ -199,8 +199,7 @@ typedef struct
 {
     BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Status for each channel */
     BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /**< \brief Status for each contact */
-    uint32_t Spare;
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_ChannelContactStatHkTlm_Payload_t;
@@ -219,6 +218,7 @@ typedef struct
     uint32_t ParamSetNodeDTNTime;               /** \brief Time being tracked by the node */
     uint32_t ParamSetBehaviorEventReporting;    /** \brief Inclusive level of events to be generated */
     uint32_t ParamSetMaxLifetime;               /** \brief Max bundle lifetime for retention of the bundle */
+    uint32_t Spare;
 
 } BPLib_NC_MibPerNodeConfig_t;
 
@@ -262,9 +262,8 @@ typedef struct
 {
     BPLib_NC_MibPerNodeConfig_t Values; /** \brief All configuration values as recorded in the MIB per Node Configuration */
 
-    uint32_t TimeBootEra;               /** \brief Boot Era for Monotonic Time */
-    uint64_t MonotonicTime;             /** \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;         /** \brief Time Correlation Factor */
+    int64_t MonotonicTime;              /** \brief Monotonic Time Counter */
+    int64_t CorrelationFactor;          /** \brief Time Correlation Factor */
 } BPLib_NodeMibConfigHkTlm_Payload_t;
 
 /**
@@ -292,8 +291,6 @@ typedef struct
 typedef struct
 {
     BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
-    uint32_t                   Spare2;
-    uint32_t                   TimeBootEra;       /** \brief Boot Era for Monotonic Time */
     int64_t                    MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t                    CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_SourceMibConfigHkTlm_Payload_t;
