@@ -1511,6 +1511,9 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
     
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
 
+    TestTblData.ParamSetMaxPayloadLength = 10;
+    TestTblData.ParamSetMaxBundleLength = 100;
+
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), BPLIB_SUCCESS);
 }
 
