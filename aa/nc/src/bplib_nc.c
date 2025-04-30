@@ -89,6 +89,13 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
         BPLib_NC_ConfigPtrs.LatConfigPtr       = ConfigPtrs->LatConfigPtr;
         BPLib_NC_ConfigPtrs.StorConfigPtr      = ConfigPtrs->StorConfigPtr;
 
+        /* Set the instance EID */
+        BPLib_EID_CopyEids(&BPLIB_EID_INSTANCE, BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID);
+
+        /* Set telemetry values */
+        memcpy(&(BPLib_NC_NodeMibConfigPayload.Values), BPLib_NC_ConfigPtrs.MibPnConfigPtr, 
+                                                            sizeof(BPLib_NC_MibPerNodeConfig_t));
+
         /* Initialize contact/channel status telemetry with table values */
         BPLib_NC_UpdateContactHkTlm();
         BPLib_NC_UpdateChannelHkTlm();
@@ -130,17 +137,35 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
 /* Validate MIB Config PN configuration data */
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
-    BPLib_Status_t               ReturnCode = BPLIB_SUCCESS;
-    /* BPLib_NC_MibPerNodeConfig_t* TblDataPtr = (BPLib_NC_MibPerNodeConfig_t*) TblData; */
+    BPLib_NC_MibPerNodeConfig_t *TblDataPtr = (BPLib_NC_MibPerNodeConfig_t *) TblData; 
 
-    /* Validate data values are within allowed range */
-    /* if (TblDataPtr->BundleAgentNum <= 0) */
-    /* { */
-        /* element is out of range, return an appropriate error code */
-        /* ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE; */
-    /* } */
+    if (TblDataPtr->InstanceEID.Scheme == BPLIB_EID_SCHEME_DTN ||
+        !BPLib_EID_IsValid(&(TblDataPtr->InstanceEID)))
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
 
-    return ReturnCode;
+    if (TblDataPtr->ParamBundleSizeNoFragment > BPLIB_MAX_BUNDLE_LEN)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    if (TblDataPtr->ParamSetMaxPayloadLength > BPLIB_MAX_PAYLOAD_SIZE)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    if (TblDataPtr->ParamSetMaxBundleLength > BPLIB_MAX_BUNDLE_LEN)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    if (TblDataPtr->ParamSetMaxLifetime > BPLIB_MAX_LIFETIME_ALLOWED)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    return BPLIB_SUCCESS;
 }
 
 /* Validate MIB Config PS configuration data */
@@ -338,8 +363,9 @@ static BPLib_Status_t BPLib_NC_ConfigUpdateUnlocked(void)
         /* Update the instance EID */
         BPLib_EID_CopyEids(&BPLIB_EID_INSTANCE, BPLib_NC_ConfigPtrs.MibPnConfigPtr->InstanceEID);
 
-        /* Update telemetry value */
-        memcpy((void*) &BPLib_NC_NodeMibConfigPayload.Values, (void*) BPLib_NC_ConfigPtrs.MibPnConfigPtr, sizeof(BPLib_NC_MibPerNodeConfig_t));
+        /* Update telemetry values */
+        memcpy(&(BPLib_NC_NodeMibConfigPayload.Values), BPLib_NC_ConfigPtrs.MibPnConfigPtr, 
+                                                            sizeof(BPLib_NC_MibPerNodeConfig_t));
 
         BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_INF_EID,
                             BPLib_EM_EventType_INFORMATION,

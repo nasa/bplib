@@ -31,7 +31,7 @@ extern "C" {
 */
 
 /** 
- * \brief Maximum length of EID strings and other strings
+ * \brief Maximum length of strings
  */
 
 #define BPLIB_MAX_IP_LENGTH                 16  /* Maximum length of an IP address string */
@@ -59,51 +59,51 @@ extern "C" {
  *          This drives the number of entries in the CLA configuration
  *          tables, as well as the number of CLA In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CONTACTS              1
+#define BPLIB_MAX_NUM_CONTACTS                  1
 
 /**
  * \brief Maximum number of destination EID patterns per contact
  */
-#define BPLIB_MAX_CONTACT_DEST_EIDS  3
+#define BPLIB_MAX_CONTACT_DEST_EIDS             3
 
 /** 
  * \brief Maximum number of channels that can be running at once
  *          This drives the number of entries in the channel and ADU proxy configuration
  *          tables, as well as the number of ADU In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CHANNELS              2
+#define BPLIB_MAX_NUM_CHANNELS                  2
 
 /** 
  * \brief Maximum number of extension blocks per bundle.
  */
-#define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
+#define BPLIB_MAX_NUM_EXTENSION_BLOCKS          4
 
 /**
  * \brief Maximum number of canonical blocks per bundle
  *        this is one more than BPLIB_MAX_NUM_EXTENSION_BLOCKS
  *        because it includes all extension blocks plus the payload block
  */
-#define BPLIB_MAX_NUM_CANONICAL_BLOCKS       (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
+#define BPLIB_MAX_NUM_CANONICAL_BLOCKS          (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
 
 /**
  * \brief This is the EID scheme for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_SCHEME          BPLIB_EID_SCHEME_IPN
+#define BPLIB_LOCAL_EID_SCHEME                  BPLIB_EID_SCHEME_IPN
 
 /**
  * \brief This is the EID IPN/SSP format for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT  BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
+#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT          BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
 
 /**
  * \brief This is the EID allocator for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_ALLOCATOR       0
+#define BPLIB_LOCAL_EID_ALLOCATOR               0
 
 /**
  * \brief This is the EID node number for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_NODE_NUM        100
+#define BPLIB_LOCAL_EID_NODE_NUM                100
 
 /**
  * \brief This is the EID service number for this instance of a DTN node. This is not
@@ -111,21 +111,27 @@ extern "C" {
  *        this node, but is included just in case a BPNode implementation does end up
  *        needing it.
  */
-#define BPLIB_LOCAL_EID_SERVICE_NUM     0
+#define BPLIB_LOCAL_EID_SERVICE_NUM             0
 
 /**
  * \brief This reflects whether the system bplib is running on is big endian. Note that
  *        regardless of this, CBOR encoded bundles are big-endian
  */
-#define BPLIB_SYS_BIG_ENDIAN            false
+#define BPLIB_SYS_BIG_ENDIAN                    false
+
+/**
+ *  \brief This is the absolute maximum size a bundle is allowed to be.
+ */
+#define BPLIB_MAX_BUNDLE_LEN                    8192
 
 /**
  * \brief This is the absolute maximum size a bundle payload is allowed to be. The real
  *        max that channels will use is defined in the channel configurations but if
  *        those configurations have MaxBundlePayloadSize values that are larger than this
- *        value, the configurations will be rejected.
+ *        value, the configurations will be rejected. This value must be smaller than
+ *        \ref BPLIB_MAX_BUNDLE_LEN
  */
-#define BPLIB_MAX_PAYLOAD_SIZE          20000
+#define BPLIB_MAX_PAYLOAD_SIZE                  4096
 
 /**
  * \brief This is the absolute maximum lifetime a bundle can have. Channel configurations
@@ -133,35 +139,34 @@ extern "C" {
  *        received by Storage that have a lifetime greater than this value will have their
  *        functional lifetime truncated to this value.
  */
-#define BPLIB_MAX_LIFETIME_ALLOWED      0xffffffff
+#define BPLIB_MAX_LIFETIME_ALLOWED              0xffffffff
 
 /**
  *  \brief This is the maximum retransmit timeout allowed in the contacts configuration
  */
-#define BPLIB_MAX_RETRANSMIT_ALLOWED    86000
+#define BPLIB_MAX_RETRANSMIT_ALLOWED            86000
 
 /**
  *  \brief This is the maximum CS time trigger allowed in the contacts configuration. 
  *         TODO revisit value in 7.1
  */
-#define BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED    86000
+#define BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED       86000
 
 /**
  *  \brief This is the maximum CS size trigger allowed in the contacts configuration. 
  *         TODO revisit value in 7.1 
  */
-#define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED    86000
+#define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED       86000
 
-#define BPLIB_SYSTEM_NODE_NAME              "BPNode Development"
+#define BPLIB_SYSTEM_NODE_NAME                  "BPNode Development"
 
-#define BPLIB_SYSTEM_NODE_OWNER             "NASA GSFC"
+#define BPLIB_SYSTEM_NODE_OWNER                 "NASA GSFC"
 
-#define BPLIB_SYSTEM_SOFWARE_EXEC           "cFS"
+#define BPLIB_SYSTEM_SOFWARE_EXEC               "cFS"
 
-#define BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION  "cfe equuleus-rc1+dev235"
+#define BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION      "cfe equuleus-rc1+dev235"
 
-#define BPLIB_SUPPORTED_CLAS                "UDP"
-
+#define BPLIB_SUPPORTED_CLAS                    "UDP"
 
 #ifdef __cplusplus
 } // extern "C"
