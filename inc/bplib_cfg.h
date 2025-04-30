@@ -158,14 +158,30 @@ extern "C" {
  */
 #define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED       86000
 
+/**
+ *  \brief Name of this entity. This should  unambiguously identify the node within 
+ *         the network
+ */
 #define BPLIB_SYSTEM_NODE_NAME                  "BPNode Development"
 
+/**
+ *  \brief Name of the primary manager of this node
+ */
 #define BPLIB_SYSTEM_NODE_OWNER                 "NASA GSFC"
 
+/**
+ *  \brief Name of the underlying OS or executive controlling the resources of this node
+ */
 #define BPLIB_SYSTEM_SOFWARE_EXEC               "cFS"
 
+/**
+ *  \brief Version of the software executive
+ */
 #define BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION      "cfe equuleus-rc1+dev235"
 
+/**
+ *  \brief List of all CLAs currently supported by this node
+ */
 #define BPLIB_SUPPORTED_CLAS                    "UDP"
 
 #ifdef __cplusplus

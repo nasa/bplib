@@ -139,27 +139,38 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
     BPLib_NC_MibPerNodeConfig_t *TblDataPtr = (BPLib_NC_MibPerNodeConfig_t *) TblData; 
 
+    /* Validate the EID doesn't use the DTN scheme and is a valid EID */
     if (TblDataPtr->InstanceEID.Scheme == BPLIB_EID_SCHEME_DTN ||
         !BPLib_EID_IsValid(&(TblDataPtr->InstanceEID)))
     {
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    /* Validate maximum bundle length without fragmenting */
     if (TblDataPtr->ParamBundleSizeNoFragment > BPLIB_MAX_BUNDLE_LEN)
     {
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    /* Validate maximum payload size */
     if (TblDataPtr->ParamSetMaxPayloadLength > BPLIB_MAX_PAYLOAD_SIZE)
     {
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    /* Validate maximum bundle length */
     if (TblDataPtr->ParamSetMaxBundleLength > BPLIB_MAX_BUNDLE_LEN)
     {
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    /* Validate maximum bundle length is not smaller than the maximum payload length */
+    if (TblDataPtr->ParamSetMaxPayloadLength >= TblDataPtr->ParamSetMaxBundleLength)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    /* Validate maximum lifetime */
     if (TblDataPtr->ParamSetMaxLifetime > BPLIB_MAX_LIFETIME_ALLOWED)
     {
         return BPLIB_INVALID_CONFIG_ERR;

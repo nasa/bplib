@@ -376,6 +376,13 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 
+/**
+  * \brief     Send Per Node MIB Reports telemetry packet
+  * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibReportsPkt()
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  */
 BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void);
 
 /**

@@ -214,7 +214,7 @@ typedef struct
     uint32_t ParamBundleSizeNoFragment;         /** \brief Max bundle size before fragmentation */
     uint32_t ParamSetMaxSequenceNum;            /** \brief Max bundle sequence number allowable */
     uint32_t ParamSetMaxPayloadLength;          /** \brief Max payload length for fragmentation */
-    uint32_t ParamSetMaxBundleLength;           /** \brief Max bundle length for processing */ // 8192
+    uint32_t ParamSetMaxBundleLength;           /** \brief Max bundle length for processing */
     uint32_t ParamSetNodeDTNTime;               /** \brief Time being tracked by the node */
     uint32_t ParamSetBehaviorEventReporting;    /** \brief Inclusive level of events to be generated */
     uint32_t ParamSetMaxLifetime;               /** \brief Max bundle lifetime for retention of the bundle */

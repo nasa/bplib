@@ -102,6 +102,10 @@ void BPLib_AS_LockCounters(void);
  */
 void BPLib_AS_UnlockCounters(void);
 
+/**
+ * \brief     Set the initial node MIB reports telemetry
+ * \return    void
+ */
 void BPLib_AS_InitializeReportsHkTlm(void);
 
 #endif // BPLIB_AS_INTERNAL_H

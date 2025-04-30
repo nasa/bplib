@@ -393,13 +393,10 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
     return Status;
 }
 
+/* Send Node MIB Reports housekeeping telemetry */
 BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void)
 {
-    BPLib_Status_t Status;
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt(&BPLib_AS_NodeReportsPayload);
-
-    return Status;
+    return BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt(&BPLib_AS_NodeReportsPayload);
 }
 
 BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
