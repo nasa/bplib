@@ -44,8 +44,21 @@ void Test_BPLib_PI_RemoveApplication_Nominal(void)
 void Test_BPLib_PI_ValidateConfigs_Nominal(void)
 {
     BPLib_PI_ChannelTable_t ChanTbl;
+    uint32_t ChanId;
 
     memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
+    {
+        ChanTbl.Configs[ChanId].HopLimit = 10;
+        ChanTbl.Configs[ChanId].CrcType = BPLib_CRC_Type_CRC16;
+        ChanTbl.Configs[ChanId].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.BlockNum = 1;
+
+    }
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_SUCCESS);
 }
@@ -59,7 +72,7 @@ void Test_BPLib_PI_ValidateConfigs_Failure(void)
 
     ChanTbl.Configs[0].MaxBundlePayloadSize = -1;
 
-    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_PI_INVALID_CONFIG_ERROR);
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
 }
 
 /* Test nominal ingress function */

@@ -1506,9 +1506,12 @@ void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
 {
     BPLib_NC_MibPerNodeConfig_t TestTblData;
+
     memset(&TestTblData, 0, sizeof(TestTblData));
-    strcpy(TestTblData.BundleAgentSoftwareVersion, "10");
-    UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
+    
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid(void)
@@ -1516,11 +1519,10 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid(void)
     BPLib_NC_MibPerNodeConfig_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
 
-    /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
-    strcpy(TestTblData.BundleAgentSoftwareVersion, "0");
+    TestTblData.InstanceEID.Scheme = BPLIB_EID_SCHEME_DTN;
 
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
-                                                BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+                                                BPLIB_INVALID_CONFIG_ERR);
 }
 
 void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal(void)

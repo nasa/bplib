@@ -168,8 +168,6 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     4) Registers CLA with Storage given the table configuration (Path ID, EID map)
     */
 
-    /* TODO: Verify that table was validated via cFS table upload */
-
     BPLib_Status_t              Status;
     BPLib_CLA_ContactsSet_t     ContactInfo;
     BPLib_CLA_ContactRunState_t RunState;

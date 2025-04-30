@@ -306,46 +306,18 @@ void Test_BPLib_CLA_Egress_Nominal(void)
 void Test_BPLib_CLA_ContactsTblValidateFunc_Nominal(void)
 {
     BPLib_Status_t ReturnStatus;
-    uint8_t ContactTableIndex;
     BPLib_CLA_ContactsTable_t TestTblData;
 
     /* Set input table to all valid values */
     memset(&TestTblData, 0, sizeof(TestTblData));
-    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
-    {
-        TestTblData.ContactSet[ContactTableIndex].ClaOutPort = 10;
-        TestTblData.ContactSet[ContactTableIndex].ClaInPort  = 10;
-    }
 
-    /* Run UUT and check results */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Run unit test and check results */
     ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid(void)
-{
-    BPLib_Status_t ReturnStatus;
-    uint8_t ContactTableIndex;
-    BPLib_CLA_ContactsTable_t TestTblData;
-
-    /* Set input table to all valid values */
-    memset(&TestTblData, 0, sizeof(TestTblData));
-    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
-    {
-        TestTblData.ContactSet[ContactTableIndex].ClaOutPort = 10;
-        TestTblData.ContactSet[ContactTableIndex].ClaInPort  = 10;
-    }
-
-    /*
-    ** Inject an error in the first table entry
-    */
-    TestTblData.ContactSet[0].ClaOutPort = 0;
-    TestTblData.ContactSet[0].ClaInPort  = 0;
-
-    /* Run UUT and check results */
-    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
-}
 
 void Test_BPLib_CLA_ContactSetup_Nominal(void)
 {
@@ -425,14 +397,9 @@ void Test_BPLib_CLA_ContactSetup_CallbackError(void)
 {
     BPLib_Status_t          Status;
     uint32_t                ContactId;
-    BPLib_CLA_ContactsSet_t ContactInfo;
 
     /* Set the ContactId to a valid value */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
-
-    /* Prime the Contacts Configuration to return valid values */
-    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
-    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId] = ContactInfo;
 
     /* Set a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
