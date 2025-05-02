@@ -44,22 +44,276 @@ void Test_BPLib_PI_RemoveApplication_Nominal(void)
 void Test_BPLib_PI_ValidateConfigs_Nominal(void)
 {
     BPLib_PI_ChannelTable_t ChanTbl;
+    uint32_t ChanId;
 
     memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
+    {
+        ChanTbl.Configs[ChanId].HopLimit = 10;
+        ChanTbl.Configs[ChanId].CrcType = BPLib_CRC_Type_CRC16;
+        ChanTbl.Configs[ChanId].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.BlockNum = 1;
+
+    }
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_SUCCESS);
 }
 
-/* Test validate configs function when it fails */
-void Test_BPLib_PI_ValidateConfigs_Failure(void)
+void Test_BPLib_PI_ValidateConfigs_RegStateInv(void)
 {
     BPLib_PI_ChannelTable_t ChanTbl;
 
     memset(&ChanTbl, 0, sizeof(ChanTbl));
 
-    ChanTbl.Configs[0].MaxBundlePayloadSize = -1;
+    ChanTbl.Configs[0].RegState = 10;
 
-    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_PI_INVALID_CONFIG_ERROR);
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_HopLimitInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 0;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_ACTIVE;
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_CrcTypeInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_DEFER;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_None;
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_FlagsInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].BundleProcFlags = 0xFF;
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_DtnDestEid(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_DTN;
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_DestEidInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_RepToEidInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_EID_IsValid), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_EID_IsValid), 1, false);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_SizeInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].MaxBundlePayloadSize = BPLIB_MAX_PAYLOAD_SIZE + 1;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_LifetimeInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].Lifetime = BPLIB_MAX_LIFETIME_ALLOWED + 1;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_NoPayload(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = false;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_BadPayloadBlockNum(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 100;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_BadPrevNodeBlk(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
+
+    ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = 5;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_BadAgeBlk(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
+    ChanTbl.Configs[0].AgeBlkConfig.CrcType = BPLib_CRC_Type_CRC32C;
+
+    ChanTbl.Configs[0].AgeBlkConfig.BlockProcFlags = 0xffffff;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_BadHopBlk(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
+    ChanTbl.Configs[0].AgeBlkConfig.BlockNum = 3;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
+    ChanTbl.Configs[0].AgeBlkConfig.CrcType = BPLib_CRC_Type_CRC32C;
+
+    ChanTbl.Configs[0].HopCountBlkConfig.BlockNum = 3;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_BadPayloadBlk(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].HopLimit = 10;
+    ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
+    ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
+    ChanTbl.Configs[0].AgeBlkConfig.BlockNum = 3;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
+    ChanTbl.Configs[0].AgeBlkConfig.CrcType = BPLib_CRC_Type_CRC32C;
+    ChanTbl.Configs[0].HopCountBlkConfig.BlockNum = 4;
+
+    ChanTbl.Configs[0].PayloadBlkConfig.BlockProcFlags = 0xffffff;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
 }
 
 /* Test nominal ingress function */
@@ -224,7 +478,21 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_RemoveApplication_Nominal);
 
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_Nominal);
-    ADD_TEST(Test_BPLib_PI_ValidateConfigs_Failure);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_RegStateInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_HopLimitInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_CrcTypeInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_FlagsInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_DtnDestEid);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_DestEidInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_RepToEidInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_SizeInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_LifetimeInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_NoPayload);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadPayloadBlockNum);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadPrevNodeBlk);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadAgeBlk);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadHopBlk);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadPayloadBlk);
 
     ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
     ADD_TEST(Test_BPLib_PI_Ingress_Null);

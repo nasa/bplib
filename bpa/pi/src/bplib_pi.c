@@ -37,7 +37,53 @@
 
 
 /*
-** Function Definitions
+** Internal Function Definitions
+*/
+
+/* Validate general canonical block configurations */
+BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConfig, 
+                                                uint32_t *BlockNums, uint8_t *BlockNumsInArr)
+{
+    uint8_t i;
+
+    /* Skip validation if block isn't included */
+    if (CanBlkConfig->IncludeBlock == false)
+    {
+        return BPLIB_SUCCESS;
+    }
+
+    /* Validate that the CRC is a supported type */
+    if (CanBlkConfig->CrcType != BPLib_CRC_Type_None && 
+        CanBlkConfig->CrcType != BPLib_CRC_Type_CRC16 &&
+        CanBlkConfig->CrcType != BPLib_CRC_Type_CRC32C)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    /* Validate that the block processing flags are all supported */
+    if ((CanBlkConfig->BlockProcFlags | BPLIB_VALID_BLOCK_PROC_FLAG_MASK) != BPLIB_VALID_BLOCK_PROC_FLAG_MASK)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
+    /* Validate that this block number is unique */
+    for (i = 0; i < *BlockNumsInArr; i++)
+    {
+        if (CanBlkConfig->BlockNum == BlockNums[i])
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+    }
+
+    /* Add block number to array */
+    BlockNums[*BlockNumsInArr] = CanBlkConfig->BlockNum;
+    (*BlockNumsInArr)++;
+
+    return BPLIB_SUCCESS;
+}
+
+/*
+** External Function Definitions
 */
 
 /* Add application configurations */
@@ -56,11 +102,81 @@ BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
 BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 {
     BPLib_PI_ChannelTable_t *TblDataPtr = (BPLib_PI_ChannelTable_t *)TblData;
+    uint32_t ChanId;
+    uint32_t BlockNums[4];
+    uint8_t  BlockNumsInArr;
 
-    /* Temporary check, implement full validation TODO */
-    if (TblDataPtr->Configs[0].MaxBundlePayloadSize == -1)
+    for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
-        return BPLIB_PI_INVALID_CONFIG_ERROR;
+        /* Validate registration state */
+        if (TblDataPtr->Configs[ChanId].RegState != BPLIB_PI_ACTIVE &&
+            TblDataPtr->Configs[ChanId].RegState != BPLIB_PI_PASSIVE_DEFER &&
+            TblDataPtr->Configs[ChanId].RegState != BPLIB_PI_PASSIVE_ABANDON)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate hop limit is between 1 and 255 */
+        if (TblDataPtr->Configs[ChanId].HopLimit == 0)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate primary block CRC is either 16 or 32 (not NONE) */
+        if (TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC16 && 
+            TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC32C)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate bundle proc flags are all supported */
+        if ((TblDataPtr->Configs[ChanId].BundleProcFlags | BPLIB_VALID_BUNDLE_PROC_FLAG_MASK) != BPLIB_VALID_BUNDLE_PROC_FLAG_MASK)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate that the destination ID is valid and doesn't use DTN scheme */
+        if (TblDataPtr->Configs[ChanId].DestEID.Scheme == BPLIB_EID_SCHEME_DTN ||
+            !BPLib_EID_IsValid(&TblDataPtr->Configs[ChanId].DestEID))
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate report-to EID */
+        if (!BPLib_EID_IsValid(&TblDataPtr->Configs[ChanId].ReportToEID))
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate that the maximum bundle payload size doesn't exceed the system limit */
+        if (TblDataPtr->Configs[ChanId].MaxBundlePayloadSize > BPLIB_MAX_PAYLOAD_SIZE)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate that the bundle lifetime doesn't exceed the system limit */
+        if (TblDataPtr->Configs[ChanId].Lifetime > BPLIB_MAX_LIFETIME_ALLOWED)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate that the payload block is included and its block number is 1 */
+        if (TblDataPtr->Configs[ChanId].PayloadBlkConfig.IncludeBlock == false ||
+            TblDataPtr->Configs[ChanId].PayloadBlkConfig.BlockNum != 1)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+        
+        BlockNumsInArr = 0;
+
+        /* Validate all canonical blocks */
+        if (BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].PrevNodeBlkConfig), BlockNums, &BlockNumsInArr) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].AgeBlkConfig), BlockNums, &BlockNumsInArr) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].HopCountBlkConfig), BlockNums, &BlockNumsInArr) != BPLIB_SUCCESS ||
+            BPLib_PI_ValidateCanBlkConfig(&(TblDataPtr->Configs[ChanId].PayloadBlkConfig), BlockNums, &BlockNumsInArr) != BPLIB_SUCCESS)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
     }
 
     return BPLIB_SUCCESS;

@@ -118,6 +118,7 @@
 #define BPLIB_NC_SEND_SRC_CNTRS_ERR_EID                 (580u)
 #define BPLIB_NC_SEND_STORAGE_ERR_EID                   (581u)
 #define BPLIB_NC_SEND_CONTACTS_ERR_EID                  (582u)
+#define BPLIB_NC_SEND_REPORTS_ERR_EID                   (583u)
 
 /* ============ */
 /* AS event IDs */
@@ -126,12 +127,12 @@
 /* AS success event IDs */
 
 /* AS error event IDs */
-#define BPLIB_AS_TAKE_MUTEX_ERR_EID                     (580u)
-#define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (581u)
-#define BPLIB_AS_SET_CTR_ERR_EID                        (582u)
+#define BPLIB_AS_TAKE_MUTEX_ERR_EID                     (590u)
+#define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (591u)
+#define BPLIB_AS_SET_CTR_ERR_EID                        (592u)
 
 /* AS debug event IDs */
-#define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (583u)
+#define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (593u)
 
 
 /* ============== */
