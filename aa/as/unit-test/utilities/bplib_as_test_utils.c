@@ -347,6 +347,7 @@ void BPLib_AS_Test_Setup(void)
 
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt      = BPA_TLMP_SendNodeMibReportsPkt;
 }
 
 void BPLib_AS_Test_Teardown(void)

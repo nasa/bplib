@@ -1428,6 +1428,35 @@ void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
                                 "Could not send node MIB counters packet, RC = %d");
 }
 
+void Test_BPLib_NC_SendNodeMibReportsHk_Nominal(void)
+{
+    BPLib_NC_SendNodeMibReportsHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibReportsHk, 1);
+}
+
+void Test_BPLib_NC_SendNodeMibReportsHk_Error(void)
+{
+    // Cause BPLib_NC_SendNodeMibReportsHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibReportsHk), BPLIB_ERROR);
+
+    BPLib_NC_SendNodeMibReportsHk();
+
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibReportsHk, 1);
+
+    // Verify rejected directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // Verify the error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_REPORTS_ERR_EID,
+                                "Could not send node MIB reports packet, RC = %d");
+}
+
 void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 {
     BPLib_NC_SendSourceMibCountersHk();
@@ -1517,12 +1546,89 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid(void)
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_DtnEidErr(void)
 {
     BPLib_NC_MibPerNodeConfig_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
 
     TestTblData.InstanceEID.Scheme = BPLIB_EID_SCHEME_DTN;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_EidInvalid(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_SizeNoFragInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.ParamBundleSizeNoFragment = BPLIB_MAX_BUNDLE_LEN + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_PayloadInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.ParamSetMaxPayloadLength = BPLIB_MAX_PAYLOAD_SIZE + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLenInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.ParamSetMaxBundleLength = BPLIB_MAX_BUNDLE_LEN + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLthPayload(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.ParamSetMaxBundleLength = 10;
+    TestTblData.ParamSetMaxPayloadLength = 11;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_LifetimeInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.ParamSetMaxLifetime = BPLIB_MAX_LIFETIME_ALLOWED + 1;
 
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
                                                 BPLIB_INVALID_CONFIG_ERR);
@@ -1773,6 +1879,8 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibReportsHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibReportsHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
@@ -1780,7 +1888,13 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
-    // ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_DtnEidErr);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_EidInvalid);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_SizeNoFragInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_PayloadInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLenInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLthPayload);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_LifetimeInv);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_GetSetAppState_Nominal);
