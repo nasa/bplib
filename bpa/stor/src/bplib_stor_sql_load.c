@@ -37,7 +37,7 @@ static sqlite3_stmt* FindByDestNodeStmt;
 
 /* Find blob by ID */
 static const char* FindBlobSQL = 
-"SELECT blob_data\n"
+"SELECT id\n"
 "FROM bundle_blobs\n"
 "WHERE bundle_id = ?;";
 static sqlite3_stmt* FindBlobStmt;
@@ -53,64 +53,121 @@ static sqlite3_stmt* MarkEgressedStmt;
 static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
     int BundleID, BPLib_Bundle_t** Bundle)
 {
+    sqlite3_blob* blob = NULL;
     int SQLStatus;
-    int ChunkLen;
-    void* ChunkData;
+    int64_t BlobRowId;
+    size_t ChunkSize;
+    BPLib_MEM_Block_t* BundleHead = NULL;
     BPLib_MEM_Block_t* CurrBlock = NULL;
     BPLib_MEM_Block_t* NextBlock = NULL;
-    BPLib_MEM_Block_t* BundleHead = NULL;
     BPLib_Bundle_t* RetBundle;
 
     sqlite3_reset(FindBlobStmt);
-    SQLStatus = sqlite3_bind_int64(FindBlobStmt, 1, BundleID);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind BundleID: %s\n", sqlite3_errmsg(db));
+    SQLStatus = sqlite3_bind_int(FindBlobStmt, 1, BundleID);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "bind failed: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
 
-    SQLStatus = sqlite3_step(FindBlobStmt);
-    while (SQLStatus == SQLITE_ROW)
+    while ((SQLStatus = sqlite3_step(FindBlobStmt)) == SQLITE_ROW)
     {
+        /* Determine the row ID of the blob in the bundle_blobs table */
+        BlobRowId = sqlite3_column_int64(FindBlobStmt, 0);
+
         /* We're loading bblocks_t */
         if (BundleHead == NULL)
         {
-            BundleHead = BPLib_MEM_BlockAlloc(Pool);
-            if (BundleHead == NULL)
+            /* Open the metadata using the blob streaming API */
+            SQLStatus = sqlite3_blob_open(db, "main", "bundle_blobs", "blob_data", BlobRowId, 0, &blob);
+            if (SQLStatus != SQLITE_OK)
             {
-                SQLStatus = -1;
+                fprintf(stderr, "sqlite3_blob_open failed for rowid %ld: %s\n", BlobRowId, sqlite3_errmsg(db));
                 break;
             }
 
-            /* Load the bundle meta data */
-            ChunkLen = sqlite3_column_bytes(FindBlobStmt, 0);
-            ChunkData = (void*)sqlite3_column_blob(FindBlobStmt, 0);
-            memcpy(&BundleHead->user_data.bundle.blocks, ChunkData, ChunkLen);
+            /* Ensure the metadata size exactly matches bblocks_t size. Otherwise, don't bother loading it */
+            ChunkSize = sqlite3_blob_bytes(blob);
+            if (ChunkSize != sizeof(BPLib_BBlocks_t))
+            {
+                fprintf(stderr, "Expected to read metadata chunk and got wrong size %lu != %lu\n",
+                    ChunkSize, sizeof(BPLib_BBlocks_t));
+                SQLStatus = SQLITE_CORRUPT;
+                sqlite3_blob_close(blob);
+                break;
+            }
 
+            /* Allocate a MEM pool block for the meta data */
+            BundleHead = BPLib_MEM_BlockAlloc(Pool);
+            if (BundleHead == NULL)
+            {
+                SQLStatus = SQLITE_IOERR;
+                sqlite3_blob_close(blob);
+                break;
+            }
+
+            /* Load the metadata directly into the mempool block */
+            SQLStatus = sqlite3_blob_read(blob, (void*)&BundleHead->user_data.bundle.blocks, ChunkSize, 0);
+            if (SQLStatus != SQLITE_OK)
+            {
+                fprintf(stderr, "sqlite3_blob_read failed: %s\n", sqlite3_errmsg(db));
+                sqlite3_blob_close(blob);
+                break;
+            }
+
+            /* Load succeeded */
+            sqlite3_blob_close(blob);
             CurrBlock = BundleHead;
-            CurrBlock->used_len = ChunkLen;
+            CurrBlock->used_len = ChunkSize;
         }
         /* We're loading part of the blob */
         else
         {
-            NextBlock = BPLib_MEM_BlockAlloc(Pool);
-            if (NextBlock == NULL)
+            /* Open the metadata using the blob streaming API */
+            SQLStatus = sqlite3_blob_open(db, "main", "bundle_blobs", "blob_data", BlobRowId, 0, &blob);
+            if (SQLStatus != SQLITE_OK)
             {
-                BPLib_MEM_BlockListFree(Pool, BundleHead);
-                SQLStatus = -1;
+                fprintf(stderr, "sqlite3_blob_open failed for rowid %ld: %s\n", BlobRowId, sqlite3_errmsg(db));
                 break;
             }
 
-            /* Copy the blob chunk into the bundle */
-            ChunkLen = sqlite3_column_bytes(FindBlobStmt, 0);
-            ChunkData = (void*)sqlite3_column_blob(FindBlobStmt, 0);
-            memcpy(&NextBlock->user_data.raw_bytes, ChunkData, ChunkLen);
+            /* Make sure the chunk isn't larger than the buffer. This could happen if a previous
+            ** database or BPLib version had a different chunk size. We can't support this case safely. They
+            ** will have to create a new database.
+            */
+            ChunkSize = sqlite3_blob_bytes(blob);
+            if (ChunkSize > sizeof(NextBlock->user_data.raw_bytes))
+            {
+                fprintf(stderr, "Stored BLOB is too large for buffer. DB is corrupted %lu > %lu\n",
+                    ChunkSize, sizeof(NextBlock->user_data.raw_bytes));
+                SQLStatus = SQLITE_CORRUPT;
+                sqlite3_blob_close(blob);
+                break;
+            }
 
+            /* Allocate a MEM pool block for the blob data */
+            NextBlock = BPLib_MEM_BlockAlloc(Pool);
+            if (NextBlock == NULL)
+            {
+                SQLStatus = SQLITE_IOERR;
+                sqlite3_blob_close(blob);
+                break;
+            }
+
+            /* Load the blob directly into the mempool block */
+            SQLStatus = sqlite3_blob_read(blob, (void*)&NextBlock->user_data.raw_bytes, ChunkSize, 0);
+            if (SQLStatus != SQLITE_OK)
+            {
+                fprintf(stderr, "sqlite3_blob_read failed: %s\n", sqlite3_errmsg(db));
+                sqlite3_blob_close(blob);
+                break;
+            }
+
+            /* Load Succeeded */
             CurrBlock->next = NextBlock;
             CurrBlock = NextBlock;
-            CurrBlock->used_len = ChunkLen;
+            CurrBlock->used_len = ChunkSize;
         }
-
-        SQLStatus = sqlite3_step(FindBlobStmt);
     }
 
     /* Expecting SQLITE_DONE */
@@ -119,6 +176,10 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
         RetBundle = (BPLib_Bundle_t*)(BundleHead);
         RetBundle->blob = BundleHead->next;
         *Bundle = RetBundle;
+    }
+    else if (BundleHead != NULL)
+    {
+        BPLib_MEM_BlockListFree(Pool, BundleHead);
     }
 
     return SQLStatus;
@@ -129,8 +190,8 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
 {
     int SQLStatus, LoadStatus;
     sqlite3* db = Inst->BundleStorage.db;
-    BPLib_Bundle_t* CurrBundle = NULL;
-    int CurrBundleID, i;
+    BPLib_Bundle_t* CurrBlockBundle = NULL;
+    int CurrBlockBundleID, i;
     int LoadedBundleIDs[BPLIB_STOR_LOADBATCHSIZE];
 
     /* Bind parameters for metadata query */
@@ -167,18 +228,18 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
     while (SQLStatus == SQLITE_ROW)
     {
         /* Load a single bundle from storage that matches the query */
-        CurrBundleID = sqlite3_column_int(FindByDestNodeStmt, 0);
-        LoadStatus = BPLib_SQL_LoadBundle(db, &Inst->pool, CurrBundleID, &CurrBundle);
+        CurrBlockBundleID = sqlite3_column_int(FindByDestNodeStmt, 0);
+        LoadStatus = BPLib_SQL_LoadBundle(db, &Inst->pool, CurrBlockBundleID, &CurrBlockBundle);
         if (LoadStatus != SQLITE_DONE)
         {
             return LoadStatus;
         }
 
-        Inst->BundleStorage.LoadBatch[Inst->BundleStorage.LoadBatchSize] = CurrBundle;
-        LoadedBundleIDs[Inst->BundleStorage.LoadBatchSize] = CurrBundleID;
+        Inst->BundleStorage.LoadBatch[Inst->BundleStorage.LoadBatchSize] = CurrBlockBundle;
+        LoadedBundleIDs[Inst->BundleStorage.LoadBatchSize] = CurrBlockBundleID;
         Inst->BundleStorage.LoadBatchSize++;
 
-        /* Get the next row */
+        /* Get the NextBlock row */
         SQLStatus = sqlite3_step(FindByDestNodeStmt);
     }
 

@@ -45,6 +45,7 @@ struct BPLib_BundleCache
     size_t InsertBatchSize;
     BPLib_Bundle_t* LoadBatch[BPLIB_STOR_LOADBATCHSIZE];
     size_t LoadBatchSize;
+    int LoadBatchEgressInd;
 };
 
 /**

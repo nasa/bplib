@@ -98,6 +98,9 @@ BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst)
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    memset(&Inst->BundleStorage, 0, sizeof(BPLib_BundleCache_t));
+    Inst->BundleStorage.LoadBatchSize = 0;
+    Inst->BundleStorage.LoadBatchEgressInd = 0;
     pthread_mutex_init(&Inst->BundleStorage.lock, NULL);
 
     Status = BPLib_SQL_Init(Inst, (const char *)BPLIB_STOR_DBNAME);
@@ -170,7 +173,7 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
-    int i, j;
+    int i;
     size_t EgressCnt = 0;
     BPLib_Bundle_t* CurrBundle;
 
@@ -186,24 +189,33 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
     CacheInst = &Inst->BundleStorage;
     pthread_mutex_lock(&CacheInst->lock);
 
-    /* Ask SQL to load egressable bundles from the specified Destination EID */
-    Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, MaxBundles);
-    if (Status != BPLIB_SUCCESS)
+    if (CacheInst->LoadBatchEgressInd == 0)
     {
-        BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_EgressForDestEID failed to load bundle. RC=%d", Status);
+        /* Ask SQL to load egressable bundles from the specified Destination EID */
+        CacheInst->LoadBatchSize = 0;
+        Status = BPLib_SQL_EgressForDestEID(Inst, DestEID, MaxBundles);
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                "BPLib_SQL_EgressForDestEID failed to load bundle. RC=%d", Status);
+
+            /* In this case, there was a storage error, free whatever was loaded before the error. */
+            for (i = 0; i < CacheInst->LoadBatchSize; i++)
+            {
+                BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[i]);
+            }
+        }
     }
 
-    /* SQL_EgressForDestEID Updates the LoadBatchSize. We can choose to egress whatever
-    ** was loaded here
-    */
     if (Status == BPLIB_SUCCESS)
     {
-        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        for (i = CacheInst->LoadBatchEgressInd; i < CacheInst->LoadBatchSize; i++)
         {
             /* Set the metadata EID */
             CurrBundle = CacheInst->LoadBatch[i];
             CurrBundle->Meta.EgressID = EgressID;
+
+            /* Deliver to a channel or contact depending on Dest EID */
             if (LocalDelivery)
             {
                 Status = BPLib_QM_CreateJob(Inst, CurrBundle, CHANNEL_OUT_STOR_TO_CT,
@@ -214,32 +226,27 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
                 Status = BPLib_QM_CreateJob(Inst, CurrBundle, CONTACT_OUT_STOR_TO_CT,
                     QM_PRI_NORMAL, QM_NO_WAIT);
             }
+
+            /* This is effectively a "flow-control".  If Status isn't BPLIB_SUCCESS,
+            ** it implies the Job queue was full. We should not try to keep sending.
+            ** The next ScanCache call will try again.
+            */
             if (Status != BPLIB_SUCCESS)
             {
-                /* In this case, bundles were loaded, but we couldn't create jobs 
-                ** Free only what we couldn't egress.
-                */
-                for (j = i; i < CacheInst->LoadBatchSize; i++)
-                {
-                    BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[j]);
-                }
-
-                /* Note by breaking here we've chosen to lose the bundles that couldn't be
-                ** egressed. We could alternatively keep trying through this loop if we find we drop large
-                ** batches of bundles. The assumption made here is that by freeing all of the memory, we're giving
-                ** the system a better chance of recovering.
-                */
                 break;
             }
             EgressCnt++;
         }
-    }
-    else
-    {
-        /* In this case, there was a storage error, free whatever was loaded before the error. */
-        for (i = 0; i < CacheInst->LoadBatchSize; i++)
+        if (i == CacheInst->LoadBatchSize)
         {
-            BPLib_MEM_BundleFree(&Inst->pool, CacheInst->LoadBatch[i]);
+            /* We finished egressing everything in the load batch. We can load more from persistent storage next call */
+            CacheInst->LoadBatchEgressInd = 0;
+        }
+        else
+        {
+            /* Next call has more to egress */
+            printf("halt\n");
+            CacheInst->LoadBatchEgressInd = i;
         }
     }
 
@@ -247,9 +254,6 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
 
     BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
-
-    /* Automatically increment discard since we're not currently maintaining any metadata */
-    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, EgressCnt);
 
     *NumEgressed = EgressCnt;
     return Status;

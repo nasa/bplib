@@ -45,6 +45,7 @@ static const char* CreateTableSQL =
 "    blob_data BLOB,\n"
 "    FOREIGN KEY (bundle_id) REFERENCES bundle_data(id) ON DELETE CASCADE\n"
 ");\n"
+"CREATE INDEX IF NOT EXISTS idx_bundle_blobs_bundle_id ON bundle_blobs (bundle_id);\n"
 "CREATE INDEX IF NOT EXISTS idx_action_timestamp ON bundle_data (action_timestamp);\n"
 "CREATE INDEX IF NOT EXISTS idx_dest_node ON bundle_data (dest_node);\n";
 
