@@ -157,27 +157,34 @@ BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
         OldValue = BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem];
 
         BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = Value;
-
         /* Validate MIB item value */
         if (MibConfigValidate[MibItem])
         {
             Status = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE, 
                                                 (void **) &(BPLib_NC_ConfigPtrs.MibPnConfigPtr));
+
+            /* 
+            ** If table update was successful, update MIB Node Config telemetry value.
+            ** Otherwise, revert table value to original value.
+            */
+            if (Status == BPLIB_SUCCESS)
+            {
+                BPLib_NC_NodeMibConfigPayload.Values.Configs[MibItem] = Value;
+            }
+            else
+            {
+                BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
+            }
         }
         else
         {                
             Status = BPLIB_NC_INVALID_MIB_VALUE;
+            BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
         }
     }
     else
     {
         Status = BPLIB_NC_INVALID_MIB_ITEM_INDEX;
-    }
-
-    /* If something failed, make sure the config is reverted to its original value */
-    if (Status != BPLIB_SUCCESS && Status != BPLIB_NC_INVALID_MIB_ITEM_INDEX)
-    {
-        BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
     }
 
     BPLib_NC_RWLock_WUnlock(&BPLib_NC_CfgLock);
@@ -228,7 +235,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
     BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr[0].MIB_PS_Set->Configs[0] <= 0)
+    if (TblDataPtr[0].MIB_PS_Set->Configs[PARAM_SET_MAX_LIFETIME] <= 0)
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;

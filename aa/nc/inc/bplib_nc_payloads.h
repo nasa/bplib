@@ -266,7 +266,7 @@ typedef struct
      */
     BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
     uint32_t            Configs[BPLIB_NC_SOURCE_MIB_CONFIG_NUM];
-    uint16_t            Spare;
+    uint32_t            Spare;
 } BPLib_NC_MIBConfigPSSet_t;
 
 typedef struct

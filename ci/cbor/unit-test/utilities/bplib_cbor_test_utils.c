@@ -45,7 +45,7 @@ void BPLib_CBOR_Test_Setup(void)
     BPLib_NC_ConfigPtrs.MibPnConfigPtr = &TestMibConfigPnTbl;
 
     /* Set default max length to something excessively high for most tests */
-    TestMibConfigPnTbl.ParamSetMaxBundleLength = 1000000;
+    TestMibConfigPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 1000000;
 }
 
 void BPLib_CBOR_Test_Teardown(void)
