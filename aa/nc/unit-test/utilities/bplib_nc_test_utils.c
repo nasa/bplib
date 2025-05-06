@@ -32,6 +32,18 @@ BPLib_NC_ConfigPtrs_t TestConfigPtrs;
 uint8 Context_TableType[UT_MAX_TABLE_TYPE_DEPTH];
 BPLib_NC_RWLock_t RWLock;
 
+BPLib_PI_ChannelTable_t     TestChanTbl;
+BPLib_CLA_ContactsTable_t   TestContactsTbl;
+BPLib_ARP_CRSTable_t        TestCrsTbl;
+BPLib_PDB_CustodianTable_t  TestCustodianTbl;
+BPLib_PDB_CustodyTable_t    TestCustodyTbl;
+BPLib_NC_MibPerNodeConfig_t TestMibPnTbl;
+BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
+BPLib_PDB_ReportToTable_t   TestReportTbl;
+BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
+BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
+BPLib_STOR_StorageTable_t   TestStorTbl;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -112,18 +124,6 @@ void BPNode_Test_TABLEP_TableUpdate(uint8 CallNum, uint8 TableType)
 
 void BPLib_NC_Test_Setup(void)
 {
-    BPLib_PI_ChannelTable_t     TestChanTbl;
-    BPLib_CLA_ContactsTable_t   TestContactsTbl;
-    BPLib_ARP_CRSTable_t        TestCrsTbl;
-    BPLib_PDB_CustodianTable_t  TestCustodianTbl;
-    BPLib_PDB_CustodyTable_t    TestCustodyTbl;
-    BPLib_NC_MibPerNodeConfig_t TestMibPnTbl;
-    BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
-    BPLib_PDB_ReportToTable_t   TestReportTbl;
-    BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
-    BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
-    BPLib_STOR_StorageTable_t   TestStorTbl;
-
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 

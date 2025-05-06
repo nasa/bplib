@@ -1230,45 +1230,45 @@ void Test_BPLib_NC_RemoveMibArrayKey_Error(void)
 
 void Test_BPLib_NC_SetMibItem_Nominal(void)
 {
-    // BPLib_SetMibItem_Payload_t Payload;
+    BPLib_SetMibItem_Payload_t Payload;
 
+    memset(&Payload, 0, sizeof(Payload));
+
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
     
-    // BPLib_NC_SetMibItem(Payload);
+    BPLib_NC_SetMibItem(Payload);
 
-    // // Verify directive counter was incremented
-    // Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
 
-    // /* Verify event */
-    // BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
-    //                             "Set mib item directive not implemented, received %d in payload");
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
+                                "Set MIB item #%d to %d.");
+    UtAssert_EQ(uint32_t, TestConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH], Payload.Value);
 }
 
 void Test_BPLib_NC_SetMibItem_Error(void)
 {
-    /*
     BPLib_SetMibItem_Payload_t Payload;
 
-    // Invalid item index error return code test
-    Payload.ExampleParameter = 22;
+    memset(&Payload, 0, sizeof(Payload));
+    memset(TestConfigPtrs.MibPnConfigPtr, 0, sizeof(BPLib_NC_MibPerNodeConfig_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // Invalid MIB item index
+    Payload.MibItem = BPLIB_NC_NODE_MIB_CONFIG_NUM;
+
     BPLib_NC_SetMibItem(Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-
-    // Invalid item value return code test
-    Payload.ExampleParameter = 22;
-    BPLib_NC_SetMibItem(Payload);
-
-    // Verify directive counter was incremented
-    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 2);
-
-    // configuration update failure return code test
-    Payload.ExampleParameter = 22;
-    BPLib_NC_SetMibItem(Payload);
-
-    // Verify directive counter was incremented
-    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 3);
-    */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+    
 }
 
 void Test_BPLib_NC_AddStorageAllocation_Nominal(void)
@@ -1628,6 +1628,9 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_LifetimeInv(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
 
+    TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 5;
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 10;
+    
     TestTblData.Configs[PARAM_SET_MAX_LIFETIME] = BPLIB_MAX_LIFETIME_ALLOWED + 1;
 
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
@@ -1638,7 +1641,7 @@ void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal(void)
 {
     BPLib_NC_MIBConfigPSTable_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
-    TestTblData.MIB_PS_Set[0].Configs[PARAM_SET_MAX_LIFETIME] = 10;
+    TestTblData.MIB_PS_Set[0].Configs[0] = 10;
     UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
 }
 

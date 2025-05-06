@@ -235,7 +235,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
     BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr[0].MIB_PS_Set->Configs[PARAM_SET_MAX_LIFETIME] <= 0)
+    if (TblDataPtr[0].MIB_PS_Set->Configs[0] <= 0)
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;

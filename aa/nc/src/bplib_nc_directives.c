@@ -964,7 +964,7 @@ void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
-        BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Failed to set MIB item #%d to %d, RC=%d",
                             Payload.MibItem, Payload.Value, Status);
 

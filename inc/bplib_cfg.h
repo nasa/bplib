@@ -139,7 +139,7 @@ extern "C" {
  *        received by Storage that have a lifetime greater than this value will have their
  *        functional lifetime truncated to this value.
  */
-#define BPLIB_MAX_LIFETIME_ALLOWED              0xffffffff
+#define BPLIB_MAX_LIFETIME_ALLOWED              0xfffffffe
 
 /**
  *  \brief This is the maximum retransmit timeout allowed in the contacts configuration
