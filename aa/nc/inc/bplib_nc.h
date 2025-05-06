@@ -82,6 +82,8 @@ typedef enum
     BPLIB_ADU_PROXY                 = 11, /* FWP's ADU Proxy configuration; confined to BPNode */
 } BPLib_NC_ConfigType_t;
 
+typedef bool (*MibConfigValidateFunc_t)(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+
 /* =========== */
 /* Global Data */
 /* =========== */
@@ -157,6 +159,11 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  * \retval BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
+
+BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value);
+
+BPLib_Status_t BPLib_NC_SetMibSourceConfig(const BPLib_EID_Pattern_t *EidPattern, 
+                                                      uint32_t MibItem, uint32_t Value);
 
 /**
   * \brief     Mutator of the application state of a channel

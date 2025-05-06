@@ -58,7 +58,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
 
     /* Verify bundle is not longer than maximum allowed length */
     BPLib_NC_ReaderLock();
-    if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->ParamSetMaxBundleLength)
+    if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH])
     {
         BPLib_NC_ReaderUnlock();
         return BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR;

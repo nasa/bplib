@@ -164,7 +164,9 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    BPLib_EID_Pattern_t EidPattern;
+    uint32_t            MibItem;
+    uint32_t            Value;
 } BPLib_SetMibItem_Payload_t;
 
 typedef struct
@@ -204,6 +206,40 @@ typedef struct
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_ChannelContactStatHkTlm_Payload_t;
 
+
+#define BPLIB_NC_NODE_MIB_CONFIG_NUM 7
+#define BPLIB_NC_SOURCE_MIB_CONFIG_BASE 6
+#define BPLIB_NC_SOURCE_MIB_CONFIG_NUM 13
+
+
+typedef enum
+{
+    /* Node-only configs */
+    PARAM_BUNDLE_SIZE_NO_FRAGMENT         = 0,  /** \brief Max bundle size before fragmentation */
+    PARAM_SET_MAX_SEQUENCE_NUM            = 1,  /** \brief Max bundle sequence number allowable */
+    PARAM_SET_MAX_PAYLOAD_LENGTH          = 2,  /** \brief Max payload length for fragmentation */
+    PARAM_SET_MAX_BUNDLE_LENGTH           = 3,  /** \brief Max bundle length for processing */
+    PARAM_SET_NODE_DTN_TIME               = 4,  /** \brief Time being tracked by the node */
+    PARAM_SET_BEHAVIOR_EVENT_REPORTING    = 5,  /** \brief Inclusive level of events to be generated */
+
+    /* Node and source configs */
+    PARAM_SET_MAX_LIFETIME                = 6,  /** \brief Max bundle lifetime for retention of the bundle */
+
+    /* Source-only configs */
+    PARAM_SET_MAX_BSR_GENERATION_RATE     = 7,
+    PARAM_SET_MAX_CBR_GENERATION_RATE     = 8,
+    BUNDLE_SET_BEHAVIOR_RCVD_BSR_GENERATE = 9,
+    BUNDLE_SET_BEHAVIOR_ACPT_BSR_GENERATE = 10,
+    BUNDLE_SET_BEHAVIOR_FWRD_BSR_GENERATE = 11,
+    BUNDLE_SET_BEHAVIOR_DLVR_BSR_GENERATE = 12,
+    BUNDLE_SET_BEHAVIOR_DLTD_BSR_GENERATE = 13,
+    BUNDLE_SET_BEHAVIOR_RCVD_CBR_GENERATE = 14,
+    BUNDLE_SET_BEHAVIOR_ACPT_CBR_GENERATE = 15,
+    BUNDLE_SET_BEHAVIOR_FWRD_CBR_GENERATE = 16, 
+    BUNDLE_SET_BEHAVIOR_DLVR_CBR_GENERATE = 17,
+    BUNDLE_SET_BEHAVIOR_DLTD_CBR_GENERATE = 18,
+} BPLib_NC_Config_t;
+
 /*
 ** MIB Config Per Node Policy Table
 */
@@ -211,16 +247,11 @@ typedef struct
 {
     BPLib_EID_t InstanceEID;                    /** \brief Endpoint ID of this BP instance */
 
-    uint32_t ParamBundleSizeNoFragment;         /** \brief Max bundle size before fragmentation */
-    uint32_t ParamSetMaxSequenceNum;            /** \brief Max bundle sequence number allowable */
-    uint32_t ParamSetMaxPayloadLength;          /** \brief Max payload length for fragmentation */
-    uint32_t ParamSetMaxBundleLength;           /** \brief Max bundle length for processing */
-    uint32_t ParamSetNodeDTNTime;               /** \brief Time being tracked by the node */
-    uint32_t ParamSetBehaviorEventReporting;    /** \brief Inclusive level of events to be generated */
-    uint32_t ParamSetMaxLifetime;               /** \brief Max bundle lifetime for retention of the bundle */
+    uint32_t Configs[BPLIB_NC_NODE_MIB_CONFIG_NUM];
     uint32_t Spare;
 
 } BPLib_NC_MibPerNodeConfig_t;
+
 
 
 /*
@@ -234,19 +265,7 @@ typedef struct
      * the BPLib_EID_Scheme_t enum in BPLib_EID_Pattern_t.
      */
     BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
-    uint32_t            ParamSetMaxLifetime;
-    uint32_t            ParamSetMaxBSRGenerationRate;
-    uint32_t            ParamSetMaxCBRGenerationRate;
-    uint8_t             BundleSetBehaviorReceivedBSRGenerate;
-    uint8_t             BundleSetBehaviorAcceptedBSRGenerate;
-    uint8_t             BundleSetBehaviorForwardedBSRGenerate;
-    uint8_t             BundleSetBehaviorDeliveredBSRGenerate;
-    uint8_t             BundleSetBehaviorDeletedBSRGenerate;
-    uint8_t             BundleSetBehaviorReceivedCBRGenerate;
-    uint8_t             BundleSetBehaviorAcceptedCBRGenerate;
-    uint8_t             BundleSetBehaviorForwardedCBRGenerate;
-    uint8_t             BundleSetBehaviorDeliveredCBRGenerate;
-    uint8_t             BundleSetBehaviorDeletedCBRGenerate;  
+    uint32_t            Configs[BPLIB_NC_SOURCE_MIB_CONFIG_NUM];
     uint16_t            Spare;
 } BPLib_NC_MIBConfigPSSet_t;
 

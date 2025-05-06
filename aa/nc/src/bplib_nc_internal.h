@@ -60,4 +60,12 @@ void BPLib_NC_UpdateContactHkTlm(void);
  */
 void BPLib_NC_UpdateChannelHkTlm(void);
 
+bool BPLib_NC_ValidParamBundleSizeNoFragment(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamSetMaxSequenceNum(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamMaxPayloadLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamMaxBundleLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamSetNodeDtnTime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamSetBehaviorEventReporting(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+bool BPLib_NC_ValidParamSetMaxLifetime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
+
 #endif // BPLIB_NC_INTERNAL_H

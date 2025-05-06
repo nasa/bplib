@@ -63,3 +63,43 @@ void BPLib_NC_UpdateChannelHkTlm(void)
             BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId].LocalServiceNumber;
     }
 }
+
+bool BPLib_NC_ValidParamBundleSizeNoFragment(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    return TblDataPtr->Configs[PARAM_BUNDLE_SIZE_NO_FRAGMENT] <= BPLIB_MAX_BUNDLE_LEN;
+}
+
+bool BPLib_NC_ValidParamSetMaxSequenceNum(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    /* All values accepted */
+    return true;
+}
+
+bool BPLib_NC_ValidParamMaxPayloadLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    return (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] <= BPLIB_MAX_PAYLOAD_SIZE) &&
+           (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] < TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH]);
+}
+
+bool BPLib_NC_ValidParamMaxBundleLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    return (TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH] <= BPLIB_MAX_BUNDLE_LEN) &&
+           (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] < TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH]);
+}
+
+bool BPLib_NC_ValidParamSetNodeDtnTime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    /* All values accepted */
+    return true;
+}
+
+bool BPLib_NC_ValidParamSetBehaviorEventReporting(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    /* All values accepted */
+    return true;
+}
+
+bool BPLib_NC_ValidParamSetMaxLifetime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
+{
+    return TblDataPtr->Configs[PARAM_SET_MAX_LIFETIME] <= BPLIB_MAX_LIFETIME_ALLOWED;
+}
