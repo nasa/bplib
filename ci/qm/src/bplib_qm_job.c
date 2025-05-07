@@ -102,6 +102,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
 {
     int i, j;
     BPLib_EID_t* DestEID;
+    BPLib_CLA_ContactRunState_t ContactState;
 
     BPLib_NC_ReaderLock();
 
@@ -133,14 +134,19 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         /* Iterate through the contacts: this is very slow. */
         for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
         {
-            for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+            /* Contact ID is valid here, so we can ignore the error status of the function */
+            (void) BPLib_CLA_GetContactRunState(i, &ContactState);
+            if (ContactState == BPLIB_CLA_STARTED)
             {
-                /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
-                if (BPLib_EID_PatternIsMatch(DestEID, &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                 {
-                    Bundle->Meta.EgressID = i;
-                    BPLib_NC_ReaderUnlock();
-                    return CONTACT_OUT_STOR_TO_CT;
+                    /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
+                    if (BPLib_EID_PatternIsMatch(DestEID, &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                    {
+                        Bundle->Meta.EgressID = i;
+                        BPLib_NC_ReaderUnlock();
+                        return CONTACT_OUT_STOR_TO_CT;
+                    }
                 }
             }
         }

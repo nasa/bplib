@@ -307,6 +307,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     uint16_t            i, j;
     size_t NumEgressed;
     BPLib_EID_Pattern_t LocalEIDPattern;
+    BPLib_CLA_ContactRunState_t ContactState;
 
     if (Inst == NULL)
     {
@@ -344,18 +345,22 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     /* Egress For Contacts */
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+        /* Contact ID is valid here, so we can ignore the error status of the function */
+        (void) BPLib_CLA_GetContactRunState(i, &ContactState);
+        if (ContactState == BPLIB_CLA_STARTED)
         {
-            /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
-            Status = BPLib_STOR_EgressForDestEID(Inst, i, false,
-                &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j],
-                BPLIB_STOR_LOADBATCHSIZE,
-                &NumEgressed);
-            BundlesScanned += NumEgressed;
-            if (Status != BPLIB_SUCCESS)
+            for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
             {
-                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Failed to egress bundle for contact %d, RC=%d", i, Status);
+                Status = BPLib_STOR_EgressForDestEID(Inst, i, false,
+                    &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j],
+                    BPLIB_STOR_LOADBATCHSIZE,
+                    &NumEgressed);
+                BundlesScanned += NumEgressed;
+                if (Status != BPLIB_SUCCESS)
+                {
+                    BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
+                        "Failed to egress bundle for contact %d, RC=%d", i, Status);
+                }
             }
         }
     }
