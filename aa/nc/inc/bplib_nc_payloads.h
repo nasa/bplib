@@ -226,18 +226,18 @@ typedef enum
     PARAM_SET_MAX_LIFETIME                = 6,  /** \brief Max bundle lifetime for retention of the bundle */
 
     /* Source-only configs */
-    PARAM_SET_MAX_BSR_GENERATION_RATE     = 7,
-    PARAM_SET_MAX_CBR_GENERATION_RATE     = 8,
-    BUNDLE_SET_BEHAVIOR_RCVD_BSR_GENERATE = 9,
-    BUNDLE_SET_BEHAVIOR_ACPT_BSR_GENERATE = 10,
-    BUNDLE_SET_BEHAVIOR_FWRD_BSR_GENERATE = 11,
-    BUNDLE_SET_BEHAVIOR_DLVR_BSR_GENERATE = 12,
-    BUNDLE_SET_BEHAVIOR_DLTD_BSR_GENERATE = 13,
-    BUNDLE_SET_BEHAVIOR_RCVD_CBR_GENERATE = 14,
-    BUNDLE_SET_BEHAVIOR_ACPT_CBR_GENERATE = 15,
-    BUNDLE_SET_BEHAVIOR_FWRD_CBR_GENERATE = 16, 
-    BUNDLE_SET_BEHAVIOR_DLVR_CBR_GENERATE = 17,
-    BUNDLE_SET_BEHAVIOR_DLTD_CBR_GENERATE = 18,
+    PARAM_SET_MAX_BSR_GENERATION_RATE     = 7,  /** \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
+    PARAM_SET_MAX_CBR_GENERATION_RATE     = 8,  /** \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
+    BUNDLE_SET_BEHAVIOR_RCVD_BSR_GENERATE = 9,  /** \brief Flag indicating that BSR should be generated for bundles received */
+    BUNDLE_SET_BEHAVIOR_ACPT_BSR_GENERATE = 10, /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
+    BUNDLE_SET_BEHAVIOR_FWRD_BSR_GENERATE = 11, /** \brief Flag indicating that BSR should be generated for bundles forwarded */
+    BUNDLE_SET_BEHAVIOR_DLVR_BSR_GENERATE = 12, /** \brief Flag indicating that BSR should be generated for bundles delivered */
+    BUNDLE_SET_BEHAVIOR_DLTD_BSR_GENERATE = 13, /** \brief Flag indicating that BSR should be generated for bundles deleted */ 
+    BUNDLE_SET_BEHAVIOR_RCVD_CBR_GENERATE = 14, /** \brief Flag indicating that CBR should be generated for bundles received */
+    BUNDLE_SET_BEHAVIOR_ACPT_CBR_GENERATE = 15, /** \brief Flag indicating that CBR should be generated for bundles accepted to custody */
+    BUNDLE_SET_BEHAVIOR_FWRD_CBR_GENERATE = 16, /** \brief Flag indicating that CBR should be generated for bundles forwarded */
+    BUNDLE_SET_BEHAVIOR_DLVR_CBR_GENERATE = 17, /** \brief Flag indicating that CBR should be generated for bundles delivered */
+    BUNDLE_SET_BEHAVIOR_DLTD_CBR_GENERATE = 18, /** \brief Flag indicating that CBR should be generated for bundles deleted */
 } BPLib_NC_Config_t;
 
 /*
@@ -290,21 +290,15 @@ typedef struct
  */
 typedef struct
 {
-    char SourceEID[BPLIB_MAX_STR_LENGTH];       /** \brief Source EID to which this telemetry corresponds */
-    bool BundleSetBehaviorReceivedBSRGenerate;  /** \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedBSRGenerate;  /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedBSRGenerate;   /** \brief Flag indicating that BSR should be generated for bundles deleted */ 
-    bool BundleSetBehaviorReceivedCBRGenerate;  /** \brief Flag indicating that Compressed Bundle Reporting (CBR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedCBRGenerate;  /** \brief Flag indicating that CBR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedCBRGenerate;   /** \brief Flag indicating that CBR should be generated for bundles deleted */
-    uint16_t Spare1;
-    uint32_t ParamSetMaxLifetime;               /** \brief Maximum bundle lifetime */
-    uint32_t ParamSetMaxBSRGenerationRate;      /** \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
-    uint32_t ParamSetMaxCBRGenerationRate;      /** \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
+    char SourceEID[BPLIB_MAX_STR_LENGTH];           /** \brief Source EID to which this telemetry corresponds */
+    uint32_t Configs[BPLIB_NC_SOURCE_MIB_CONFIG_NUM];
+
+    /*
+    ** TODO may be able to combine flag configs into a single uint32 instead of one each?
+    ** Figure out logic later. Source EID also needs to become a BPLib_EID_t type
+    */
+
+    uint32_t Spare;
 } BPLib_SourceMibConfigSet_t;
 
 typedef struct
