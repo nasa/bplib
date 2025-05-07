@@ -1228,7 +1228,7 @@ void Test_BPLib_NC_RemoveMibArrayKey_Error(void)
     */
 }
 
-void Test_BPLib_NC_SetMibItem_Nominal(void)
+void Test_BPLib_NC_SetMibItem_NodeNom(void)
 {
     BPLib_SetMibItem_Payload_t Payload;
 
@@ -1236,6 +1236,8 @@ void Test_BPLib_NC_SetMibItem_Nominal(void)
 
     Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
     Payload.Value = 1234;
+
+    TestMibPnTbl.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 10;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
     
@@ -1247,10 +1249,26 @@ void Test_BPLib_NC_SetMibItem_Nominal(void)
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
                                 "Set MIB item #%d to %d.");
-    UtAssert_EQ(uint32_t, TestConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH], Payload.Value);
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], Payload.Value);
 }
 
-void Test_BPLib_NC_SetMibItem_Error(void)
+void Test_BPLib_NC_SetMibItem_SrcNom(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), false);
+    
+    BPLib_NC_SetMibItem(Payload);
+
+    /* Verify event */
+    // TODO when source configs are implemented, this should succeed
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+}
+
+void Test_BPLib_NC_SetMibItem_NodeInvMib(void)
 {
     BPLib_SetMibItem_Payload_t Payload;
 
@@ -1267,8 +1285,52 @@ void Test_BPLib_NC_SetMibItem_Error(void)
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
-    UtAssert_EQ(uint32_t, TestConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
-    
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+}
+
+void Test_BPLib_NC_SetMibItem_NodeInvVal(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // MIB value will fail validation
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 2000; 
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 0;
+
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+}
+
+void Test_BPLib_NC_SetMibItem_NodeTblErr(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+    memset(TestConfigPtrs.MibPnConfigPtr, 0, sizeof(BPLib_NC_MibPerNodeConfig_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // Table update will fail
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
+
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
 }
 
 void Test_BPLib_NC_AddStorageAllocation_Nominal(void)
@@ -1867,8 +1929,11 @@ void TestBplibNc_Register(void)
     // ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
     ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Nominal);
     ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Error);
-    ADD_TEST(Test_BPLib_NC_SetMibItem_Nominal);
-    ADD_TEST(Test_BPLib_NC_SetMibItem_Error);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeNom);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_SrcNom);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeInvMib);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeInvVal);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeTblErr);
     ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Nominal);
     ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Error);
     ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Nominal);

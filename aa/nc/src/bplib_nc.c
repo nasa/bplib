@@ -160,7 +160,7 @@ BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
 
         BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = Value;
         /* Validate MIB item value */
-        if (MibConfigValidate[MibItem])
+        if (MibConfigValidate[MibItem](BPLib_NC_ConfigPtrs.MibPnConfigPtr))
         {
             Status = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE, 
                                                 (void **) &(BPLib_NC_ConfigPtrs.MibPnConfigPtr));
