@@ -37,7 +37,7 @@
 
 extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
 extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
+extern BPLib_NodeMibReportsHkTlm_Payload_t     BPLib_AS_NodeReportsPayload;          /** \brief Global node MID reports payload */
 
 /* ====== */
 /* Macros */
@@ -101,5 +101,11 @@ void BPLib_AS_LockCounters(void);
  * \anchor    BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
  */
 void BPLib_AS_UnlockCounters(void);
+
+/**
+ * \brief     Set the initial node MIB reports telemetry
+ * \return    void
+ */
+void BPLib_AS_InitializeReportsHkTlm(void);
 
 #endif // BPLIB_AS_INTERNAL_H

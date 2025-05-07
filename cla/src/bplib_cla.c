@@ -121,17 +121,42 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
 /* Validate Contacts table data */
 BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
 {
-    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
     BPLib_CLA_ContactsTable_t *TblDataPtr = (BPLib_CLA_ContactsTable_t *)TblData;
+    uint32_t ContId;
+    uint32_t DestIdIdx;
 
-    /* Validate data values are within allowed range */
-    if (TblDataPtr[0].ContactSet->ClaInPort <= 0 || TblDataPtr[0].ContactSet->ClaOutPort <= 0)
+    for (ContId = 0; ContId < BPLIB_MAX_NUM_CONTACTS; ContId++)
     {
-        /* element is out of range, return an appropriate error code */
-        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
+        /* Validate destination EIDs */
+        for (DestIdIdx = 0; DestIdIdx < BPLIB_MAX_CONTACT_DEST_EIDS; DestIdIdx++)
+        {
+            if (TblDataPtr->ContactSet[ContId].DestEIDs[DestIdIdx].Scheme == BPLIB_EID_SCHEME_DTN ||
+                !BPLib_EID_PatternIsValid(&TblDataPtr->ContactSet[ContId].DestEIDs[DestIdIdx]))
+            {
+                return BPLIB_INVALID_CONFIG_ERR;
+            }
+        }
+
+        /* Validate retransmit timeout */
+        if (TblDataPtr->ContactSet[ContId].RetransmitTimeout > BPLIB_MAX_RETRANSMIT_ALLOWED)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate CS time trigger */
+        if (TblDataPtr->ContactSet[ContId].CSTimeTrigger > BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate CS size trigger */
+        if (TblDataPtr->ContactSet[ContId].CSSizeTrigger > BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED)
+        {
+            return BPLIB_INVALID_CONFIG_ERR;
+        }
     }
 
-    return ReturnCode;
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
@@ -142,8 +167,6 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
     3) Configures assigned instances of BI, CT, EBP, CLA based on configuration
     4) Registers CLA with Storage given the table configuration (Path ID, EID map)
     */
-
-    /* TODO: Verify that table was validated via cFS table upload */
 
     BPLib_Status_t              Status;
     BPLib_CLA_ContactsSet_t     ContactInfo;

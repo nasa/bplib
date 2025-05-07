@@ -25,6 +25,7 @@
 #include "bplib_as.h"
 #include "bplib_as_internal.h"
 #include "bplib_fwp.h"
+#include "bplib_time.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -33,11 +34,17 @@
 BPLib_Status_t BPLib_AS_Init(void)
 {
     BPLib_Status_t Status;
+    BPLib_TIME_MonotonicTime_t Time;
 
     Status = BPLib_AS_InitMutex();
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
+    BPLib_AS_InitializeReportsHkTlm();
+
+    BPLib_TIME_GetMonotonicTime(&Time);
+
+    (void) BPLib_AS_SetCounter(BPLIB_EID_INSTANCE, NODE_STARTUP_COUNTER, Time.BootEra);
 
     return Status;
 }
@@ -384,6 +391,12 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
     BPLib_AS_UnlockCounters();
 
     return Status;
+}
+
+/* Send Node MIB Reports housekeeping telemetry */
+BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void)
+{
+    return BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt(&BPLib_AS_NodeReportsPayload);
 }
 
 BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
