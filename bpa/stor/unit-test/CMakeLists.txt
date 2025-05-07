@@ -61,6 +61,7 @@ target_include_directories(coverage-bplib_stor-testrunner PRIVATE
     $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_stor-testrunner PUBLIC
@@ -75,6 +76,7 @@ target_link_libraries(coverage-bplib_stor-testrunner PUBLIC
     bplib_as_stubs
     bplib_mem_stubs
     bplib_time_stubs
+    bplib_cla_stubs
     -lsqlite3
 )
 
