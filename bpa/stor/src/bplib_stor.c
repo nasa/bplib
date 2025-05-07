@@ -245,7 +245,6 @@ BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t Egre
         else
         {
             /* Next call has more to egress */
-            printf("halt\n");
             CacheInst->LoadBatchEgressInd = i;
         }
     }

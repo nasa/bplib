@@ -33,6 +33,12 @@ static const char* FindByDestNodeSQL =
 "WHERE (dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?) AND egress_attempted = 0\n"
 "ORDER BY action_timestamp ASC\n"
 "LIMIT ?;";
+// static const char* FindByDestNodeSQL = 
+// "SELECT id\n"
+// "FROM bundle_data\n"
+// "WHERE (dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?)\n"
+// "ORDER BY action_timestamp ASC\n"
+// "LIMIT ?;";
 static sqlite3_stmt* FindByDestNodeStmt;
 
 /* Find blob by ID */
@@ -116,7 +122,6 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
             }
 
             /* Load succeeded */
-            sqlite3_blob_close(blob);
             CurrBlock = BundleHead;
             CurrBlock->used_len = ChunkSize;
         }
@@ -168,6 +173,8 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
             CurrBlock = NextBlock;
             CurrBlock->used_len = ChunkSize;
         }
+
+        sqlite3_blob_close(blob);
     }
 
     /* Expecting SQLITE_DONE */
