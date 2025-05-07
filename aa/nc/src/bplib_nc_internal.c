@@ -64,41 +64,48 @@ void BPLib_NC_UpdateChannelHkTlm(void)
     }
 }
 
+/* Validation function for PARAM_BUNDLE_SIZE_NO_FRAGMENT */
 bool BPLib_NC_ValidParamBundleSizeNoFragment(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     return TblDataPtr->Configs[PARAM_BUNDLE_SIZE_NO_FRAGMENT] <= BPLIB_MAX_BUNDLE_LEN;
 }
 
+/* Validation function for PARAM_SET_MAX_SEQUENCE_NUM */
 bool BPLib_NC_ValidParamSetMaxSequenceNum(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     /* All values accepted */
     return true;
 }
 
+/* Validation function for PARAM_SET_MAX_PAYLOAD_LENGTH */
 bool BPLib_NC_ValidParamMaxPayloadLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     return (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] <= BPLIB_MAX_PAYLOAD_SIZE) &&
            (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] < TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH]);
 }
 
+/* Validation function for PARAM_SET_MAX_BUNDLE_LENGTH */
 bool BPLib_NC_ValidParamMaxBundleLength(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     return (TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH] <= BPLIB_MAX_BUNDLE_LEN) &&
            (TblDataPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] < TblDataPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH]);
 }
 
+/* Validation function for PARAM_SET_NODE_DTN_TIME */
 bool BPLib_NC_ValidParamSetNodeDtnTime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
-    /* All values accepted */
+    /* All values accepted PARAM_SET_BEHAVIOR_EVENT_REPORTING */
     return true;
 }
 
+/* Validation function for PARAM_SET_BEHAVIOR_EVENT_REPORTING */
 bool BPLib_NC_ValidParamSetBehaviorEventReporting(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     /* All values accepted */
     return true;
 }
 
+/* Validation function for PARAM_SET_MAX_LIFETIME */
 bool BPLib_NC_ValidParamSetMaxLifetime(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
     return TblDataPtr->Configs[PARAM_SET_MAX_LIFETIME] <= BPLIB_MAX_LIFETIME_ALLOWED;

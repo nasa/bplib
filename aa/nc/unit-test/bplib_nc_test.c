@@ -1641,7 +1641,7 @@ void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal(void)
 {
     BPLib_NC_MIBConfigPSTable_t TestTblData;
     memset(&TestTblData, 0, sizeof(TestTblData));
-    TestTblData.MIB_PS_Set[0].Configs[0] = 10;
+    TestTblData.Sources[0].Configs[0] = 10;
     UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
 }
 

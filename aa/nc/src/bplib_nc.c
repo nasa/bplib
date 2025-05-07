@@ -34,6 +34,7 @@
 static BPLib_NC_RWLock_t BPLib_NC_CfgLock;
 BPLib_NC_ConfigPtrs_t    BPLib_NC_ConfigPtrs;
 
+/* MIB configuration validation functions */
 static MibConfigValidateFunc_t MibConfigValidate[] = {
     BPLib_NC_ValidParamBundleSizeNoFragment,
     BPLib_NC_ValidParamSetMaxSequenceNum,
@@ -144,6 +145,7 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
     return Status;
 }
 
+/* Set a node MIB configuration to a new value */
 BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
@@ -192,6 +194,7 @@ BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
     return Status;
 }
 
+/* Set a source MIB configuration to a new value */
 BPLib_Status_t BPLib_NC_SetMibSourceConfig(const BPLib_EID_Pattern_t *EidPattern, 
                                                         uint32_t MibItem, uint32_t Value)
 {
@@ -213,7 +216,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
-    /* Validate maximum bundle length without fragmenting */
+    /* Validate each MIB configuration item */
     if (!BPLib_NC_ValidParamBundleSizeNoFragment(TblDataPtr) ||
         !BPLib_NC_ValidParamSetMaxSequenceNum(TblDataPtr) ||
         !BPLib_NC_ValidParamMaxPayloadLength(TblDataPtr) ||
@@ -235,7 +238,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
     BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr[0].MIB_PS_Set->Configs[0] <= 0)
+    if (TblDataPtr[0].Sources->Configs[0] <= 0)
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;

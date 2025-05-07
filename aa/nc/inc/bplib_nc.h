@@ -82,6 +82,9 @@ typedef enum
     BPLIB_ADU_PROXY                 = 11, /* FWP's ADU Proxy configuration; confined to BPNode */
 } BPLib_NC_ConfigType_t;
 
+/**
+  * \brief Generic validation function for MIB config items
+  */
 typedef bool (*MibConfigValidateFunc_t)(BPLib_NC_MibPerNodeConfig_t *TblDataPtr);
 
 /* =========== */
@@ -160,8 +163,35 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
 
+/**
+ * \brief Set MIB Node Configuration
+ *
+ * \par Description
+ *      Set the given Node MIB configuration to the given value after validating both.
+ *      The node MIB configuration telemetry is also updated.
+ *
+ * \param[in] MibItem An enumeration of the MIB configuration item
+ * \param[in] Value The new value to set the configuration to
+ *
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Node configuration update was successful
+ */
 BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value);
 
+/**
+ * \brief Set MIB Source Configuration
+ *
+ * \par Description
+ *      Set the given Source MIB configuration to the given value after validating both.
+ *      The Source MIB configuration telemetry is also updated.
+ *
+ * \param[in] EidPattern The EIDs to update the source configuration for
+ * \param[in] MibItem An enumeration of the MIB configuration item
+ * \param[in] Value The new value to set the configuration to
+ *
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Source configuration update was successful
+ */
 BPLib_Status_t BPLib_NC_SetMibSourceConfig(const BPLib_EID_Pattern_t *EidPattern, 
                                                       uint32_t MibItem, uint32_t Value);
 
