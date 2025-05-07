@@ -29,13 +29,13 @@
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_mem.h"
+#include "bplib_stor_loadbatch.h"
 
 #include <sqlite3.h>
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC      0x00000000
 #define BPLIB_STOR_INSERTBATCHSIZE 100
-#define BPLIB_STOR_LOADBATCHSIZE 2000
 
 struct BPLib_BundleCache
 {

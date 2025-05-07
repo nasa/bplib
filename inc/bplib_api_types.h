@@ -304,6 +304,8 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_STOR_SQL_LOAD_ERR                         ((BPLib_Status_t) -242)
 #define BPLIB_STOR_SQL_DISCARD_ERR                      ((BPLib_Status_t) -243)
 #define BPLIB_STOR_PARAM_ERR                            ((BPLib_Status_t) -244)
+#define BPLIB_STOR_BATCH_EMPTY                          ((BPLib_Status_t) -245)
+#define BPLIB_STOR_BATCH_FULL                           ((BPLib_Status_t) -246)
 
 /* Bundle Interface Errors */
 #define BPLIB_BI_INVALID_BUNDLE_ERR                     ((BPLib_Status_t) -260)
