@@ -68,14 +68,14 @@ typedef struct
     bool                    AduUnwrapping;
     uint8_t                 RegState;
     uint8_t                 HopLimit;
-    uint64_t                LocalServiceNumber;
-    uint32_t                MaxBundlePayloadSize;
     BPLib_CRC_Type_t        CrcType;
-    uint8_t                 Spare[3];
+    uint8_t                 Spare;
+    uint64_t                LocalServiceNumber;
+    uint64_t                MaxBundlePayloadSize;    
     uint64_t                BundleProcFlags;
+    uint64_t                Lifetime;
     BPLib_EID_t             DestEID;
     BPLib_EID_t             ReportToEID;
-    uint64_t                Lifetime;
     BPLib_PI_CanBlkConfig_t PrevNodeBlkConfig;
     BPLib_PI_CanBlkConfig_t AgeBlkConfig;
     BPLib_PI_CanBlkConfig_t HopCountBlkConfig;

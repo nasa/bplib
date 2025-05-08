@@ -34,6 +34,10 @@
 #include "bplib_cla_internal.h"
 #include "bplib_qm_handlers.h"
 
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, #test)
+
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */

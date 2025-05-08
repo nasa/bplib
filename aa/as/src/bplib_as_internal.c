@@ -24,6 +24,7 @@
 
 #include "bplib_as_internal.h"
 #include "bplib_as.h"
+#include "bplib_version.h"
 
 /* ================= */
 /* Telemetry Packets */
@@ -31,6 +32,7 @@
 
 BPLib_NodeMibCountersHkTlm_Payload_t   BPLib_AS_NodeCountersPayload;   /** \brief Global node MIB counter payload */
 BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload; /** \brief Global source MIB counter payload */
+BPLib_NodeMibReportsHkTlm_Payload_t    BPLib_AS_NodeReportsPayload;    /** \brief Global node MIB reports payload */
 
 /* =============== */
 /* Mutex Variables */
@@ -131,4 +133,26 @@ void BPLib_AS_UnlockCounters(void)
                             "Failed to give to the counter mutex, RC = %d",
                             OS_Status);
     }
+}
+
+/* Initialize the static MIB reports telemetry values */
+void BPLib_AS_InitializeReportsHkTlm(void)
+{
+    memset(&BPLib_AS_NodeReportsPayload, 0, sizeof(BPLib_AS_NodeReportsPayload));
+
+    strncpy(BPLib_AS_NodeReportsPayload.SystemNodeName, 
+                                BPLIB_SYSTEM_NODE_NAME, BPLIB_MAX_STR_LENGTH);
+    strncpy(BPLib_AS_NodeReportsPayload.SystemNodeOwner, 
+                                BPLIB_SYSTEM_NODE_OWNER, BPLIB_MAX_STR_LENGTH);
+    strncpy(BPLib_AS_NodeReportsPayload.SystemSoftwareExec, 
+                                BPLIB_SYSTEM_SOFWARE_EXEC, BPLIB_MAX_STR_LENGTH);
+    strncpy(BPLib_AS_NodeReportsPayload.SystemSoftwareExecVersion, 
+                                BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION, BPLIB_MAX_STR_LENGTH);
+    strncpy(BPLib_AS_NodeReportsPayload.ParamSupportedCLAs, 
+                                BPLIB_SUPPORTED_CLAS, BPLIB_MAX_STR_LENGTH);
+
+    snprintf(BPLib_AS_NodeReportsPayload.BundleAgentSoftwareVersion, 
+                                BPLIB_MAX_STR_LENGTH, "v%u.%u.%u-sprint-%u",
+                                BPLIB_MAJOR_VERSION, BPLIB_MINOR_VERSION, 
+                                BPLIB_REVISION, BPLIB_BUILD_NUMBER);
 }

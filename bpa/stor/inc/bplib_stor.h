@@ -64,7 +64,7 @@ struct BPLib_StorageHkTlm_Payload
     uint32_t    NumFailedFlashBlocks;                           /**< \brief Failed Flash memory statistics counter */
     uint32_t    FlashErrorCount;                                /**< \brief Flash memory statistics counter */
     
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    uint32_t Spare; 
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
 };

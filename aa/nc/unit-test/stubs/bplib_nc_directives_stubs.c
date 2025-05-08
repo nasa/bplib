@@ -437,6 +437,17 @@ void BPLib_NC_SendNodeMibCountersHk(void)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_SendNodeMibReportsHk()
+ * ----------------------------------------------------
+ */
+void BPLib_NC_SendNodeMibReportsHk(void)
+{
+
+    UT_GenStub_Execute(BPLib_NC_SendNodeMibReportsHk, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_NC_SendSourceMibConfigHk()
  * ----------------------------------------------------
  */
