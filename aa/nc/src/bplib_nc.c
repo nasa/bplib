@@ -158,28 +158,31 @@ BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
     {
         OldValue = BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem];
 
+        /* Update table with new value and try to validate new state */
         BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = Value;
-        /* Validate MIB item value */
         if (MibConfigValidate[MibItem](BPLib_NC_ConfigPtrs.MibPnConfigPtr))
         {
             Status = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE, 
                                                 (void **) &(BPLib_NC_ConfigPtrs.MibPnConfigPtr));
-
-            /* 
-            ** If table update was successful, update MIB Node Config telemetry value.
-            ** Otherwise, revert table value to original value.
-            */
             if (Status == BPLIB_SUCCESS)
             {
+                /* 
+                ** Table update was successful, update the corresponding telemetry value
+                ** as well
+                */
                 BPLib_NC_NodeMibConfigPayload.Values.Configs[MibItem] = Value;
             }
             else
             {
+                /*
+                ** Table update failed, revert the table value to its original value
+                */
                 BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
             }
         }
         else
-        {                
+        {
+            /* Validation failed, revert the table value to its original value */
             Status = BPLIB_NC_INVALID_MIB_VALUE;
             BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
         }
