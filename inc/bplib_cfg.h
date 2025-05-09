@@ -41,8 +41,8 @@ extern "C" {
  * \brief Configuration array constraints
  */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES             16  /* Maximum number of queues */
-#define BPLIB_MAX_NUM_MIB_SETS                  16  /* Maximum number of MIB sets of counters associated with EID patterns in the source counters HK telemetry */
-#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB counter index */
+#define BPLIB_MAX_NUM_MIB_SETS                  10  /* Maximum number of MIB sets of source configs and counters */
+#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB set index */
 #define BPLIB_MAX_NUM_LATENCY_POLICY_SETS       10  /* Maximum number of latency policy sets */
 #define BPLIB_MAX_NUM_STORE_SET                 10  /* Maximum number of storage policy sets. */
 #define BPLIB_MAX_NUM_CRS                       10  /* Maximum number of Compressed Reporting CRS Entries */
@@ -50,8 +50,6 @@ extern "C" {
 #define BPLIB_MAX_AUTH_CUSTODIAN_EIDS           10  /* Maximum number of authorized custodian EID patterns */
 #define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS      10  /* Maximum number of authorized custody source EID patterns */
 #define BPLIB_MAX_AUTH_REPORT_TO_EIDS           10  /* Maximum number of report-to EID patterns */
-#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES        10  /* Maximum number of entries in MIB PS Cfg table */
-#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS       10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
 #define BPLIB_MAX_NUM_STORE_EIDS                10  /* Maximum number of EID patterns per storage policy set */
 
 /** 
@@ -139,7 +137,7 @@ extern "C" {
  *        received by Storage that have a lifetime greater than this value will have their
  *        functional lifetime truncated to this value.
  */
-#define BPLIB_MAX_LIFETIME_ALLOWED              0xffffffff
+#define BPLIB_MAX_LIFETIME_ALLOWED              0xfffffffe
 
 /**
  *  \brief This is the maximum retransmit timeout allowed in the contacts configuration

@@ -515,7 +515,7 @@ void Test_BPLib_CBOR_DecodeBundle_TooBig(void)
     size_t BundleLength = 100;
     BPLib_Bundle_t Bundle;
 
-    TestMibConfigPnTbl.ParamSetMaxBundleLength = 10;
+    TestMibConfigPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 10;
 
     Status = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks, BundleLength, &Bundle);
 

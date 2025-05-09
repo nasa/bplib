@@ -942,73 +942,33 @@ void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
 
 void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    // NC verifies that specified MIB item is valid index into the list of MIB items
-    if (Payload.Index > MAX_MIB_ARR_SIZE || Payload.Index < 0)
+    if (BPLib_EID_PatternIsMatch(&BPLIB_EID_INSTANCE, (BPLib_EID_Pattern_t *) &(Payload.EidPattern)))
     {
-        return BPLIB_INVALID_MIB_ITEM_INDEX;
-    }
-
-    // NC verifies that value provided is a valid value for the MIB item
-    if (Payload.Value > MAX_MIB_VALUE || Payload.Value < MIN_MIB_VALUE)
-    {
-        return BPLIB_INVALID_MIB_VALUE;   
+        Status = BPLib_NC_SetMibNodeConfig(Payload.MibItem, Payload.Value);
     }
     else
     {
-        // If valid, NC sets the MIB item to specified value...
-        MIB.Value = Payload.Value;
-
-        // NC synchronously begins using updated table
+        Status = BPLib_NC_SetMibSourceConfig(&(Payload.EidPattern), Payload.MibItem, 
+                                                                    Payload.Value);
     }
-
-    // Framework Proxy notifies cFS Table Services of MIB table update
-    Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
-        BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
-                            BPLib_EM_EventType_INFORMATION,
-                            "Set mib item directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+        BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Set MIB item #%d to %d.",
+                            Payload.MibItem, Payload.Value);
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
-        switch (Status)
-        {
-            case BPLIB_NC_INVALID_MIB_ITEM_INDEX:
-                // BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_INVALID_INDEX_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                //                      "Given index (%d) was out of bounds, expected value in range [0, %d]",
-                //                      Msg->Payload.Index, MAX_MIB_ARR_SIZE);
+        BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Failed to set MIB item #%d to %d, RC=%d",
+                            Payload.MibItem, Payload.Value, Status);
 
-                break;
-            case BPLIB_NC_INVALID_MID_VALUE:
-                // BPLib_EM_SendEvent(BPLIB_NC_SET_MID_ITEM_INVALID_VALUE_ERR_EID,
-                //                      BPLib_EM_EventType_ERROR,
-                //                      "Given MIB value (%d) was invalid, expected value in range [%d, %d]",
-                //                      Msg->Payload.Value, MAX_MIB_VALUE, MIN_MID_VALUE);
-
-                break;
-            // case BPLIB_TABLE_UPDATE_ERR:
-            //     BPLib_EM_SendEvent(BPLIB_NC_SET_MIB_ITEM_TBL_UPDATE_FAIL,
-                                        BPLib_EM_EventType_ERROR,
-            //                          "Failed to update the MIB configuration")
-
-            //     break;
-            default:
-                break;
-        }
     }
-    */
 }
 
 void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload)
