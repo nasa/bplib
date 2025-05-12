@@ -19,39 +19,31 @@
  */
 #include "bplib_stor_loadbatch.h"
 
-/* For the astute observer: this is a static queue without locking semantics.
-** It is not thread safe, so it should be used by one thread. In this case, it's
-** intended to be called by the bpapp main thread to move data from persistent storage
-** into QM.
-*/
-
 BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t* Batch)
+{
+    /* For now Init and Reset are identical. A separate function is used
+    ** because many other BPLib utilities have an Init(). This is stylistic more
+    ** than functional. If this is ever made thread-safe, Init also needs to
+    ** do some extra one-time setup.
+    */
+    return BPLib_STOR_LoadBatch_Reset(Batch);
+}
+
+BPLib_Status_t BPLib_STOR_LoadBatch_Reset(BPLib_STOR_LoadBatch_t* Batch)
 {
     if (Batch == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    Batch->Head = 0;
-    Batch->Tail = 0;
     Batch->Size = 0;
-
+    Batch->ReadIndex = 0;
     return BPLIB_SUCCESS;
 }
 
 bool BPLib_STOR_LoadBatch_IsEmpty(BPLib_STOR_LoadBatch_t* Batch)
 {
-    if (Batch == NULL)
-    {
-        return true;
-    }
-
-    if (Batch->Size == 0)
-    {
-        return true;
-    }
-
-    return false;
+    return (Batch == NULL || Batch->Size == 0);
 }
 
 BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID)
@@ -61,15 +53,12 @@ BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, i
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    if (Batch->Size == BPLIB_STOR_LOADBATCHSIZE)
+    if (Batch->Size >= BPLIB_STOR_LOADBATCHSIZE)
     {
         return BPLIB_STOR_BATCH_FULL;
     }
 
-    Batch->BundleIDs[Batch->Tail] = BundleID;
-    Batch->Tail = (Batch->Tail + 1) % BPLIB_STOR_LOADBATCHSIZE;
-    Batch->Size++;
-
+    Batch->BundleIDs[Batch->Size++] = BundleID;
     return BPLIB_SUCCESS;
 }
 
@@ -85,9 +74,11 @@ BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64
         return BPLIB_STOR_BATCH_EMPTY;
     }
 
-    *BundleID = Batch->BundleIDs[Batch->Head];
-    Batch->Head = (Batch->Head + 1) % BPLIB_STOR_LOADBATCHSIZE;
-    Batch->Size--;
+    if (Batch->ReadIndex >= Batch->Size)
+    {
+        return BPLIB_STOR_BATCH_CONSUMED;
+    }
 
+    *BundleID = Batch->BundleIDs[Batch->ReadIndex++];
     return BPLIB_SUCCESS;
 }

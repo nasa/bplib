@@ -22,30 +22,23 @@
 
 #include "bplib_api_types.h"
 
-/* Note: This is a large number of bundles. This value may need to be tweaked for a different target platform.
-** From studying performance implications, it's been discovered that large but
-** infreuqent searches for bundles is far less resource intensive than frequent small
-** searches.  BundleIDs (which are only integers and not the actual bundle data, get loaded
-** into this batch.  Then, as QM can accept the actual bundles, the binary data is loaded one-by-one from storage
-** as memory becomes available.  The binary itself doesn't needed to be loaded in batch because
-** SQL has an API where the lookup is constant time for BLOBs.
-*/
 #define BPLIB_STOR_LOADBATCHSIZE 2000
 
 typedef struct BPLib_STOR_LoadBatch
 {
     int64_t BundleIDs[BPLIB_STOR_LOADBATCHSIZE];
     size_t Size;
-    size_t Head;
-    size_t Tail;
+    size_t ReadIndex;
 } BPLib_STOR_LoadBatch_t;
 
 BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t* Batch);
 
+BPLib_Status_t BPLib_STOR_LoadBatch_Reset(BPLib_STOR_LoadBatch_t* Batch);
+
 bool BPLib_STOR_LoadBatch_IsEmpty(BPLib_STOR_LoadBatch_t* Batch);
 
-BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID);
-
 BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID);
+
+BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID);
 
 #endif /* BPLIB_STOR_LOADBATCH_H */

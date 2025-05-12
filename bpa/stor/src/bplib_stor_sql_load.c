@@ -21,6 +21,7 @@
 #include "bplib_qm.h"
 
 #include <stdio.h>
+#include <stdlib.h> // Only used for abort(): REMOVE BEFORE MERGE
 
 /*******************************************************************************
 ** SQL Query Definitions
@@ -276,6 +277,8 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
     }
 
     /* Go through the load batch and add each ID as egressed */
+    printf("UNIMPLEMENTED CODE\n");
+    abort();
     // for (i = 0; i < Inst->BundleStorage.LoadBatchSize; i++)
     // {
     //     sqlite3_reset(MarkEgressedStmt);
@@ -341,6 +344,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     ** "((dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?))" and appending it once
     **  for each DestEID in the EgressID array.
     */
+    Offset = 0;
     for (i = 0; i < NumEIDs; i++)
     {
         if (i > 0)
@@ -357,7 +361,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
         }
     }
     WhereClause[Offset] = '\0';
-    
+
     /* Build the final query */
     Offset = snprintf(FindForEgressIdSQL, sizeof(FindForEgressIdSQL),
         "SELECT id FROM bundle_data WHERE (%s) AND egress_attempted = 0 ORDER BY action_timestamp ASC LIMIT ?;",
@@ -369,8 +373,6 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
         return BPLIB_STOR_SQL_LOAD_ERR;
     }
     FindForEgressIdSQL[Offset] = '\0';
-
-    printf("%s\n", FindForEgressIdSQL);
 
     /* Prepare Search Statements needed for this batch query */
     SQLStatus = sqlite3_prepare_v2(db, FindForEgressIdSQL, -1, &FindForEgressIDStmt, 0);
