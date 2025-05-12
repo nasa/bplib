@@ -190,11 +190,11 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
     BPLib_BundleCache_t* CacheInst;
     BPLib_STOR_LoadBatch_t* LoadBatch;
     BPLib_QM_JobState_t DestJob;
-    size_t EgressCnt = 0;
-    int64_t CurrBundleID;
     BPLib_Bundle_t* CurrBundle;
     BPLib_EID_Pattern_t LocalEID;
     BPLib_EID_Pattern_t* DestEIDs;
+    size_t EgressCnt = 0;
+    int64_t CurrBundleID;
     size_t NumEIDs;
 
     if ((Inst == NULL) || (NumEgressed == NULL))
@@ -239,6 +239,12 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
         pthread_mutex_unlock(&CacheInst->lock);
     }
 
+    /* The batch isn't considered empty, but the bundles for it have been egressed */
+    else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
+    {
+        Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
+    }
+
     /* There are bundles in the current batch that can be egressed */
     else
     {
@@ -273,10 +279,10 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
             }
             EgressCnt++;
         }
-    }
 
-    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
-    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
+        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
+    }
 
     *NumEgressed = EgressCnt;
     return Status;
@@ -373,7 +379,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst)
         }
     }
     BPLib_NC_ReaderUnlock();
-
 
     return Status;
 }

@@ -43,7 +43,20 @@ BPLib_Status_t BPLib_STOR_LoadBatch_Reset(BPLib_STOR_LoadBatch_t* Batch)
 
 bool BPLib_STOR_LoadBatch_IsEmpty(BPLib_STOR_LoadBatch_t* Batch)
 {
-    return (Batch == NULL || Batch->Size == 0);
+    if (Batch == NULL)
+    {
+        return true;
+    }
+    return (Batch->Size == 0);
+}
+
+bool BPLib_STOR_LoadBatch_IsConsumed(BPLib_STOR_LoadBatch_t* Batch)
+{
+    if (Batch == NULL)
+    {
+        return true;
+    }
+    return (Batch->ReadIndex >= Batch->Size);
 }
 
 BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID)

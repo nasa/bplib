@@ -266,7 +266,7 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
 {
     int SQLStatus;
     sqlite3* db = Inst->BundleStorage.db;
-    //int i;
+    int i;
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
@@ -277,19 +277,17 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
     }
 
     /* Go through the load batch and add each ID as egressed */
-    printf("UNIMPLEMENTED CODE\n");
-    abort();
-    // for (i = 0; i < Inst->BundleStorage.LoadBatchSize; i++)
-    // {
-    //     sqlite3_reset(MarkEgressedStmt);
-    //     sqlite3_bind_int64(MarkEgressedStmt, 1, LoadedBundleIDs[i]);
-    //     SQLStatus = sqlite3_step(MarkEgressedStmt);
-    //     if (SQLStatus != SQLITE_DONE)
-    //     {
-    //         fprintf(stderr, "Mark Egressed Failed: %s", sqlite3_errstr(SQLStatus));
-    //         break;
-    //     }
-    // }
+    for (i = 0; i < Batch->Size; i++)
+    {
+        sqlite3_reset(MarkEgressedStmt);
+        sqlite3_bind_int64(MarkEgressedStmt, 1, Batch->BundleIDs[i]);
+        SQLStatus = sqlite3_step(MarkEgressedStmt);
+        if (SQLStatus != SQLITE_DONE)
+        {
+            fprintf(stderr, "Mark Egressed Failed: %s", sqlite3_errstr(SQLStatus));
+            break;
+        }
+    }
 
     /* If there have been no errors so far, batch-write the data to persistent storage */
     if (SQLStatus == SQLITE_DONE)
