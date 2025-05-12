@@ -41,6 +41,8 @@ bool BPLib_STOR_LoadBatch_IsConsumed(BPLib_STOR_LoadBatch_t* Batch);
 
 BPLib_Status_t BPLib_STOR_LoadBatch_AddID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID);
 
-BPLib_Status_t BPLib_STOR_LoadBatch_GetNextID(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID);
+BPLib_Status_t BPLib_STOR_LoadBatch_PeekNextID(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID);
+
+BPLib_Status_t BPLib_STOR_LoadBatch_AdvanceReader(BPLib_STOR_LoadBatch_t* Batch);
 
 #endif /* BPLIB_STOR_LOADBATCH_H */

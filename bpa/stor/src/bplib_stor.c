@@ -252,25 +252,25 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
     /* There are bundles in the current batch that can be egressed */
     else
     {
-        while (BPLib_STOR_LoadBatch_GetNextID(LoadBatch, &CurrBundleID) == BPLIB_SUCCESS)
+        while (BPLib_STOR_LoadBatch_PeekNextID(LoadBatch, &CurrBundleID) == BPLIB_SUCCESS)
         {
             /* Set the metadata EID */
-            if (BPLib_SQL_LoadBundle(Inst, CurrBundleID, &CurrBundle) != BPLIB_SUCCESS)
+            Status = BPLib_SQL_LoadBundle(Inst, CurrBundleID, &CurrBundle);
+            if (Status == BPLIB_SUCCESS)
             {
-                break;
-            }
-            CurrBundle->Meta.EgressID = EgressID;
+                CurrBundle->Meta.EgressID = EgressID;
 
-            /* Deliver to a channel or contact depending on Dest EID */
-            if (LocalDelivery)
-            {
-                Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
-                    QM_PRI_NORMAL, QM_NO_WAIT);
-            }
-            else
-            {
-                Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
-                    QM_PRI_NORMAL, QM_NO_WAIT);
+                /* Deliver to a channel or contact depending on Dest EID */
+                if (LocalDelivery)
+                {
+                    Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
+                        QM_PRI_NORMAL, QM_NO_WAIT);
+                }
+                else
+                {
+                    Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
+                        QM_PRI_NORMAL, QM_NO_WAIT);
+                }
             }
 
             /* This is effectively a "flow-control".  If Status isn't BPLIB_SUCCESS,
@@ -281,6 +281,8 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
             {
                 break;
             }
+
+            (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
             EgressCnt++;
         }
 

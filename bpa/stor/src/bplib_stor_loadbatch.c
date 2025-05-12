@@ -75,7 +75,7 @@ BPLib_Status_t BPLib_STOR_LoadBatch_AddID(BPLib_STOR_LoadBatch_t* Batch, int64_t
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_STOR_LoadBatch_GetNextID(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID)
+BPLib_Status_t BPLib_STOR_LoadBatch_PeekNextID(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID)
 {
     if ((Batch == NULL) || (BundleID == NULL))
     {
@@ -92,6 +92,27 @@ BPLib_Status_t BPLib_STOR_LoadBatch_GetNextID(BPLib_STOR_LoadBatch_t* Batch, int
         return BPLIB_STOR_BATCH_CONSUMED;
     }
 
-    *BundleID = Batch->BundleIDs[Batch->ReadIndex++];
+    *BundleID = Batch->BundleIDs[Batch->ReadIndex];
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t BPLib_STOR_LoadBatch_AdvanceReader(BPLib_STOR_LoadBatch_t* Batch)
+{
+    if (Batch == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (BPLib_STOR_LoadBatch_IsEmpty(Batch))
+    {
+        return BPLIB_STOR_BATCH_EMPTY;
+    }
+
+    if (Batch->ReadIndex >= Batch->Size)
+    {
+        return BPLIB_STOR_BATCH_CONSUMED;
+    }
+
+    Batch->ReadIndex++;
     return BPLIB_SUCCESS;
 }
