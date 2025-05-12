@@ -30,6 +30,51 @@
 #include "bplib_eid.h"
 #include "bplib_cla.h"
 
+/*
+** Macro Definitions
+*/
+
+#define BPLIB_NC_NODE_MIB_CONFIG_NUM 7          /** \brief Number of Node MIB configurations */
+#define BPLIB_NC_SOURCE_MIB_CONFIG_BASE 6       /** \brief Base enumeration of source MIB configurations */
+#define BPLIB_NC_SOURCE_MIB_CONFIG_NUM 13       /** \brief Number of Source MIB configurations */
+
+
+/*
+** Type Definitions
+*/
+
+/**
+  * \brief Enumeration of MIB configuration items, both node and source
+  */
+typedef enum
+{
+    /* Node-only configs */
+    PARAM_BUNDLE_SIZE_NO_FRAGMENT         = 0,  /** \brief Max bundle size before fragmentation */
+    PARAM_SET_MAX_SEQUENCE_NUM            = 1,  /** \brief Max bundle sequence number allowable */
+    PARAM_SET_MAX_PAYLOAD_LENGTH          = 2,  /** \brief Max payload length for fragmentation */
+    PARAM_SET_MAX_BUNDLE_LENGTH           = 3,  /** \brief Max bundle length for processing */
+    PARAM_SET_NODE_DTN_TIME               = 4,  /** \brief Time being tracked by the node */
+    PARAM_SET_BEHAVIOR_EVENT_REPORTING    = 5,  /** \brief Inclusive level of events to be generated */
+
+    /* Node and source configs */
+    PARAM_SET_MAX_LIFETIME                = 6,  /** \brief Max bundle lifetime for retention of the bundle */
+
+    /* Source-only configs */
+    PARAM_SET_MAX_BSR_GENERATION_RATE     = 7,  /** \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
+    PARAM_SET_MAX_CBR_GENERATION_RATE     = 8,  /** \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
+    BUNDLE_SET_BEHAVIOR_RCVD_BSR_GENERATE = 9,  /** \brief Flag indicating that BSR should be generated for bundles received */
+    BUNDLE_SET_BEHAVIOR_ACPT_BSR_GENERATE = 10, /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
+    BUNDLE_SET_BEHAVIOR_FWRD_BSR_GENERATE = 11, /** \brief Flag indicating that BSR should be generated for bundles forwarded */
+    BUNDLE_SET_BEHAVIOR_DLVR_BSR_GENERATE = 12, /** \brief Flag indicating that BSR should be generated for bundles delivered */
+    BUNDLE_SET_BEHAVIOR_DLTD_BSR_GENERATE = 13, /** \brief Flag indicating that BSR should be generated for bundles deleted */ 
+    BUNDLE_SET_BEHAVIOR_RCVD_CBR_GENERATE = 14, /** \brief Flag indicating that CBR should be generated for bundles received */
+    BUNDLE_SET_BEHAVIOR_ACPT_CBR_GENERATE = 15, /** \brief Flag indicating that CBR should be generated for bundles accepted to custody */
+    BUNDLE_SET_BEHAVIOR_FWRD_CBR_GENERATE = 16, /** \brief Flag indicating that CBR should be generated for bundles forwarded */
+    BUNDLE_SET_BEHAVIOR_DLVR_CBR_GENERATE = 17, /** \brief Flag indicating that CBR should be generated for bundles delivered */
+    BUNDLE_SET_BEHAVIOR_DLTD_CBR_GENERATE = 18, /** \brief Flag indicating that CBR should be generated for bundles deleted */
+} BPLib_NC_Config_t;
+
+
 /* =================== */
 /* Payload Definitions */
 /* =================== */
@@ -164,7 +209,9 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    BPLib_EID_Pattern_t EidPattern;     /** \brief EID pattern */
+    uint32_t            MibItem;        /** \brief MIB configuration item enumeration */
+    uint32_t            Value;          /** \brief Value to update configuration to */
 } BPLib_SetMibItem_Payload_t;
 
 typedef struct
@@ -209,50 +256,30 @@ typedef struct
 */
 typedef struct
 {
-    BPLib_EID_t InstanceEID;                    /** \brief Endpoint ID of this BP instance */
-
-    uint32_t ParamBundleSizeNoFragment;         /** \brief Max bundle size before fragmentation */
-    uint32_t ParamSetMaxSequenceNum;            /** \brief Max bundle sequence number allowable */
-    uint32_t ParamSetMaxPayloadLength;          /** \brief Max payload length for fragmentation */
-    uint32_t ParamSetMaxBundleLength;           /** \brief Max bundle length for processing */
-    uint32_t ParamSetNodeDTNTime;               /** \brief Time being tracked by the node */
-    uint32_t ParamSetBehaviorEventReporting;    /** \brief Inclusive level of events to be generated */
-    uint32_t ParamSetMaxLifetime;               /** \brief Max bundle lifetime for retention of the bundle */
+    BPLib_EID_t InstanceEID;                        /** \brief Endpoint ID of this BP instance */
+    uint32_t Configs[BPLIB_NC_NODE_MIB_CONFIG_NUM]; /** \brief Node MIB configuration values */
     uint32_t Spare;
-
 } BPLib_NC_MibPerNodeConfig_t;
-
 
 /*
 ** MIB Config Per Source Policy Table
 */
 typedef struct
 {
-    /**
-     * The SrcEID field is the EID pattern.
-     * The EIDPattern field was a string value of "ipn" or "dtn". It is now
-     * the BPLib_EID_Scheme_t enum in BPLib_EID_Pattern_t.
-     */
-    BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
-    uint32_t            ParamSetMaxLifetime;
-    uint32_t            ParamSetMaxBSRGenerationRate;
-    uint32_t            ParamSetMaxCBRGenerationRate;
-    uint8_t             BundleSetBehaviorReceivedBSRGenerate;
-    uint8_t             BundleSetBehaviorAcceptedBSRGenerate;
-    uint8_t             BundleSetBehaviorForwardedBSRGenerate;
-    uint8_t             BundleSetBehaviorDeliveredBSRGenerate;
-    uint8_t             BundleSetBehaviorDeletedBSRGenerate;
-    uint8_t             BundleSetBehaviorReceivedCBRGenerate;
-    uint8_t             BundleSetBehaviorAcceptedCBRGenerate;
-    uint8_t             BundleSetBehaviorForwardedCBRGenerate;
-    uint8_t             BundleSetBehaviorDeliveredCBRGenerate;
-    uint8_t             BundleSetBehaviorDeletedCBRGenerate;  
-    uint16_t            Spare;
+    BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
+    uint32_t            Configs[BPLIB_NC_SOURCE_MIB_CONFIG_NUM];
+    uint32_t            Spare;
+
+    /*
+    ** TODO may be able to combine flag configs into a single uint32 instead of one each?
+    ** Figure out logic later
+    */    
+
 } BPLib_NC_MIBConfigPSSet_t;
 
 typedef struct
 {
-    BPLib_NC_MIBConfigPSSet_t MIB_PS_Set[BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES];
+    BPLib_NC_MIBConfigPSSet_t Sources[BPLIB_MAX_NUM_MIB_SETS];
 } BPLib_NC_MIBConfigPSTable_t;
 
 /**
@@ -266,31 +293,9 @@ typedef struct
     int64_t CorrelationFactor;          /** \brief Time Correlation Factor */
 } BPLib_NodeMibConfigHkTlm_Payload_t;
 
-/**
- * \brief Source MIB configuration housekeeping payload
- */
 typedef struct
 {
-    char SourceEID[BPLIB_MAX_STR_LENGTH];       /** \brief Source EID to which this telemetry corresponds */
-    bool BundleSetBehaviorReceivedBSRGenerate;  /** \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedBSRGenerate;  /** \brief Flag indicating that BSR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredBSRGenerate; /** \brief Flag indicating that BSR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedBSRGenerate;   /** \brief Flag indicating that BSR should be generated for bundles deleted */ 
-    bool BundleSetBehaviorReceivedCBRGenerate;  /** \brief Flag indicating that Compressed Bundle Reporting (CBR) should be generated for bundles received */
-    bool BundleSetBehaviorAcceptedCBRGenerate;  /** \brief Flag indicating that CBR should be generated for bundles accepted to custody */
-    bool BundleSetBehaviorForwardedCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles forwarded */
-    bool BundleSetBehaviorDeliveredCBRGenerate; /** \brief Flag indicating that CBR should be generated for bundles delivered */
-    bool BundleSetBehaviorDeletedCBRGenerate;   /** \brief Flag indicating that CBR should be generated for bundles deleted */
-    uint16_t Spare1;
-    uint32_t ParamSetMaxLifetime;               /** \brief Maximum bundle lifetime */
-    uint32_t ParamSetMaxBSRGenerationRate;      /** \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
-    uint32_t ParamSetMaxCBRGenerationRate;      /** \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
-} BPLib_SourceMibConfigSet_t;
-
-typedef struct
-{
-    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
+    BPLib_NC_MIBConfigPSSet_t  Sources[BPLIB_MAX_NUM_MIB_SETS];
     int64_t                    MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t                    CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_SourceMibConfigHkTlm_Payload_t;

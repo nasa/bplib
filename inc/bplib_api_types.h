@@ -176,7 +176,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 /* Node Configuration (NC) errors */
 #define BPLIB_NC_INIT_CONFIG_PTRS_ERROR                 ((BPLib_Status_t) -40)
 #define BPLIB_NC_INVALID_MIB_ITEM_INDEX                 ((BPLib_Status_t) -41)
-#define BPLIB_NC_INVALID_MID_VALUE                      ((BPLib_Status_t) -42)
+#define BPLIB_NC_INVALID_MIB_VALUE                      ((BPLib_Status_t) -42)
 
 /* CLA Errors*/
 #define BPLIB_CLA_TIMEOUT                               ((BPLib_Status_t) -43)

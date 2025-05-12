@@ -32,7 +32,18 @@
 /* Globals */
 /* ======= */
 static BPLib_NC_RWLock_t BPLib_NC_CfgLock;
-BPLib_NC_ConfigPtrs_t                   BPLib_NC_ConfigPtrs;
+BPLib_NC_ConfigPtrs_t    BPLib_NC_ConfigPtrs;
+
+/* MIB configuration validation functions */
+static MibConfigValidateFunc_t MibConfigValidate[] = {
+    BPLib_NC_ValidParamBundleSizeNoFragment,
+    BPLib_NC_ValidParamSetMaxSequenceNum,
+    BPLib_NC_ValidParamMaxPayloadLength,
+    BPLib_NC_ValidParamMaxBundleLength,
+    BPLib_NC_ValidParamSetNodeDtnTime,
+    BPLib_NC_ValidParamSetBehaviorEventReporting,
+    BPLib_NC_ValidParamSetMaxLifetime
+};
 
 /* ==================== */
 /* Prototypes           */
@@ -134,6 +145,68 @@ BPLib_Status_t BPLib_NC_ConfigUpdate()
     return Status;
 }
 
+/* Set a node MIB configuration to a new value */
+BPLib_Status_t BPLib_NC_SetMibNodeConfig(uint32_t MibItem, uint32_t Value)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    uint32_t OldValue;
+
+    BPLib_NC_RWLock_WLock(&BPLib_NC_CfgLock);
+
+    /* Validate MIB item index */
+    if (MibItem < BPLIB_NC_NODE_MIB_CONFIG_NUM)
+    {
+        OldValue = BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem];
+
+        /* Update table with new value and try to validate new state */
+        BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = Value;
+        if (MibConfigValidate[MibItem](BPLib_NC_ConfigPtrs.MibPnConfigPtr))
+        {
+            Status = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(BPLIB_MIB_PER_NODE, 
+                                                (void **) &(BPLib_NC_ConfigPtrs.MibPnConfigPtr));
+            if (Status == BPLIB_SUCCESS)
+            {
+                /* 
+                ** Table update was successful, update the corresponding telemetry value
+                ** as well
+                */
+                BPLib_NC_NodeMibConfigPayload.Values.Configs[MibItem] = Value;
+            }
+            else
+            {
+                /*
+                ** Table update failed, revert the table value to its original value
+                */
+                BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
+            }
+        }
+        else
+        {
+            /* Validation failed, revert the table value to its original value */
+            Status = BPLIB_NC_INVALID_MIB_VALUE;
+            BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[MibItem] = OldValue;
+        }
+    }
+    else
+    {
+        Status = BPLIB_NC_INVALID_MIB_ITEM_INDEX;
+    }
+
+    BPLib_NC_RWLock_WUnlock(&BPLib_NC_CfgLock);
+
+    return Status;
+}
+
+/* Set a source MIB configuration to a new value */
+BPLib_Status_t BPLib_NC_SetMibSourceConfig(const BPLib_EID_Pattern_t *EidPattern, 
+                                                        uint32_t MibItem, uint32_t Value)
+{
+    // TODO implement
+    printf("Source configs for set-mib-item are unimplemented\n");
+
+    return BPLIB_UNIMPLEMENTED;
+}                                                        
+
 /* Validate MIB Config PN configuration data */
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
 {
@@ -146,32 +219,14 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void* TblData)
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
-    /* Validate maximum bundle length without fragmenting */
-    if (TblDataPtr->ParamBundleSizeNoFragment > BPLIB_MAX_BUNDLE_LEN)
-    {
-        return BPLIB_INVALID_CONFIG_ERR;
-    }
-
-    /* Validate maximum payload size */
-    if (TblDataPtr->ParamSetMaxPayloadLength > BPLIB_MAX_PAYLOAD_SIZE)
-    {
-        return BPLIB_INVALID_CONFIG_ERR;
-    }
-
-    /* Validate maximum bundle length */
-    if (TblDataPtr->ParamSetMaxBundleLength > BPLIB_MAX_BUNDLE_LEN)
-    {
-        return BPLIB_INVALID_CONFIG_ERR;
-    }
-
-    /* Validate maximum bundle length is not smaller than the maximum payload length */
-    if (TblDataPtr->ParamSetMaxPayloadLength >= TblDataPtr->ParamSetMaxBundleLength)
-    {
-        return BPLIB_INVALID_CONFIG_ERR;
-    }
-
-    /* Validate maximum lifetime */
-    if (TblDataPtr->ParamSetMaxLifetime > BPLIB_MAX_LIFETIME_ALLOWED)
+    /* Validate each MIB configuration item */
+    if (!BPLib_NC_ValidParamBundleSizeNoFragment(TblDataPtr) ||
+        !BPLib_NC_ValidParamSetMaxSequenceNum(TblDataPtr) ||
+        !BPLib_NC_ValidParamMaxPayloadLength(TblDataPtr) ||
+        !BPLib_NC_ValidParamMaxBundleLength(TblDataPtr) ||
+        !BPLib_NC_ValidParamSetNodeDtnTime(TblDataPtr) ||
+        !BPLib_NC_ValidParamSetBehaviorEventReporting(TblDataPtr) ||
+        !BPLib_NC_ValidParamSetMaxLifetime(TblDataPtr))
     {
         return BPLIB_INVALID_CONFIG_ERR;
     }
@@ -186,7 +241,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
     BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
 
     /* Validate data values are within allowed range */
-    if (TblDataPtr[0].MIB_PS_Set->ParamSetMaxLifetime <= 0)
+    if (TblDataPtr[0].Sources->Configs[0] <= 0)
     {
         /* element is out of range, return an appropriate error code */
         ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;

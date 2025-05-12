@@ -32,6 +32,18 @@ BPLib_NC_ConfigPtrs_t TestConfigPtrs;
 uint8 Context_TableType[UT_MAX_TABLE_TYPE_DEPTH];
 BPLib_NC_RWLock_t RWLock;
 
+BPLib_PI_ChannelTable_t     TestChanTbl;
+BPLib_CLA_ContactsTable_t   TestContactsTbl;
+BPLib_ARP_CRSTable_t        TestCrsTbl;
+BPLib_PDB_CustodianTable_t  TestCustodianTbl;
+BPLib_PDB_CustodyTable_t    TestCustodyTbl;
+BPLib_NC_MibPerNodeConfig_t TestMibPnTbl;
+BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
+BPLib_PDB_ReportToTable_t   TestReportTbl;
+BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
+BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
+BPLib_STOR_StorageTable_t   TestStorTbl;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -112,18 +124,6 @@ void BPNode_Test_TABLEP_TableUpdate(uint8 CallNum, uint8 TableType)
 
 void BPLib_NC_Test_Setup(void)
 {
-    BPLib_PI_ChannelTable_t     TestChanTbl;
-    BPLib_CLA_ContactsTable_t   TestContactsTbl;
-    BPLib_ARP_CRSTable_t        TestCrsTbl;
-    BPLib_PDB_CustodianTable_t  TestCustodianTbl;
-    BPLib_PDB_CustodyTable_t    TestCustodyTbl;
-    BPLib_NC_MibPerNodeConfig_t TestMibPnTbl;
-    BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
-    BPLib_PDB_ReportToTable_t   TestReportTbl;
-    BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
-    BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
-    BPLib_STOR_StorageTable_t   TestStorTbl;
-
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 
@@ -137,17 +137,17 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt            = BPA_TLMP_SendStoragePkt;
     BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate             = BPA_TABLEP_TableUpdate;
 
-    memset((void*) &TestChanTbl,      1, sizeof(BPLib_PI_ChannelTable_t));
-    memset((void*) &TestContactsTbl,  1, sizeof(BPLib_CLA_ContactsTable_t));
-    memset((void*) &TestCrsTbl,       1, sizeof(BPLib_ARP_CRSTable_t));
-    memset((void*) &TestCustodianTbl, 1, sizeof(BPLib_PDB_CustodianTable_t));
-    memset((void*) &TestCustodyTbl,   1, sizeof(BPLib_PDB_CustodyTable_t));
-    memset((void*) &TestMibPnTbl,     1, sizeof(BPLib_NC_MibPerNodeConfig_t));
-    memset((void*) &TestMibPsTbl,     1, sizeof(BPLib_NC_MIBConfigPSTable_t));
-    memset((void*) &TestReportTbl,    1, sizeof(BPLib_PDB_ReportToTable_t));
-    memset((void*) &TestAuthTbl,      1, sizeof(BPLib_PDB_SrcAuthTable_t));
-    memset((void*) &TestLatencyTbl,   1, sizeof(BPLib_PDB_SrcLatencyTable_t));
-    memset((void*) &TestStorTbl,      1, sizeof(BPLib_STOR_StorageTable_t));
+    memset((void*) &TestChanTbl,      0, sizeof(BPLib_PI_ChannelTable_t));
+    memset((void*) &TestContactsTbl,  0, sizeof(BPLib_CLA_ContactsTable_t));
+    memset((void*) &TestCrsTbl,       0, sizeof(BPLib_ARP_CRSTable_t));
+    memset((void*) &TestCustodianTbl, 0, sizeof(BPLib_PDB_CustodianTable_t));
+    memset((void*) &TestCustodyTbl,   0, sizeof(BPLib_PDB_CustodyTable_t));
+    memset((void*) &TestMibPnTbl,     0, sizeof(BPLib_NC_MibPerNodeConfig_t));
+    memset((void*) &TestMibPsTbl,     0, sizeof(BPLib_NC_MIBConfigPSTable_t));
+    memset((void*) &TestReportTbl,    0, sizeof(BPLib_PDB_ReportToTable_t));
+    memset((void*) &TestAuthTbl,      0, sizeof(BPLib_PDB_SrcAuthTable_t));
+    memset((void*) &TestLatencyTbl,   0, sizeof(BPLib_PDB_SrcLatencyTable_t));
+    memset((void*) &TestStorTbl,      0, sizeof(BPLib_STOR_StorageTable_t));
 
     memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
 
