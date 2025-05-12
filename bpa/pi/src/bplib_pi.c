@@ -291,8 +291,10 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         *AduSize = 0;
         Status = BPLIB_INVALID_CHAN_ID_ERR;
     }
+
     /* Get the next bundle in the channel egress queue */
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
+    Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
+    if (Status == BPLIB_SUCCESS)
     {
         /* Copy out the contents of the bundle payload to the return pointer */
         Status = BPLib_MEM_CopyOutFromOffset(Bundle,
@@ -320,11 +322,15 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         /* Free the bundle */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
+
     /* No packet was pulled, presumably queue is empty */
     else 
     {
         *AduSize = 0;
-        Status = BPLIB_PI_TIMEOUT;
+        if (Status == BPLIB_TIMEOUT)
+        {
+            Status = BPLIB_PI_TIMEOUT;
+        }
     }
 
     return Status;
