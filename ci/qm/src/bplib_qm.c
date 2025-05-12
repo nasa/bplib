@@ -218,3 +218,47 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, i
 
     return Status;
 }
+
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
+    int TimeoutMs, BPLib_Bundle_t** RetBundle)
+{
+    BPLib_Bundle_t* Bundle;
+    BPLib_QM_JobState_t CurrState;
+    BPLib_QM_JobFunc_t JobFunc;
+    BPLib_QM_WaitQueue_t* DuctQueue;
+
+    if (RetBundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    *RetBundle = NULL;
+
+    /* Determine which queue to pull from */
+    if (LocalDelivery == true)
+    {
+        CurrState = CHANNEL_OUT_STOR_TO_CT;
+        DuctQueue = &(Inst->ChannelEgressJobs[EgressID]);
+    }
+    else
+    {
+        CurrState = CONTACT_OUT_STOR_TO_CT;
+        DuctQueue = &(Inst->ContactEgressJobs[EgressID]);
+    }
+
+    /* Pull the bundle from the queue and push it to the 'edge' of BPA */
+    if (BPLib_QM_WaitQueueTryPull(DuctQueue, &Bundle, TimeoutMs))
+    {
+        /* Take this bundle all the way to NO_NEXT_STATE */
+        while (CurrState != NO_NEXT_STATE)
+        {
+            JobFunc = BPLib_QM_JobLookup(CurrState);
+            CurrState = JobFunc(Inst, Bundle);
+        }
+        *RetBundle = Bundle;
+        return BPLIB_SUCCESS;
+    }
+    else
+    {
+        return BPLIB_TIMEOUT;
+    }
+}

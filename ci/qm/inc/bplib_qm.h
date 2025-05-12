@@ -112,6 +112,9 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID
  */
 BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs);
 
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
+    int TimeoutMs, BPLib_Bundle_t** RetBundle);
+
 /**
  * @brief Adds a job to the queue.
  * 

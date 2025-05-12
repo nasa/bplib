@@ -239,7 +239,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
         pthread_mutex_unlock(&CacheInst->lock);
     }
 
-    /* The batch isn't considered empty, but the bundles for it have been egressed */
+    /* All of the bundles for this batch have been egressed */
     else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
     {
         /* Mark the batch as egressed */
@@ -249,7 +249,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
         (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
     }
 
-    /* There are bundles in the current batch that can be egressed */
+    /* There are bundles in the current batch that need to be egressed */
     else
     {
         while (BPLib_STOR_LoadBatch_PeekNextID(LoadBatch, &CurrBundleID) == BPLIB_SUCCESS)
@@ -282,6 +282,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
                 break;
             }
 
+            /* After the bundle made it into the destination queue, mark it consumed */
             (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
             EgressCnt++;
         }

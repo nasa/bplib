@@ -89,7 +89,8 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         Status = BPLIB_INVALID_CONT_ID_ERR;
     }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
+    Status = BPLib_QM_DuctPull(Inst, ContId, false, Timeout, &Bundle);
+    if (Status == BPLIB_SUCCESS)
     {
         /* Copy the bundle to the CLA buffer */
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
@@ -108,11 +109,15 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         /* Free the bundle blocks */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
+
     /* No packet was pulled, presumably queue is empty */
     else
     {
+        if (Status == BPLIB_TIMEOUT)
+        {
+            Status = BPLIB_CLA_TIMEOUT;
+        }
         *Size = 0;
-        Status = BPLIB_CLA_TIMEOUT;
     }
 
     return Status;

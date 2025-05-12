@@ -50,6 +50,27 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t *inst, BPLib_Bundle_t *bundle
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_QM_DuctPull()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t *Inst, int EgressID, bool LocalDelivery, int TimeoutMs,
+                                 BPLib_Bundle_t **RetBundle)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_DuctPull, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, int, EgressID);
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, bool, LocalDelivery);
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, int, TimeoutMs);
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, BPLib_Bundle_t **, RetBundle);
+
+    UT_GenStub_Execute(BPLib_QM_DuctPull, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_QM_DuctPull, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_QM_QueueTableDestroy()
  * ----------------------------------------------------
  */
@@ -82,12 +103,12 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t *inst, size_t MaxJobs)
  * Generated stub function for BPLib_QM_RegisterWorker()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t *inst, int *WorkerID)
+BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t *inst, int32_t *WorkerID)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_RegisterWorker, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_QM_RegisterWorker, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_RegisterWorker, int *, WorkerID);
+    UT_GenStub_AddParam(BPLib_QM_RegisterWorker, int32_t *, WorkerID);
 
     UT_GenStub_Execute(BPLib_QM_RegisterWorker, Basic, NULL);
 
@@ -99,12 +120,12 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t *inst, int *WorkerID)
  * Generated stub function for BPLib_QM_WorkerRunJob()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t *inst, int WorkerID, int TimeoutMs)
+BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t *inst, int32_t WorkerID, int TimeoutMs)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_WorkerRunJob, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, WorkerID);
+    UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int32_t, WorkerID);
     UT_GenStub_AddParam(BPLib_QM_WorkerRunJob, int, TimeoutMs);
 
     UT_GenStub_Execute(BPLib_QM_WorkerRunJob, Basic, NULL);

@@ -68,7 +68,6 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
     return NO_NEXT_STATE;
 }
 
@@ -145,6 +144,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
                     {
                         Bundle->Meta.EgressID = i;
                         BPLib_NC_ReaderUnlock();
+                        BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
                         return CONTACT_OUT_STOR_TO_CT;
                     }
                 }
