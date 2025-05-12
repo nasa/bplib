@@ -59,7 +59,7 @@ bool BPLib_STOR_LoadBatch_IsConsumed(BPLib_STOR_LoadBatch_t* Batch)
     return (Batch->ReadIndex >= Batch->Size);
 }
 
-BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID)
+BPLib_Status_t BPLib_STOR_LoadBatch_AddID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID)
 {
     if (Batch == NULL)
     {
@@ -75,7 +75,7 @@ BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, i
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID)
+BPLib_Status_t BPLib_STOR_LoadBatch_GetNextID(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID)
 {
     if ((Batch == NULL) || (BundleID == NULL))
     {

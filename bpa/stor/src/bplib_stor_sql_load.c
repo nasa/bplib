@@ -244,7 +244,7 @@ static int BPLib_SQL_FindForEIDsImpl(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     {
         /* Load a single bundle from storage that matches the query */
         CurrBundleID = sqlite3_column_int64(FindForEgressIDStmt, 0);
-        if (BPLib_STOR_LoadBatch_AddBundleID(Batch, CurrBundleID) != BPLIB_SUCCESS)
+        if (BPLib_STOR_LoadBatch_AddID(Batch, CurrBundleID) != BPLIB_SUCCESS)
         {
             break;
         }

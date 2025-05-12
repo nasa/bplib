@@ -242,13 +242,17 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
     /* The batch isn't considered empty, but the bundles for it have been egressed */
     else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
     {
+        /* Mark the batch as egressed */
         Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
+
+        /* Clear the batch */
+        (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
     }
 
     /* There are bundles in the current batch that can be egressed */
     else
     {
-        while (BPLib_STOR_LoadBatch_GetNext(LoadBatch, &CurrBundleID) == BPLIB_SUCCESS)
+        while (BPLib_STOR_LoadBatch_GetNextID(LoadBatch, &CurrBundleID) == BPLIB_SUCCESS)
         {
             /* Set the metadata EID */
             if (BPLib_SQL_LoadBundle(Inst, CurrBundleID, &CurrBundle) != BPLIB_SUCCESS)
