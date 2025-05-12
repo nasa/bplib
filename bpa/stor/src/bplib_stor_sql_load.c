@@ -25,21 +25,14 @@
 /*******************************************************************************
 ** SQL Query Definitions
 */
+#define BPLIB_SQL_MAX_STRLEN 2048
 
-/* Find by Dest EID */
-static const char* FindByDestNodeSQL = 
-"SELECT id\n"
-"FROM bundle_data\n"
-"WHERE (dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?) AND egress_attempted = 0\n"
-"ORDER BY action_timestamp ASC\n"
-"LIMIT ?;";
-// static const char* FindByDestNodeSQL = 
-// "SELECT id\n"
-// "FROM bundle_data\n"
-// "WHERE (dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?)\n"
-// "ORDER BY action_timestamp ASC\n"
-// "LIMIT ?;";
-static sqlite3_stmt* FindByDestNodeStmt;
+/* Find for Egress ID */
+static const char* FindForEgressID_RangeClause = 
+    "((dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?))";
+static char WhereClause[BPLIB_SQL_MAX_STRLEN / 2] = {0}; 
+static char FindForEgressIdSQL[BPLIB_SQL_MAX_STRLEN] = {0};
+static sqlite3_stmt* FindForEgressIDStmt;
 
 /* Find blob by ID */
 static const char* FindBlobSQL = 
@@ -56,8 +49,8 @@ static sqlite3_stmt* MarkEgressedStmt;
 /*******************************************************************************
 ** Static Functions
 */
-static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
-    int BundleID, BPLib_Bundle_t** Bundle)
+static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
+    BPLib_Bundle_t** Bundle)
 {
     sqlite3_blob* blob = NULL;
     int SQLStatus;
@@ -67,6 +60,8 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
     BPLib_MEM_Block_t* CurrBlock = NULL;
     BPLib_MEM_Block_t* NextBlock = NULL;
     BPLib_Bundle_t* RetBundle;
+    sqlite3* db = Inst->BundleStorage.db;
+    BPLib_MEM_Pool_t* Pool = &Inst->pool;
 
     sqlite3_reset(FindBlobStmt);
     SQLStatus = sqlite3_bind_int(FindBlobStmt, 1, BundleID);
@@ -76,6 +71,7 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
         return SQLStatus;
     }
 
+    /* Load each block of the blob into a mem pool block */
     while ((SQLStatus = sqlite3_step(FindBlobStmt)) == SQLITE_ROW)
     {
         /* Determine the row ID of the blob in the bundle_blobs table */
@@ -137,7 +133,7 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
             }
 
             /* Make sure the chunk isn't larger than the buffer. This could happen if a previous
-            ** database or BPLib version had a different chunk size. We can't support this case safely. They
+            ** database or BPLib version had a different chunk size. We can't support this case safely. User
             ** will have to create a new database.
             */
             ChunkSize = sqlite3_blob_bytes(blob);
@@ -183,78 +179,93 @@ static int BPLib_SQL_LoadBundle(sqlite3* db, BPLib_MEM_Pool_t* Pool,
         RetBundle = (BPLib_Bundle_t*)(BundleHead);
         RetBundle->blob = BundleHead->next;
         *Bundle = RetBundle;
+
+        /* For consistency with other helpers, set status to SQLITE_OK */
+        SQLStatus = SQLITE_OK;
     }
     else if (BundleHead != NULL)
     {
+        /* Something in the loop above went wrong: Free memory */
         BPLib_MEM_BlockListFree(Pool, BundleHead);
     }
 
+    /* Expecting SQLITE_OK */
     return SQLStatus;
 }
 
-static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Pattern_t* DestEID,
-    size_t MaxBundles)
+static int BPLib_SQL_FindForEIDsImpl(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatch_t* Batch, 
+    BPLib_EID_Pattern_t* DestEIDs, size_t NumEIDs, size_t MaxBundles)
 {
-    int SQLStatus, LoadStatus;
+    int SQLStatus;
     sqlite3* db = Inst->BundleStorage.db;
-    BPLib_Bundle_t* CurrBlockBundle = NULL;
-    int CurrBlockBundleID, i;
-    int LoadedBundleIDs[BPLIB_STOR_LOADBATCHSIZE];
+    int CurrBundleID, i, BindIndex;
 
     /* Bind parameters for metadata query */
-    sqlite3_reset(FindByDestNodeStmt);
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 1, DestEID->MinNode);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_node min: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
+    sqlite3_reset(FindForEgressIDStmt);
+    BindIndex = 1;
+    for (i = 0; i < NumEIDs; i++)
+    {
+        SQLStatus = sqlite3_bind_int64(FindForEgressIDStmt, BindIndex++, DestEIDs[i].MinNode);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to bind dest_node min: %s\n", sqlite3_errmsg(db));
+            return SQLStatus;
+        }
+        SQLStatus = sqlite3_bind_int64(FindForEgressIDStmt, BindIndex++, DestEIDs[i].MaxNode);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to bind dest_node max: %s\n", sqlite3_errmsg(db));
+            return SQLStatus;
+        }
+        SQLStatus = sqlite3_bind_int64(FindForEgressIDStmt, BindIndex++, DestEIDs[i].MinService);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to bind dest_node min: %s\n", sqlite3_errmsg(db));
+            return SQLStatus;
+        }
+        SQLStatus = sqlite3_bind_int64(FindForEgressIDStmt, BindIndex++, DestEIDs[i].MaxService);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to bind dest_node max: %s\n", sqlite3_errmsg(db));
+            return SQLStatus;
+        }
     }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 2, DestEID->MaxNode);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_node max: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 3, DestEID->MinService);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_service min: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 4, DestEID->MaxService);
-    if (SQLStatus != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind dest_service max: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
-    SQLStatus = sqlite3_bind_int64(FindByDestNodeStmt, 5, MaxBundles);
-    if (SQLStatus != SQLITE_OK) {
+    SQLStatus = sqlite3_bind_int64(FindForEgressIDStmt, BindIndex++, MaxBundles);
+    if (SQLStatus != SQLITE_OK)
+    {
         fprintf(stderr, "Failed to bind limit: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
 
-    /* For every bundle found, load it into memory */
-    Inst->BundleStorage.LoadBatchSize = 0;
-    SQLStatus = sqlite3_step(FindByDestNodeStmt);
+    /* For every bundle found, place it's ID in the load batch for the EgressID */
+    SQLStatus = sqlite3_step(FindForEgressIDStmt);
     while (SQLStatus == SQLITE_ROW)
     {
         /* Load a single bundle from storage that matches the query */
-        CurrBlockBundleID = sqlite3_column_int(FindByDestNodeStmt, 0);
-        LoadStatus = BPLib_SQL_LoadBundle(db, &Inst->pool, CurrBlockBundleID, &CurrBlockBundle);
-        if (LoadStatus != SQLITE_DONE)
+        CurrBundleID = sqlite3_column_int64(FindForEgressIDStmt, 0);
+        if (BPLib_STOR_LoadBatch_AddBundleID(Batch, CurrBundleID) != BPLIB_SUCCESS)
         {
-            return LoadStatus;
+            break;
         }
 
-        Inst->BundleStorage.LoadBatch[Inst->BundleStorage.LoadBatchSize] = CurrBlockBundle;
-        LoadedBundleIDs[Inst->BundleStorage.LoadBatchSize] = CurrBlockBundleID;
-        Inst->BundleStorage.LoadBatchSize++;
-
-        /* Get the NextBlock row */
-        SQLStatus = sqlite3_step(FindByDestNodeStmt);
+        /* Go to the next row, which corresponds to the next bundle ID */
+        SQLStatus = sqlite3_step(FindForEgressIDStmt);
     }
-
-    /* In the case where nothing was loaded, it makes no sense to continue */
-    if (Inst->BundleStorage.LoadBatchSize == 0)
+    if (SQLStatus == SQLITE_DONE)
     {
-        return SQLITE_OK;
+        /* For consistency with other helpers, convert DONE to OK */
+        SQLStatus = SQLITE_OK;
     }
+
+    /* Expecting SQLITE_OK */
+    return SQLStatus;
+}
+
+static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatch_t* Batch)
+{
+    int SQLStatus;
+    sqlite3* db = Inst->BundleStorage.db;
+    //int i;
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
@@ -264,17 +275,18 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
         return SQLStatus;
     }
 
-    for (i = 0; i < Inst->BundleStorage.LoadBatchSize; i++)
-    {
-        sqlite3_reset(MarkEgressedStmt);
-        sqlite3_bind_int64(MarkEgressedStmt, 1, LoadedBundleIDs[i]);
-        SQLStatus = sqlite3_step(MarkEgressedStmt);
-        if (SQLStatus != SQLITE_DONE)
-        {
-            fprintf(stderr, "Mark Egressed Failed: %s", sqlite3_errstr(SQLStatus));
-            break;
-        }
-    }
+    /* Go through the load batch and add each ID as egressed */
+    // for (i = 0; i < Inst->BundleStorage.LoadBatchSize; i++)
+    // {
+    //     sqlite3_reset(MarkEgressedStmt);
+    //     sqlite3_bind_int64(MarkEgressedStmt, 1, LoadedBundleIDs[i]);
+    //     SQLStatus = sqlite3_step(MarkEgressedStmt);
+    //     if (SQLStatus != SQLITE_DONE)
+    //     {
+    //         fprintf(stderr, "Mark Egressed Failed: %s", sqlite3_errstr(SQLStatus));
+    //         break;
+    //     }
+    // }
 
     /* If there have been no errors so far, batch-write the data to persistent storage */
     if (SQLStatus == SQLITE_DONE)
@@ -304,41 +316,147 @@ static int BPLib_SQL_EgressForDestEIDImpl(BPLib_Instance_t* Inst, BPLib_EID_Patt
 /*******************************************************************************
 ** Exported Functions
 */
-BPLib_Status_t BPLib_SQL_EgressForDestEID(BPLib_Instance_t* Inst, BPLib_EID_Pattern_t* DestEID,
-    size_t MaxBundles)
+BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatch_t* Batch,
+    BPLib_EID_Pattern_t* DestEIDs, size_t NumEIDs)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    int SQLStatus;
+    int SQLStatus, i;
     sqlite3* db = Inst->BundleStorage.db;
+    size_t Offset;
 
-    /* Prepare Insert Statements needed for this batch query */
-    SQLStatus = sqlite3_prepare_v2(db, FindByDestNodeSQL, -1, &FindByDestNodeStmt, 0);
+    if ((Inst == NULL) || (Batch == NULL) || (DestEIDs == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if (NumEIDs == 0)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+
+    /* To keep search as efficient possible, we generate one combined query that contains all
+    ** the DestEID patterns.
+    **
+    ** NOTE: 
+    ** This bit is tricky to understand from inspection. It is just taking the 
+    ** "((dest_node BETWEEN ? AND ?) AND (dest_service BETWEEN ? AND ?))" and appending it once
+    **  for each DestEID in the EgressID array.
+    */
+    for (i = 0; i < NumEIDs; i++)
+    {
+        if (i > 0)
+        {
+            Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, " OR ");
+        }
+    
+        Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, "%s",
+            FindForEgressID_RangeClause);
+        if (Offset >= sizeof(WhereClause))
+        {
+            fprintf(stderr, "Programming Error: WHERE clause too long\n");
+            return BPLIB_STOR_SQL_LOAD_ERR;
+        }
+    }
+    WhereClause[Offset] = '\0';
+    
+    /* Build the final query */
+    Offset = snprintf(FindForEgressIdSQL, sizeof(FindForEgressIdSQL),
+        "SELECT id FROM bundle_data WHERE (%s) AND egress_attempted = 0 ORDER BY action_timestamp ASC LIMIT ?;",
+        WhereClause);
+   
+    if (Offset >= sizeof(FindForEgressIdSQL))
+    {
+        fprintf(stderr, "Programming Error: final SQL query too long\n");
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+    FindForEgressIdSQL[Offset] = '\0';
+
+    printf("%s\n", FindForEgressIdSQL);
+
+    /* Prepare Search Statements needed for this batch query */
+    SQLStatus = sqlite3_prepare_v2(db, FindForEgressIdSQL, -1, &FindForEgressIDStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         Status = BPLIB_STOR_SQL_LOAD_ERR;
     }
-    SQLStatus = sqlite3_prepare_v2(db, FindBlobSQL, -1, &FindBlobStmt, 0);
-    if (SQLStatus != SQLITE_OK)
+
+    if (Status == BPLIB_SUCCESS)
     {
-        Status = BPLIB_STOR_SQL_LOAD_ERR;
+        /* Run Batch Load Logic */
+        SQLStatus = BPLib_SQL_FindForEIDsImpl(Inst, Batch, DestEIDs, NumEIDs, BPLIB_STOR_LOADBATCHSIZE);
+        if (SQLStatus != SQLITE_OK)
+        {
+            Status = BPLIB_STOR_SQL_LOAD_ERR;
+        }
     }
+
+    /* Cleanup/Finalize */
+    sqlite3_finalize(FindForEgressIDStmt);
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_SQL_MarkBatchEgressed(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatch_t* Batch)
+{
+    sqlite3* db = Inst->BundleStorage.db;
+    int SQLStatus;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    if (Inst == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
     SQLStatus = sqlite3_prepare_v2(db, MarkEgressedSQL, -1, &MarkEgressedStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         Status = BPLIB_STOR_SQL_LOAD_ERR;
     }
 
-    /* Run Batch Load Logic */
-    SQLStatus = BPLib_SQL_EgressForDestEIDImpl(Inst, DestEID, MaxBundles);
+    if (Status == BPLIB_SUCCESS)
+    {
+        SQLStatus = BPLib_SQL_MarkBatchEgressedImpl(Inst, Batch);
+    }
+
+    sqlite3_finalize(MarkEgressedStmt);
+
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t BPLib_SQL_LoadBundle(BPLib_Instance_t* Inst, int64_t BundleID, BPLib_Bundle_t** Bundle)
+{
+    int SQLStatus;
+    sqlite3* db = Inst->BundleStorage.db;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    if ((Inst == NULL) || (Bundle == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if (BundleID < 0)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+
+    SQLStatus = sqlite3_prepare_v2(db, FindBlobSQL, -1, &FindBlobStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         Status = BPLIB_STOR_SQL_LOAD_ERR;
     }
 
-    /* Finalize */
-    sqlite3_finalize(FindByDestNodeStmt);
-    sqlite3_finalize(FindBlobStmt);
-    sqlite3_finalize(MarkEgressedStmt);
+    if (Status == BPLIB_SUCCESS)
+    {
+        SQLStatus = BPLib_SQL_LoadBundleImpl(Inst, BundleID, Bundle);
+    }
 
-    return Status;
+    sqlite3_finalize(FindBlobStmt);
+
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_STOR_SQL_LOAD_ERR;
+    }
+    return BPLIB_SUCCESS;
 }

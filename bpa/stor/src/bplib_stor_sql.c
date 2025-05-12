@@ -31,6 +31,30 @@
 */
 
 /* Create Table */
+/*
+ * Table and Index Creation for bundle_data and bundle_blobs
+ *
+ * This schema is designed to support efficient queries and operations on bundle metadata and associated blob data.
+ * The following indexes are created:
+ *
+ * 1. idx_bundle_blobs_bundle_id:
+ *    - Index on the 'bundle_id' column in the 'bundle_blobs' table. This index supports quick lookup of blob data
+ *      by its associated bundleID in the 'bundle_data' table.
+ *
+ * 2. idx_action_timestamp:
+ *    - Index on 'action_timestamp' in the 'bundle_data' table. This helps with queries that need to sort or filter
+ *      based on the timestamp of the bundle: This is used for expiring bundles
+ *
+ * 3. idx_find_bundle (Composite Index):
+ *    - Composite index on the columns 'dest_node', 'dest_service', 'egress_attempted', 'action_timestamp', and 'id'.
+ *    - This index optimizes queries that filter by node and service ranges, filter by egress_attempted (0),
+ *      and sort by action_timestamp. It can also enable an index-only scan to quickly retrieve 'id'.
+ *    - This composite index is designed for loading egress bundles by batch for a particular EgressID (A channel or contact)
+ *
+ * 4. idx_egress_attempted:
+ *    - Index on the 'egress_attempted' column in the 'bundle_data' table. This index is designed to speed up
+ *      DELETE queries and other queries filtering by 'egress_attempted'.
+ */
 static const char* CreateTableSQL = 
 "CREATE TABLE IF NOT EXISTS bundle_data (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
@@ -39,15 +63,29 @@ static const char* CreateTableSQL =
 "    dest_node INTEGER,\n"
 "    dest_service INTEGER\n"
 ");\n"
+"\n"
 "CREATE TABLE IF NOT EXISTS bundle_blobs (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
 "    bundle_id INTEGER,\n"
 "    blob_data BLOB,\n"
 "    FOREIGN KEY (bundle_id) REFERENCES bundle_data(id) ON DELETE CASCADE\n"
 ");\n"
-"CREATE INDEX IF NOT EXISTS idx_bundle_blobs_bundle_id ON bundle_blobs (bundle_id);\n"
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_bundle_blobs ON bundle_blobs (bundle_id);\n"
 "CREATE INDEX IF NOT EXISTS idx_action_timestamp ON bundle_data (action_timestamp);\n"
-"CREATE INDEX IF NOT EXISTS idx_dest_node ON bundle_data (dest_node);\n";
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_egress_id\n"
+"ON bundle_data (\n"
+"    dest_node,\n"
+"    dest_service,\n"
+"    egress_attempted,\n"
+"    action_timestamp,\n"
+"    id\n"
+");\n"
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_egress_attempted\n"
+"ON bundle_data (egress_attempted);\n";
+
 
 /* Expire Bundles */
 static const char* ExpireBundlesSQL =

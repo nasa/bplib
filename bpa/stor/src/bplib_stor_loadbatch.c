@@ -19,9 +19,10 @@
  */
 #include "bplib_stor_loadbatch.h"
 
-/* For the astute observer, this is a queue without locking semantics.
+/* For the astute observer: this is a static queue without locking semantics.
 ** It is not thread safe, so it should be used by one thread. In this case, it's
-** intended to be called by the bpapp main thread to push data out of STOR into QM
+** intended to be called by the bpapp main thread to move data from persistent storage
+** into QM.
 */
 
 BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t* Batch)
@@ -36,6 +37,21 @@ BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t* Batch)
     Batch->Size = 0;
 
     return BPLIB_SUCCESS;
+}
+
+bool BPLib_STOR_LoadBatch_IsEmpty(BPLib_STOR_LoadBatch_t* Batch)
+{
+    if (Batch == NULL)
+    {
+        return true;
+    }
+
+    if (Batch->Size == 0)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, int64_t BundleID)
@@ -57,7 +73,6 @@ BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t* Batch, i
     return BPLIB_SUCCESS;
 }
 
-
 BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64_t *BundleID)
 {
     if ((Batch == NULL) || (BundleID == NULL))
@@ -65,7 +80,7 @@ BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t* Batch, int64
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    if (Batch->Size == 0)
+    if (BPLib_STOR_LoadBatch_IsEmpty(Batch))
     {
         return BPLIB_STOR_BATCH_EMPTY;
     }

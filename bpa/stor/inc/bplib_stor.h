@@ -43,9 +43,8 @@ struct BPLib_BundleCache
     sqlite3* db;
     BPLib_Bundle_t* InsertBatch[BPLIB_STOR_INSERTBATCHSIZE];
     size_t InsertBatchSize;
-    BPLib_Bundle_t* LoadBatch[BPLIB_STOR_LOADBATCHSIZE];
-    size_t LoadBatchSize;
-    int LoadBatchEgressInd;
+    BPLib_STOR_LoadBatch_t ChannelLoadBatches[BPLIB_MAX_NUM_CHANNELS];
+    BPLib_STOR_LoadBatch_t ContactLoadBatches[BPLIB_MAX_NUM_CONTACTS];
 };
 
 /**
@@ -136,18 +135,17 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
  * This function pulls from Bundle Cache and pushes them to the unsorted job queue
  *
  * @param[in] Inst The instance containing the jobs to be sorted.
- * @param[in] MaxBundlesToScan The number of bundles to pull from storage
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Scanning cache was successful
  *  \retval BPLIB_NULL_PTR_ERROR Provided instance pointer was null/invalid
  */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan);
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst);
 
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
-    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed);
+BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery, 
+    size_t* NumEgressed);
 
 BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
 
