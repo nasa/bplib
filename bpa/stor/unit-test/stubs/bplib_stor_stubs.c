@@ -46,13 +46,13 @@ void BPLib_STOR_Destroy(BPLib_Instance_t *Inst)
  * Generated stub function for BPLib_STOR_EgressForID()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t *Inst, uint16_t EgressID, bool LocalDelivery,
+BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t *Inst, uint32_t EgressID, bool LocalDelivery,
                                       size_t *NumEgressed)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_EgressForID, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_STOR_EgressForID, BPLib_Instance_t *, Inst);
-    UT_GenStub_AddParam(BPLib_STOR_EgressForID, uint16_t, EgressID);
+    UT_GenStub_AddParam(BPLib_STOR_EgressForID, uint32_t, EgressID);
     UT_GenStub_AddParam(BPLib_STOR_EgressForID, bool, LocalDelivery);
     UT_GenStub_AddParam(BPLib_STOR_EgressForID, size_t *, NumEgressed);
 

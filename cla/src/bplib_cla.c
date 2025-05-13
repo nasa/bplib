@@ -76,7 +76,8 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
                                 size_t *Size, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
-    BPLib_Bundle_t    *Bundle;
+    BPLib_Bundle_t    *Bundle = NULL;
+    size_t NumStoredEgressed = 0;
 
     /* Null checks */
     if ((Inst == NULL) || (BundleOut == NULL) || (Size == NULL))
@@ -89,7 +90,10 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         Status = BPLIB_INVALID_CONT_ID_ERR;
     }
 
-    Status = BPLib_QM_DuctPull(Inst, ContId, false, Timeout, &Bundle);
+    *Size = 0;
+
+    /* First, try to immediatley pull from the duct with no timeout */
+    Status = BPLib_QM_DuctPull(Inst, ContId, false, 0, &Bundle);
     if (Status == BPLIB_SUCCESS)
     {
         /* Copy the bundle to the CLA buffer */
@@ -101,23 +105,42 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
             BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "[CLA Out #%d]: Forwarding bundle of %lu bytes", ContId, *Size);
         }
-        else
-        {
-            *Size = 0;
-        }
 
         /* Free the bundle blocks */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
+        return Status;
     }
 
-    /* No packet was pulled, presumably queue is empty */
+    /* No packet was pulled: the egress queue is empty */
     else
     {
-        if (Status == BPLIB_TIMEOUT)
+        /* Ask storage for more bundles */
+        Status = BPLib_STOR_EgressForID(Inst, ContId, false, &NumStoredEgressed);
+        if (Status == BPLIB_SUCCESS)
         {
-            Status = BPLIB_CLA_TIMEOUT;
+            /* Retry the duct pull, but this time use a timeout. */
+            Status = BPLib_QM_DuctPull(Inst, ContId, false, Timeout, &Bundle);
+            if (Status == BPLIB_SUCCESS)
+            {
+                /* Copy the bundle to the CLA buffer */
+                Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
+                if (Status == BPLIB_SUCCESS)
+                {
+                    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED, 1);
+
+                    BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
+                                    "[CLA Out #%d]: Forwarding bundle of %lu bytes", ContId, *Size);
+                }
+
+                /* Free the bundle blocks */
+                BPLib_MEM_BundleFree(&Inst->pool, Bundle);
+            }
         }
-        *Size = 0;
+    }
+
+    if (Status == BPLIB_TIMEOUT)
+    {
+        Status = BPLIB_CLA_TIMEOUT;
     }
 
     return Status;

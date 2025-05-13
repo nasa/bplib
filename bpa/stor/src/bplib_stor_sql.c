@@ -88,8 +88,11 @@ static const char* CreateTableSQL =
 
 
 /* Expire Bundles */
+// FIXME: Replace 1000 with LOADBATCHSIZE. Just trying to figure out what's going on.
+// static const char* ExpireBundlesSQL =
+//     "DELETE FROM bundle_data WHERE action_timestamp < ? OR egress_attempted = 1;";
 static const char* ExpireBundlesSQL =
-    "DELETE FROM bundle_data WHERE action_timestamp < ? OR egress_attempted = 1;";
+    "DELETE FROM bundle_data WHERE egress_attempted = 1 LIMIT 1000;";
 static sqlite3_stmt* ExpireBundlesStmt;
 
 
@@ -162,22 +165,22 @@ static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
     //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
-    uint64_t DtnNowMs;
+    //uint64_t DtnNowMs;
 
     *NumDiscarded = 0;
 
     /* Get DTN Time */
     // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
     // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
-    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
+    // DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
     sqlite3_reset(ExpireBundlesStmt);
-    SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
-        return SQLStatus;
-    }
+    // SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
+    // if (SQLStatus != SQLITE_OK)
+    // {
+    //     fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
+    //     return SQLStatus;
+    // }
 
     /* Run the query */
     SQLStatus = sqlite3_step(ExpireBundlesStmt);

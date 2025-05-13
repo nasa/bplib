@@ -183,16 +183,16 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
+BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
     size_t* NumEgressed)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
     BPLib_STOR_LoadBatch_t* LoadBatch;
-    BPLib_QM_JobState_t DestJob;
     BPLib_Bundle_t* CurrBundle;
     BPLib_EID_Pattern_t LocalEID;
     BPLib_EID_Pattern_t* DestEIDs;
+    BPLib_QM_WaitQueue_t* EgressQueue;
     size_t EgressCnt = 0;
     int64_t CurrBundleID;
     size_t NumEIDs;
@@ -207,20 +207,20 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
     if (LocalDelivery)
     {
         LoadBatch = &(CacheInst->ChannelLoadBatches[EgressID]);
-        DestJob = CHANNEL_OUT_STOR_TO_CT;
         LocalEID.MaxNode = BPLIB_EID_INSTANCE.Node;
         LocalEID.MinNode = BPLIB_EID_INSTANCE.Node;
         LocalEID.MaxService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[EgressID].LocalServiceNumber;
         LocalEID.MinService = BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[EgressID].LocalServiceNumber;
         DestEIDs = &LocalEID;
         NumEIDs = 1;
+        EgressQueue = &(Inst->ChannelEgressJobs[EgressID]);
     }
     else
     {
         LoadBatch = &(CacheInst->ContactLoadBatches[EgressID]);
-        DestJob = CONTACT_OUT_STOR_TO_CT;
         DestEIDs = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[EgressID].DestEIDs;
         NumEIDs = BPLIB_MAX_CONTACT_DEST_EIDS;
+        EgressQueue = &(Inst->ContactEgressJobs[EgressID]);
     }
 
     /* If the load batch is empty, try to read more from storage */
@@ -259,26 +259,14 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint16_t EgressID,
             if (Status == BPLIB_SUCCESS)
             {
                 CurrBundle->Meta.EgressID = EgressID;
-
-                /* Deliver to a channel or contact depending on Dest EID */
-                if (LocalDelivery)
+                if (BPLib_QM_WaitQueueTryPush(EgressQueue, &CurrBundle, QM_NO_WAIT) == false)
                 {
-                    Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
-                        QM_PRI_NORMAL, QM_NO_WAIT);
-                }
-                else
-                {
-                    Status = BPLib_QM_CreateJob(Inst, CurrBundle, DestJob,
-                        QM_PRI_NORMAL, QM_NO_WAIT);
+                    break;
                 }
             }
-
-            /* This is effectively a "flow-control".  If Status isn't BPLIB_SUCCESS,
-            ** it implies the JobQueue was full. We should not try to keep sending.
-            ** The next ScanCache call will try again.
-            */
-            if (Status != BPLIB_SUCCESS)
+            else
             {
+                /* If LoadBundle Failed, don't keep trying. */
                 break;
             }
 

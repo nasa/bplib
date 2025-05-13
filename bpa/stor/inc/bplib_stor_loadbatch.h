@@ -22,7 +22,19 @@
 
 #include "bplib_api_types.h"
 
-#define BPLIB_STOR_LOADBATCHSIZE 2000
+/* Important Note:
+** Load batch loads integers into memory. It does not load bundle blobs. You can
+** set this number north of 250k and everything works fine. The tradeoff is how much
+** system memory the array of integers takes up. For performance analysis, I reccommend setting
+** this to a higher value using a CMake variable.  In general, nothing can keep up with how
+** fast we egress (good problem to have right now). To slow this down, a separate ticket
+** needs to be written to "artificially" rate limiting in BPNode CLAs. Limiting can't be
+** easily done in BPLib
+** in BPNode, not bplib.
+*/
+#ifndef BPLIB_STOR_LOADBATCH_SIZE
+#define BPLIB_STOR_LOADBATCHSIZE 10000
+#endif
 
 typedef struct BPLib_STOR_LoadBatch
 {
