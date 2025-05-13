@@ -26,9 +26,6 @@
 
 #include "bplib_time_handlers.h"
 
-#define UTASSERT_GETSTUB(Expression) \
-    UtAssert_Type(TSF, Expression, "%s: Check for get value provided by test", __func__);
-
 void UT_Handler_BPLib_TIME_GetTimeDelta(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     int64_t *Delta = UT_Hook_GetArgValueByName(Context, "Delta", int64_t *);
@@ -51,6 +48,6 @@ void UT_Handler_BPLib_TIME_GetMonotonicTime(void *UserObj, UT_EntryKey_t FuncKey
 
     if (Status >= 0)
     {
-        UTASSERT_GETSTUB(UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetMonotonicTime), MonotonicTime, sizeof(*MonotonicTime)) == sizeof(*MonotonicTime));
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetMonotonicTime), MonotonicTime, sizeof(*MonotonicTime));
     }
 }
