@@ -177,6 +177,7 @@ void Test_BPLib_BI_RecvFullBundleIn_ExpireErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
     UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
 
     /* Age block should exceed lifetime */
     DeserializedBundle.blocks.ExtBlocks[1].BlockData.AgeBlockData.Age = 123456;
@@ -207,6 +208,7 @@ void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
     UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
 
     ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
@@ -269,6 +271,7 @@ void Test_BPLib_BI_RecvFullBundleIn_JobFail(void)
 
     MonoTime.Time = 0;
 
+    UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
     UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
