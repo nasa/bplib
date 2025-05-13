@@ -164,6 +164,36 @@ void Test_BPLib_BI_RecvFullBundleIn_UnintellErr(void)
     UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
 }
 
+void Test_BPLib_BI_RecvFullBundleIn_ExpireErr(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_Instance_t Instance;
+    char BundleIn[32];
+    size_t Size = 0;
+    BPLib_TIME_MonotonicTime_t MonoTime;
+
+    MonoTime.Time = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_BundleAlloc), (UT_IntReturn_t) &DeserializedBundle);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CBOR_DecodeBundle), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_TIME_GetMonotonicTime), &MonoTime, sizeof(MonoTime), false);
+
+    /* Age block should exceed lifetime */
+    DeserializedBundle.blocks.ExtBlocks[1].BlockData.AgeBlockData.Age = 123456;
+
+    ReturnStatus = BPLib_BI_RecvFullBundleIn(&Instance, BundleIn, Size, 0);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_BI_EXPIRED_BUNDLE_ERR);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleAlloc, 1);
+    UtAssert_STUB_COUNT(BPLib_CBOR_DecodeBundle, 1);
+    UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED_EXPIRED, 
+                                                Context_BPLib_AS_Increment[0].Counter);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
+    UtAssert_STUB_COUNT(BPLib_QM_CreateJob, 0);
+}
+
 /* Test that bundle ingress with a well-formed bundle goes well */
 void Test_BPLib_BI_RecvFullBundleIn_Nominal(void)
 {
@@ -320,6 +350,18 @@ void Test_BPLib_BI_ValidateBundle_NoTime(void)
     UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(&DeserializedBundle), BPLIB_BI_INVALID_BUNDLE_ERR);        
 }
 
+/* Test that bundle validation fails the create time indicates an expired bundle */
+void Test_BPLib_BI_ValidateBundle_Expired(void)
+{
+    DeserializedBundle.blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Reserved;
+    DeserializedBundle.blocks.PrimaryBlock.Timestamp.CreateTime = 10;
+    DeserializedBundle.blocks.PrimaryBlock.Lifetime = 12;
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_TIME_GetCurrentDtnTime), 1, 25);
+
+    UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(&DeserializedBundle), BPLIB_BI_EXPIRED_BUNDLE_ERR);        
+}
+
 /* Test that bundle validation fails when an extension block number matches the payload number */
 void Test_BPLib_BI_ValidateBundle_PayloadNumErr(void)
 {
@@ -438,7 +480,7 @@ void TestBplibBi_Register(void)
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_Invalid, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_Invalid");
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_JobFail, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_JobFail");
     UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_IdErr, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_IdErr");
-
+    UtTest_Add(Test_BPLib_BI_RecvFullBundleIn_ExpireErr, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvFullBundleIn_ExpireErr");
     UtTest_Add(Test_BPLib_BI_RecvCtrlMsg_Nominal, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_RecvCtrlMsg_Nominal");
 
     UtTest_Add(Test_BPLib_BI_ValidateBundle_Null, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Null");
@@ -448,6 +490,7 @@ void TestBplibBi_Register(void)
     UtTest_Add(Test_BPLib_BI_ValidateBundle_DuplPrevNode, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_DuplPrevNode");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_ValidTime, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_ValidTime");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_NoTime, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_NoTime");
+    UtTest_Add(Test_BPLib_BI_ValidateBundle_Expired, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_Expired");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_PayloadNumErr, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_PayloadNumErr");
     UtTest_Add(Test_BPLib_BI_ValidateBundle_BlockNumErr, BPLib_BI_Test_Setup, BPLib_BI_Test_Teardown, "Test_BPLib_BI_ValidateBundle_BlockNumErr");
 
