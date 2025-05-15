@@ -95,6 +95,9 @@ void Test_BPLib_CBOR_DecodePrimary_InvalidFlags(void)
     UsefulBufC UBufC;
     QCBORItem OuterArr;
 
+    /* Have CRC calculator return the CRC from the block (too lazy to do calculation on my own) */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CRC_Calculate), 0xB19);
+
     /* Initialize QCBOR context */
     UBufC.ptr = (const void *)(UnsupportedFlagPrimaryBlk);
     UBufC.len = sizeof(UnsupportedFlagPrimaryBlk);
