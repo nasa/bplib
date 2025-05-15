@@ -295,7 +295,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     *AduSize = 0;
 
     /* Get the next bundle in the channel egress queue */
-    Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
+    Status = BPLib_QM_DuctPull(Inst, ChanId, true, 0, &Bundle);
     if (Status == BPLIB_SUCCESS)
     {
         /* Copy out the contents of the bundle payload to the return pointer */

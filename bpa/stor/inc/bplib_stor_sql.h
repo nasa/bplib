@@ -25,6 +25,8 @@
 #include "bplib_eid.h"
 #include "bplib_stor_loadbatch.h"
 
+#define BPLIB_SQL_MAX_STRLEN 4096
+
 /* This is a temporary define denoting milliseconds between POSIX and DTN time
 ** It is used until a more mature boot-era solution is implemented in BPLIB_TIME
 */
@@ -34,7 +36,9 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName);
 
 BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst);
 
-BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
+BPLib_Status_t BPLib_SQL_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded);
+
+BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDiscarded);
 
 BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatch_t* Batch,
     BPLib_EID_Pattern_t *DestEIDs, size_t NumEIDs);

@@ -82,12 +82,11 @@ BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t *Inst)
  * Generated stub function for BPLib_STOR_GarbageCollect()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t *Inst, size_t *NumDiscarded)
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t *Inst)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_GarbageCollect, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_STOR_GarbageCollect, BPLib_Instance_t *, Inst);
-    UT_GenStub_AddParam(BPLib_STOR_GarbageCollect, size_t *, NumDiscarded);
 
     UT_GenStub_Execute(BPLib_STOR_GarbageCollect, Basic, NULL);
 
@@ -108,22 +107,6 @@ BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t *Inst)
     UT_GenStub_Execute(BPLib_STOR_Init, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_Init, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_ScanCache()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t *Inst)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_ScanCache, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_STOR_ScanCache, BPLib_Instance_t *, Inst);
-
-    UT_GenStub_Execute(BPLib_STOR_ScanCache, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_STOR_ScanCache, BPLib_Status_t);
 }
 
 /*

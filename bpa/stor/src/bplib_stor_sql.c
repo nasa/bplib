@@ -88,12 +88,25 @@ static const char* CreateTableSQL =
 
 
 /* Expire Bundles */
-// FIXME: Replace 1000 with LOADBATCHSIZE. Just trying to figure out what's going on.
-// static const char* ExpireBundlesSQL =
-//     "DELETE FROM bundle_data WHERE action_timestamp < ? OR egress_attempted = 1;";
-static const char* ExpireBundlesSQL =
-    "DELETE FROM bundle_data WHERE egress_attempted = 1 LIMIT 1000;";
-static sqlite3_stmt* ExpireBundlesStmt;
+static const char* DiscardExpiredSQL =
+    "WITH to_delete AS ("
+    "    SELECT id FROM bundle_data "
+    "    WHERE action_timestamp < ? "
+    "    LIMIT ?"
+    ") "
+    "DELETE FROM bundle_data "
+    "WHERE id IN (SELECT id FROM to_delete);";
+static sqlite3_stmt* DiscardExpiredStmt;
+
+static const char* DiscardEgressedSQL =
+    "WITH to_delete AS ("
+    "    SELECT id FROM bundle_data "
+    "    WHERE egress_attempted = 1 "
+    "    LIMIT ?"
+    ") "
+    "DELETE FROM bundle_data "
+    "WHERE id IN (SELECT id FROM to_delete);";
+static sqlite3_stmt* DiscardEgressedStmt;
 
 
 /*******************************************************************************
@@ -161,32 +174,38 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     return SQLStatus;
 }
 
-static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
+static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
-    //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
-    //uint64_t DtnNowMs;
+    BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
+    uint64_t DtnNowMs;
 
     *NumDiscarded = 0;
 
     /* Get DTN Time */
-    // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
-    // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
-    // DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
+    BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
+    DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
+    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
-    sqlite3_reset(ExpireBundlesStmt);
-    // SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
-    // if (SQLStatus != SQLITE_OK)
-    // {
-    //     fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
-    //     return SQLStatus;
-    // }
+    sqlite3_reset(DiscardExpiredStmt);
+    SQLStatus = sqlite3_bind_int64(DiscardExpiredStmt, 1, (int64_t)DtnNowMs);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+    SQLStatus = sqlite3_bind_int64(DiscardExpiredStmt, 2, BPLIB_STOR_DISCARDBATCHSIZE);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
 
     /* Run the query */
-    SQLStatus = sqlite3_step(ExpireBundlesStmt);
+    SQLStatus = sqlite3_step(DiscardExpiredStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        fprintf(stderr, "Failed to discard bundles: %s\n", sqlite3_errmsg(db));  
+        fprintf(stderr, "Failed to discard expired bundles: %s\n", sqlite3_errmsg(db));  
         return SQLStatus;
     }
 
@@ -194,6 +213,37 @@ static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
+    printf("Num Discarded Expired %lu\n", *NumDiscarded);
+
+    return SQLITE_OK;
+}
+
+static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
+{
+    int SQLStatus;
+    *NumDiscarded = 0;
+
+    sqlite3_reset(DiscardEgressedStmt);
+    SQLStatus = sqlite3_bind_int64(DiscardEgressedStmt, 1, BPLIB_STOR_DISCARDBATCHSIZE);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+
+    /* Run the query */
+    SQLStatus = sqlite3_step(DiscardEgressedStmt);
+    if (SQLStatus != SQLITE_DONE)
+    {
+        fprintf(stderr, "Failed to discard egressed bundles: %s\n", sqlite3_errmsg(db));  
+        return SQLStatus;
+    }
+
+    /* Determine how many changes were made to the database, which is the number
+    ** of discarded bundles.
+    */
+    *NumDiscarded = sqlite3_changes(db);
+    printf("Num Discarded Egress %lu\n", *NumDiscarded);
 
     return SQLITE_OK;
 }
@@ -216,14 +266,13 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     return Status;
 }
 
-BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+BPLib_Status_t BPLib_SQL_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded)
 {
     int SQLStatus;
     sqlite3* db = Inst->BundleStorage.db;
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    /* Prepare the ExpireBundlesStmt with the current time */
-    SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
+    SQLStatus = sqlite3_prepare_v2(db, DiscardExpiredSQL, -1, &DiscardExpiredStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
@@ -232,7 +281,7 @@ BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisca
 
     if (Status == BPLIB_SUCCESS)
     {
-        SQLStatus = BPLib_SQL_GarbageCollectImpl(db, NumDiscarded);
+        SQLStatus = BPLib_SQL_DiscardExpiredImpl(db, NumDiscarded);
         if (SQLStatus != SQLITE_OK)
         {
             Status = BPLIB_STOR_SQL_DISCARD_ERR;
@@ -240,7 +289,35 @@ BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisca
     }
 
     /* Finalize the statement */
-    sqlite3_finalize(ExpireBundlesStmt);
+    sqlite3_finalize(DiscardExpiredStmt);
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+{
+    int SQLStatus;
+    sqlite3* db = Inst->BundleStorage.db;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    SQLStatus = sqlite3_prepare_v2(db, DiscardEgressedSQL, -1, &DiscardEgressedStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
+        Status = BPLIB_STOR_SQL_DISCARD_ERR;
+    }
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        SQLStatus = BPLib_SQL_DiscardEgressedImpl(db, NumDiscarded);
+        if (SQLStatus != SQLITE_OK)
+        {
+            Status = BPLIB_STOR_SQL_DISCARD_ERR;
+        }
+    }
+
+    /* Finalize the statement */
+    sqlite3_finalize(DiscardEgressedStmt);
 
     return Status;
 }

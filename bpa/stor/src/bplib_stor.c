@@ -274,41 +274,51 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
             (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
             EgressCnt++;
         }
-
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, EgressCnt);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, EgressCnt);
     }
 
     *NumEgressed = EgressCnt;
     return Status;
 }
 
-BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
 {
     BPLib_Status_t Status;
     BPLib_BundleCache_t* CacheInst;
+    size_t NumDiscarded = 0;
 
-    if ((Inst == NULL) || (NumDiscarded == NULL))
+    if (Inst == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    *NumDiscarded = 0;
     CacheInst = &Inst->BundleStorage;
     pthread_mutex_lock(&CacheInst->lock);
 
-    Status = BPLib_SQL_GarbageCollect(Inst, NumDiscarded);
+    Status = BPLib_SQL_DiscardExpired(Inst, &NumDiscarded);
     if (Status != BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_GarbageCollect failed to run garbage collection. RC=%d", Status);
+            "BPLib_SQL_DiscardExpired failed. RC=%d", Status);
     }
     else
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, *NumDiscarded);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, *NumDiscarded);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, *NumDiscarded);
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, *NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
+        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
+    }
+
+    Status = BPLib_SQL_DiscardEgressed(Inst, &NumDiscarded);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_GC_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_DiscardEgressed failed. RC=%d", Status);
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
+        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
     }
 
     pthread_mutex_unlock(&CacheInst->lock);
@@ -316,64 +326,10 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisc
     return Status;
 }
 
-
 /* Validate Storage table data */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 
     return ReturnCode;
-}
-
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst)
-{
-    BPLib_Status_t      Status           = BPLIB_SUCCESS;
-    uint16_t            i;
-    size_t NumEgressed, TotalEgressed;
-    BPLib_CLA_ContactRunState_t ContactState;
-
-    if (Inst == NULL)
-    {
-        BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_STOR_ScanCache called with null instance pointer.");
-        return BPLIB_NULL_PTR_ERROR;
-    }
-
-    /* Egress for channels */
-    BPLib_NC_ReaderLock();
-    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
-    {
-        if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
-        {
-            Status = BPLib_STOR_EgressForID(Inst, i, true,  &NumEgressed);
-            if (Status != BPLIB_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Failed to egress bundle for local channel %d, RC=%d", i, Status);
-                break;
-            }
-            TotalEgressed += NumEgressed;
-        }
-    }
-
-    /* Egress For Contacts */
-    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
-    {
-        /* Contact ID is valid here, so we can ignore the error status of the function */
-        (void) BPLib_CLA_GetContactRunState(i, &ContactState);
-        if (ContactState == BPLIB_CLA_STARTED)
-        {
-            Status = BPLib_STOR_EgressForID(Inst, i, false, &NumEgressed);
-            if (Status != BPLIB_SUCCESS)
-            {
-                BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                    "Failed to egress bundle for contact %d, RC=%d", i, Status);
-                break;
-            }
-            TotalEgressed += NumEgressed;
-        }
-    }
-    BPLib_NC_ReaderUnlock();
-
-    return Status;
 }

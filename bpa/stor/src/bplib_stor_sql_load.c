@@ -21,12 +21,10 @@
 #include "bplib_qm.h"
 
 #include <stdio.h>
-#include <stdlib.h> // Only used for abort(): REMOVE BEFORE MERGE
 
 /*******************************************************************************
 ** SQL Query Definitions
 */
-#define BPLIB_SQL_MAX_STRLEN 2048
 
 /* Find for Egress ID */
 static const char* FindForEgressID_RangeClause = 

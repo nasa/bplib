@@ -36,6 +36,7 @@
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC      0x00000000
 #define BPLIB_STOR_INSERTBATCHSIZE 100
+#define BPLIB_STOR_DISCARDBATCHSIZE 5000
 
 struct BPLib_BundleCache
 {
@@ -129,25 +130,12 @@ void BPLib_STOR_Destroy(BPLib_Instance_t* Inst);
  */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
 
-/**
- * @brief Check the bundle cache fifo for available bundles
- *
- * This function pulls from Bundle Cache and pushes them to the unsorted job queue
- *
- * @param[in] Inst The instance containing the jobs to be sorted.
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Scanning cache was successful
- *  \retval BPLIB_NULL_PTR_ERROR Provided instance pointer was null/invalid
- */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst);
-
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
 BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery, 
     size_t* NumEgressed);
 
-BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
 
 BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
 
