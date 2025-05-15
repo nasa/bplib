@@ -86,7 +86,6 @@ static const char* CreateTableSQL =
 "CREATE INDEX IF NOT EXISTS idx_egress_attempted\n"
 "ON bundle_data (egress_attempted);\n";
 
-
 /* Expire Bundles */
 static const char* DiscardExpiredSQL =
     "WITH to_delete AS ("
@@ -112,12 +111,37 @@ static sqlite3_stmt* DiscardEgressedStmt;
 /*******************************************************************************
 ** Static Functions
 */
+static int BPLib_SQL_GetNumStoredBundles(sqlite3 *db, uint32_t *BundleCnt)
+{
+    const char *sql = "SELECT COUNT(*) FROM bundle_data;";
+    sqlite3_stmt *stmt;
+    int SQLStatus;
+
+    SQLStatus = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        return SQLITE_OK;
+    }
+
+    SQLStatus = sqlite3_step(stmt);
+    if (SQLStatus != SQLITE_ROW)
+    {
+        return SQLStatus;
+    }
+    *BundleCnt = sqlite3_column_int(stmt, 0);
+
+    sqlite3_finalize(stmt);
+    return SQLITE_OK;
+}
+
 static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 {
     int SQLStatus;
     sqlite3* ActiveDB;
     int ForeignKeysEnabled;
     sqlite3_stmt* ForeignKeyCheckStmt;
+    uint32_t NumStoredBundles;
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
@@ -170,6 +194,13 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
         return SQLStatus;
     }
 
+    /* Determine how many bundles are presently in storage, and set the stored counter to this value */
+    if (BPLib_SQL_GetNumStoredBundles(ActiveDB, &NumStoredBundles) != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumStoredBundles);
+
     /* Expecting SQLITE_OK */
     return SQLStatus;
 }
@@ -186,6 +217,14 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
     BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
     DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
     DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
+
+    /* Create a batch query */
+    SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to start transaction: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
 
     sqlite3_reset(DiscardExpiredStmt);
     SQLStatus = sqlite3_bind_int64(DiscardExpiredStmt, 1, (int64_t)DtnNowMs);
@@ -209,12 +248,31 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         return SQLStatus;
     }
 
+    /* If there have been no errors so far commit the delete  */
+    if (SQLStatus == SQLITE_DONE)
+    {
+        SQLStatus = sqlite3_exec(db, "COMMIT;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to commit transaction\n");
+        }
+    }
+
+    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Attempting ROLLBACK\n");
+        SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to rollback transaction\n");
+        }
+    }
+
     /* Determine how many changes were made to the database, which is the number
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
-    printf("Num Discarded Expired %lu\n", *NumDiscarded);
-
     return SQLITE_OK;
 }
 
@@ -222,6 +280,14 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
     *NumDiscarded = 0;
+
+    /* Create a batch query */
+    SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to start transaction: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
 
     sqlite3_reset(DiscardEgressedStmt);
     SQLStatus = sqlite3_bind_int64(DiscardEgressedStmt, 1, BPLIB_STOR_DISCARDBATCHSIZE);
@@ -239,12 +305,31 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
         return SQLStatus;
     }
 
+    /* If there have been no errors so far commit the delete  */
+    if (SQLStatus == SQLITE_DONE)
+    {
+        SQLStatus = sqlite3_exec(db, "COMMIT;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to commit transaction\n");
+        }
+    }
+
+    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Attempting ROLLBACK\n");
+        SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to rollback transaction\n");
+        }
+    }
+
     /* Determine how many changes were made to the database, which is the number
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
-    printf("Num Discarded Egress %lu\n", *NumDiscarded);
-
     return SQLITE_OK;
 }
 

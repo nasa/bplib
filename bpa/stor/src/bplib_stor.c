@@ -243,7 +243,9 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
     else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
     {
         /* Mark the batch as egressed */
+        pthread_mutex_lock(&CacheInst->lock);
         Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
+        pthread_mutex_unlock(&CacheInst->lock);
 
         /* Clear the batch */
         (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
