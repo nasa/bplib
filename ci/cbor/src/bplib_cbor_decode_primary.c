@@ -100,12 +100,6 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
 
-    /* Check flags to make sure we support the requested options */
-    if ((bundle->blocks.PrimaryBlock.BundleProcFlags | BPLIB_VALID_BUNDLE_PROC_FLAG_MASK) != BPLIB_VALID_BUNDLE_PROC_FLAG_MASK)
-    {
-        return BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR;
-    }
-
     /* CRC Type */
     Status = PrimaryBlockParser.CRCTypeParser(ctx, &bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
