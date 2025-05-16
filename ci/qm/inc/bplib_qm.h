@@ -112,6 +112,13 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID
  */
 BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs);
 
+
+bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst);
+
+
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery);
+
+
 BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
     int TimeoutMs, BPLib_Bundle_t** RetBundle);
 
@@ -131,5 +138,6 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool Loca
  */
 BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int TimeoutMs);
+
 
 #endif /* BPLIB_QM_H */

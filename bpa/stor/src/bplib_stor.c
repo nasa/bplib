@@ -202,6 +202,16 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    if (BPLib_QM_IsIngressIdle(Inst) == false)
+    {
+        /* Avoid searching the DB if the unsorted jobs queue (which is the ingress queue) isn't empty.
+        ** Note: this is a pretty critical performance optimization that allows bplib
+        ** to use all of its CPU resources for ingress.
+        */
+        *NumEgressed = 0;
+        return BPLIB_SUCCESS;
+    }
+
     /* Determine which channel or contact's batch we're examining */
     CacheInst = &Inst->BundleStorage;
     if (LocalDelivery)
@@ -291,6 +301,15 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
     if (Inst == NULL)
     {
         return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (BPLib_QM_IsIngressIdle(Inst) == false)
+    {
+        /* Avoid searching the DB if the unsorted jobs queue (which is the ingress queue) isn't empty
+        ** Note: this is a pretty critical performance optimization that allows bplib
+        ** to use all of its CPU resources for ingress.
+        */
+        return BPLIB_SUCCESS;
     }
 
     CacheInst = &Inst->BundleStorage;

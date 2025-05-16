@@ -71,6 +71,40 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t *Inst, int EgressID, bool Loca
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_QM_IsDuctEmpty()
+ * ----------------------------------------------------
+ */
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t *Inst, int EgressID, bool LocalDelivery)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_IsDuctEmpty, bool);
+
+    UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, int, EgressID);
+    UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, bool, LocalDelivery);
+
+    UT_GenStub_Execute(BPLib_QM_IsDuctEmpty, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_QM_IsDuctEmpty, bool);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_QM_IsIngressIdle()
+ * ----------------------------------------------------
+ */
+bool BPLib_QM_IsIngressIdle(BPLib_Instance_t *Inst)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_QM_IsIngressIdle, bool);
+
+    UT_GenStub_AddParam(BPLib_QM_IsIngressIdle, BPLib_Instance_t *, Inst);
+
+    UT_GenStub_Execute(BPLib_QM_IsIngressIdle, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_QM_IsIngressIdle, bool);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_QM_QueueTableDestroy()
  * ----------------------------------------------------
  */

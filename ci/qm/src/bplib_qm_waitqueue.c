@@ -177,3 +177,19 @@ bool BPLib_QM_WaitQueueTryPull(BPLib_QM_WaitQueue_t* q, void* ret_item, int time
 
     return true;
 }
+
+bool BPLib_QM_WaitQueueIsEmpty(BPLib_QM_WaitQueue_t* q)
+{
+    bool IsEmpty;
+
+    if (q == NULL)
+    {
+        return false;
+    }
+
+    pthread_mutex_lock(&q->lock);
+    IsEmpty = q->size == 0;
+    pthread_mutex_unlock(&q->lock);
+
+    return IsEmpty;
+}

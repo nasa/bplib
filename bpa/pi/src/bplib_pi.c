@@ -294,15 +294,24 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     }
     *AduSize = 0;
 
+    if (BPLib_QM_IsDuctEmpty(Inst, ChanId, true) == true)
+    {
+        /* Ask storage for more bundles */
+        Status = BPLib_STOR_EgressForID(Inst, ChanId, true, &NumStoredEgressed);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return Status;
+        }
+    }
+
     /* Get the next bundle in the channel egress queue */
-    Status = BPLib_QM_DuctPull(Inst, ChanId, true, 0, &Bundle);
+    Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
     if (Status == BPLIB_SUCCESS)
     {
         /* Copy out the contents of the bundle payload to the return pointer */
         Status = BPLib_MEM_CopyOutFromOffset(Bundle,
                                 Bundle->blocks.PayloadHeader.DataOffsetStart,
                                 Bundle->blocks.PayloadHeader.DataSize, AduPtr, BufLen);
-
         if (Status == BPLIB_SUCCESS)
         {
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, ADU_COUNT_DELIVERED, 1);
@@ -316,51 +325,12 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         else
         {
             BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[ADU Out #%d]: Error copying ADU out for egress, Status = %d.", 
-                            ChanId, Status); 
+                            "[ADU Out #%d]: Error copying ADU out for egress, Status = %d.",
+                            ChanId, Status);
         }
 
         /* Free the bundle */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
-        return Status;
-    }
-
-    /* No packet was pulled, presumably queue is empty */
-    else 
-    {
-        /* Ask storage for more bundles */
-        Status = BPLib_STOR_EgressForID(Inst, ChanId, true, &NumStoredEgressed);
-        if (Status == BPLIB_SUCCESS)
-        {
-            /* Retry the duct pull, but this time use a timeout. */
-            Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
-            if (Status == BPLIB_SUCCESS)
-            {
-                /* Copy out the contents of the bundle payload to the return pointer */
-                Status = BPLib_MEM_CopyOutFromOffset(Bundle,
-                                        Bundle->blocks.PayloadHeader.DataOffsetStart,
-                                        Bundle->blocks.PayloadHeader.DataSize, AduPtr, BufLen);
-                if (Status == BPLIB_SUCCESS)
-                {
-                    BPLib_AS_Increment(BPLIB_EID_INSTANCE, ADU_COUNT_DELIVERED, 1);
-                    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED, 1);
-
-                    *AduSize = Bundle->blocks.PayloadHeader.DataSize;
-                    BPLib_EM_SendEvent(BPLIB_PI_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                            "[ADU Out #%d]: Egressing ADU of %lu bytes", 
-                            ChanId, *AduSize);
-                }
-                else
-                {
-                    BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "[ADU Out #%d]: Error copying ADU out for egress, Status = %d.",
-                                    ChanId, Status);
-                }
-            }
-
-            /* Free the bundle */
-            BPLib_MEM_BundleFree(&Inst->pool, Bundle);
-        }
     }
 
     if (Status == BPLIB_TIMEOUT)

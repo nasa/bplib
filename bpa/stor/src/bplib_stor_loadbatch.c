@@ -24,7 +24,7 @@ BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t* Batch)
     /* For now Init and Reset are identical. A separate function is used
     ** because many other BPLib utilities have an Init(). This is stylistic more
     ** than functional. If this is ever made thread-safe, Init also needs to
-    ** do some extra one-time setup.
+    ** do some extra one-time setup for mutexes
     */
     return BPLib_STOR_LoadBatch_Reset(Batch);
 }

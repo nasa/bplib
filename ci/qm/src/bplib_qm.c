@@ -60,21 +60,18 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
     }
 
     QueueInit = true;
+
     /* Initialize the job queue */
     if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), sizeof(BPLib_QM_Job_t), MaxJobs))
     {
         QueueInit = false;
     }
 
-    /* TODO: This is a BundleQueue, but is kept as WaitQueueInit in expectation this code is
-    ** soon to be removed. I feel it's best to just leave this alone for now.
-    */
     if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), sizeof(BPLib_Bundle_t*), MaxJobs))
     {
         QueueInit = false;
     }
 
-    /* TODO: Use Bundle Queue */
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
@@ -217,6 +214,39 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, i
     }
 
     return Status;
+}
+
+bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst)
+{
+    if (Inst == NULL)
+    {
+        return true;
+    }
+
+    return BPLib_QM_WaitQueueIsEmpty(&(Inst->GenericWorkerJobs));
+}
+
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery)
+{
+    BPLib_QM_WaitQueue_t* DuctQueue;
+
+    if (Inst == NULL)
+    {
+        /* NULL PTR ERROR will be caught in DuctPull */
+        return true;
+    }
+
+    /* Determine which queue to pull from */
+    if (LocalDelivery == true)
+    {
+        DuctQueue = &(Inst->ChannelEgressJobs[EgressID]);
+    }
+    else
+    {
+        DuctQueue = &(Inst->ContactEgressJobs[EgressID]);
+    }
+
+    return BPLib_QM_WaitQueueIsEmpty(DuctQueue);
 }
 
 BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
