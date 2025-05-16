@@ -137,7 +137,6 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
 /* Validate deserialized bundle after CBOR decoding */
 BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 {
-    uint64_t CurrDtnTime     = 0;
     uint64_t AgeBlkTime      = 0;
     uint32_t ExtBlkIdx       = 0;
     uint32_t i;
@@ -237,14 +236,14 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
         /* If there is neither an age block or a valid creation time, return error */
         if (CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
         {
-            return BPLIB_BI_INVALID_BUNDLE_ERR;
+            return BPLIB_BI_INVALID_BUNDLE_ERR; 
         }
         /* If there's a valid creation time, make sure bundle is not expired */
         else
         {
-            if ((BPLib_TIME_GetCurrentDtnTime() != 0) &&
-                (CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime + 
-                 CandidateBundle->blocks.PrimaryBlock.Lifetime) >= CurrDtnTime)
+            /* If the current DTN time is 0 (implying it's invalid), bundle won't expire */
+            if ((CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime + 
+                 CandidateBundle->blocks.PrimaryBlock.Lifetime) <= BPLib_TIME_GetCurrentDtnTime())
             {
                 return BPLIB_BI_EXPIRED_BUNDLE_ERR;
             }
