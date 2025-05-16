@@ -144,7 +144,7 @@ BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst)
 
     CacheInst = &Inst->BundleStorage;
 
-    pthread_mutex_lock(&Inst->BundleStorage.lock);
+    pthread_mutex_lock(&CacheInst->lock);
     if (CacheInst->InsertBatchSize > 0)
     {
         Status = BPLib_STOR_FlushPendingUnlocked(Inst);
@@ -154,7 +154,7 @@ BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst)
         /* Don't go further if there's nothing to store */
         Status = BPLIB_SUCCESS;
     }
-    pthread_mutex_unlock(&Inst->BundleStorage.lock);
+    pthread_mutex_unlock(&CacheInst->lock);
 
     return Status;
 }
@@ -170,7 +170,7 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
     }
 
     CacheInst = &Inst->BundleStorage;
-    pthread_mutex_lock(&Inst->BundleStorage.lock);
+    pthread_mutex_lock(&CacheInst->lock);
 
     /* Add to the next batch */
     CacheInst->InsertBatch[CacheInst->InsertBatchSize++] = Bundle;
@@ -324,8 +324,8 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, NumDiscarded);
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
         BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
     }
 

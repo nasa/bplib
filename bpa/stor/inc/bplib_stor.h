@@ -138,11 +138,12 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
 
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
+BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
+
 BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery, 
     size_t* NumEgressed);
 
 BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
 
-BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
 
 #endif /* BPLIB_STOR_H */

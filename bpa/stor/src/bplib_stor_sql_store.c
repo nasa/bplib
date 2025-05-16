@@ -151,6 +151,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
         SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i]);
         if (SQLStatus != SQLITE_DONE)
         {
+            /* If there was an error, don't keep trying to construsct the SQL INSERT */
             break;
         }
     }

@@ -30,36 +30,35 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_LoadBatch_AddBundleID()
+ * Generated stub function for BPLib_STOR_LoadBatch_AddID()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_LoadBatch_AddBundleID(BPLib_STOR_LoadBatch_t *Batch, int64_t BundleID)
+BPLib_Status_t BPLib_STOR_LoadBatch_AddID(BPLib_STOR_LoadBatch_t *Batch, int64_t BundleID)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_AddBundleID, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_AddID, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_AddBundleID, BPLib_STOR_LoadBatch_t *, Batch);
-    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_AddBundleID, int64_t, BundleID);
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_AddID, BPLib_STOR_LoadBatch_t *, Batch);
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_AddID, int64_t, BundleID);
 
-    UT_GenStub_Execute(BPLib_STOR_LoadBatch_AddBundleID, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_LoadBatch_AddID, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_AddBundleID, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_AddID, BPLib_Status_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_LoadBatch_GetNext()
+ * Generated stub function for BPLib_STOR_LoadBatch_AdvanceReader()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_LoadBatch_GetNext(BPLib_STOR_LoadBatch_t *Batch, int64_t *BundleID)
+BPLib_Status_t BPLib_STOR_LoadBatch_AdvanceReader(BPLib_STOR_LoadBatch_t *Batch)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_GetNext, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_AdvanceReader, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_GetNext, BPLib_STOR_LoadBatch_t *, Batch);
-    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_GetNext, int64_t *, BundleID);
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_AdvanceReader, BPLib_STOR_LoadBatch_t *, Batch);
 
-    UT_GenStub_Execute(BPLib_STOR_LoadBatch_GetNext, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_LoadBatch_AdvanceReader, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_GetNext, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_AdvanceReader, BPLib_Status_t);
 }
 
 /*
@@ -80,6 +79,22 @@ BPLib_Status_t BPLib_STOR_LoadBatch_Init(BPLib_STOR_LoadBatch_t *Batch)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_LoadBatch_IsConsumed()
+ * ----------------------------------------------------
+ */
+bool BPLib_STOR_LoadBatch_IsConsumed(BPLib_STOR_LoadBatch_t *Batch)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_IsConsumed, bool);
+
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_IsConsumed, BPLib_STOR_LoadBatch_t *, Batch);
+
+    UT_GenStub_Execute(BPLib_STOR_LoadBatch_IsConsumed, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_IsConsumed, bool);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_LoadBatch_IsEmpty()
  * ----------------------------------------------------
  */
@@ -92,4 +107,37 @@ bool BPLib_STOR_LoadBatch_IsEmpty(BPLib_STOR_LoadBatch_t *Batch)
     UT_GenStub_Execute(BPLib_STOR_LoadBatch_IsEmpty, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_IsEmpty, bool);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_LoadBatch_PeekNextID()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_LoadBatch_PeekNextID(BPLib_STOR_LoadBatch_t *Batch, int64_t *BundleID)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_PeekNextID, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_PeekNextID, BPLib_STOR_LoadBatch_t *, Batch);
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_PeekNextID, int64_t *, BundleID);
+
+    UT_GenStub_Execute(BPLib_STOR_LoadBatch_PeekNextID, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_PeekNextID, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_LoadBatch_Reset()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_LoadBatch_Reset(BPLib_STOR_LoadBatch_t *Batch)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_LoadBatch_Reset, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_LoadBatch_Reset, BPLib_STOR_LoadBatch_t *, Batch);
+
+    UT_GenStub_Execute(BPLib_STOR_LoadBatch_Reset, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_LoadBatch_Reset, BPLib_Status_t);
 }
