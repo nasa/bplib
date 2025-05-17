@@ -273,6 +273,10 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
                 CurrBundle->Meta.EgressID = EgressID;
                 if (BPLib_QM_WaitQueueTryPush(EgressQueue, &CurrBundle, QM_NO_WAIT) == false)
                 {
+                    /* If QM couldn't accept the bundle, free it. It will be reloaded 
+                    ** next time.
+                    */
+                    BPLib_MEM_BundleFree(&Inst->pool, CurrBundle);
                     break;
                 }
             }

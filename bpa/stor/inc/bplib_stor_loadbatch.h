@@ -33,7 +33,7 @@
 ** in BPNode, not bplib.
 */
 #ifndef BPLIB_STOR_LOADBATCH_SIZE
-#define BPLIB_STOR_LOADBATCHSIZE 50000
+#define BPLIB_STOR_LOADBATCHSIZE 1000
 #endif
 
 typedef struct BPLib_STOR_LoadBatch

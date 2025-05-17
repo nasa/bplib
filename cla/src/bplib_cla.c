@@ -77,7 +77,6 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
     BPLib_Bundle_t    *Bundle = NULL;
-    size_t NumStoredEgressed = 0;
 
     /* Null checks */
     if ((Inst == NULL) || (BundleOut == NULL) || (Size == NULL))
@@ -90,16 +89,6 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         Status = BPLIB_INVALID_CONT_ID_ERR;
     }
     *Size = 0;
-
-    if (BPLib_QM_IsDuctEmpty(Inst, ContId, false) == true)
-    {
-        /* Ask storage for more bundles */
-        Status = BPLib_STOR_EgressForID(Inst, ContId, false, &NumStoredEgressed);
-        if (Status != BPLIB_SUCCESS)
-        {
-            return Status;
-        }
-    }
 
     /* Try to pull bundle from the duct using user-specified timeout. */
     Status = BPLib_QM_DuctPull(Inst, ContId, false, Timeout, &Bundle);

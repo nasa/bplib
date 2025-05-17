@@ -280,7 +280,6 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
 {
     BPLib_Bundle_t    *Bundle = NULL;
     BPLib_Status_t     Status;
-    size_t NumStoredEgressed = 0;
 
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
@@ -293,16 +292,6 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         Status = BPLIB_INVALID_CHAN_ID_ERR;
     }
     *AduSize = 0;
-
-    if (BPLib_QM_IsDuctEmpty(Inst, ChanId, true) == true)
-    {
-        /* Ask storage for more bundles */
-        Status = BPLib_STOR_EgressForID(Inst, ChanId, true, &NumStoredEgressed);
-        if (Status != BPLIB_SUCCESS)
-        {
-            return Status;
-        }
-    }
 
     /* Get the next bundle in the channel egress queue */
     Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
