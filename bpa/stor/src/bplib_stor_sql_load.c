@@ -120,6 +120,7 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
             CurrBlock = BundleHead;
             CurrBlock->used_len = ChunkSize;
         }
+
         /* We're loading part of the blob */
         else
         {
@@ -130,6 +131,16 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
                 fprintf(stderr, "sqlite3_blob_open failed for rowid %ld: %s\n", BlobRowId, sqlite3_errmsg(db));
                 break;
             }
+
+            /* Allocate a MEM pool block for the blob data */
+            NextBlock = BPLib_MEM_BlockAlloc(Pool);
+            if (NextBlock == NULL)
+            {
+                SQLStatus = SQLITE_IOERR;
+                sqlite3_blob_close(blob);
+                break;
+            }
+            CurrBlock->next = NextBlock;
 
             /* Make sure the chunk isn't larger than the buffer. This could happen if a previous
             ** database or BPLib version had a different chunk size. We can't support this case safely. User
@@ -145,14 +156,6 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
                 break;
             }
 
-            /* Allocate a MEM pool block for the blob data */
-            NextBlock = BPLib_MEM_BlockAlloc(Pool);
-            if (NextBlock == NULL)
-            {
-                SQLStatus = SQLITE_IOERR;
-                sqlite3_blob_close(blob);
-                break;
-            }
 
             /* Load the blob directly into the mempool block */
             SQLStatus = sqlite3_blob_read(blob, (void*)&NextBlock->user_data.raw_bytes, ChunkSize, 0);
@@ -164,7 +167,6 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
             }
 
             /* Load Succeeded */
-            CurrBlock->next = NextBlock;
             CurrBlock = NextBlock;
             CurrBlock->used_len = ChunkSize;
         }

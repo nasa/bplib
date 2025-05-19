@@ -189,7 +189,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_BundleCache_t* CacheInst;
     BPLib_STOR_LoadBatch_t* LoadBatch;
-    BPLib_Bundle_t* CurrBundle;
+    BPLib_Bundle_t* CurrBundle = NULL;
     BPLib_EID_Pattern_t LocalEID;
     BPLib_EID_Pattern_t* DestEIDs;
     BPLib_QM_WaitQueue_t* EgressQueue;
@@ -233,11 +233,11 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
         EgressQueue = &(Inst->ContactEgressJobs[EgressID]);
     }
 
+    pthread_mutex_lock(&CacheInst->lock);
+
     /* If the load batch is empty, try to read more from storage */
     if (BPLib_STOR_LoadBatch_IsEmpty(LoadBatch))
     {
-        pthread_mutex_lock(&CacheInst->lock);
-
         /* Ask SQL to load egressable bundles from the specified Destination EID */
         Status = BPLib_SQL_FindForEIDs(Inst, LoadBatch, DestEIDs, NumEIDs);
         if (Status != BPLIB_SUCCESS)
@@ -245,17 +245,13 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
             BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
                 "BPLib_SQL_EgressForDestEID failed to load bundle. RC=%d", Status);
         }
-
-        pthread_mutex_unlock(&CacheInst->lock);
     }
 
     /* All of the bundles for this batch have been egressed */
     else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
     {
         /* Mark the batch as egressed */
-        pthread_mutex_lock(&CacheInst->lock);
         Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
-        pthread_mutex_unlock(&CacheInst->lock);
 
         /* Clear the batch */
         (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
@@ -291,6 +287,8 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
             EgressCnt++;
         }
     }
+
+    pthread_mutex_unlock(&CacheInst->lock);
 
     *NumEgressed = EgressCnt;
     return Status;
