@@ -310,6 +310,7 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 
 /* Bundle Interface Errors */
 #define BPLIB_BI_INVALID_BUNDLE_ERR                     ((BPLib_Status_t) -260)
+#define BPLIB_BI_EXPIRED_BUNDLE_ERR                     ((BPLib_Status_t) -261)
 
 /** @} */
 

@@ -175,6 +175,8 @@ int64_t  BPLib_TIME_GetCorrelationFactor(void);
  */
 uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
 
+uint64_t BPLib_TIME_GetCurrentDtnTime(void);
+
 /**
  * \brief Get Time Delta
  *

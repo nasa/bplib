@@ -154,6 +154,15 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
     return DtnTime;
 }
 
+uint64_t BPLib_TIME_GetCurrentDtnTime(void)
+{
+    BPLib_TIME_MonotonicTime_t CurrMonoTime;
+
+    BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
+
+    return BPLib_TIME_GetDtnTime(CurrMonoTime);
+}
+
 /* Get delta between two provided monotonic times */
 BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
                                        BPLib_TIME_MonotonicTime_t Time2, int64_t *Delta)

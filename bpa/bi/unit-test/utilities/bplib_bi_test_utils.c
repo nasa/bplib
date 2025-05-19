@@ -23,7 +23,7 @@
 */
 
 #include "bplib_bi_test_utils.h"
-
+#include "bplib_time_handlers.h"
 
 /*
 ** Global Data
@@ -42,6 +42,7 @@ void BPLib_BI_Test_Setup(void)
 
     memset(&DeserializedBundle, 0, sizeof(DeserializedBundle));
 
+    DeserializedBundle.blocks.PrimaryBlock.Lifetime = 100000;
     DeserializedBundle.blocks.PayloadHeader.BlockType = BPLib_BlockType_Payload;
     DeserializedBundle.blocks.ExtBlocks[0].Header.BlockType = BPLib_BlockType_HopCount;
     DeserializedBundle.blocks.ExtBlocks[0].Header.BlockNum = 2;
@@ -52,6 +53,7 @@ void BPLib_BI_Test_Setup(void)
     DeserializedBundle.blocks.ExtBlocks[3].Header.BlockType = BPLib_BlockType_Reserved;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_TIME_GetMonotonicTime), UT_Handler_BPLib_TIME_GetMonotonicTime, NULL);
 }
 
 void BPLib_BI_Test_Teardown(void)

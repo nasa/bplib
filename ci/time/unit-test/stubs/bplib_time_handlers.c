@@ -38,3 +38,16 @@ void UT_Handler_BPLib_TIME_GetTimeDelta(void *UserObj, UT_EntryKey_t FuncKey, co
         UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetTimeDelta), Delta, sizeof(int64_t *));
     }
 }
+
+void UT_Handler_BPLib_TIME_GetMonotonicTime(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    BPLib_TIME_MonotonicTime_t *MonotonicTime = UT_Hook_GetArgValueByName(Context, "MonotonicTime", BPLib_TIME_MonotonicTime_t *);
+    int32 Status;
+
+    UT_Stub_GetInt32StatusCode(Context, &Status);
+
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_TIME_GetMonotonicTime), MonotonicTime, sizeof(*MonotonicTime));
+    }
+}
