@@ -125,7 +125,7 @@ BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId);
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId);
 
 /**
  * \brief Validate configurations

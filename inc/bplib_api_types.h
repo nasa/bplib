@@ -138,6 +138,8 @@ typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 #define BPLIB_INVALID_CHAN_ID_ERR                       ((BPLib_Status_t) -13) /* Invalid Channel ID */
 #define BPLIB_INVALID_CONT_ID_ERR                       ((BPLib_Status_t) -14) /* Invalid Contact ID */
 #define BPLIB_INVALID_CONFIG_ERR                        ((BPLib_Status_t) -15) /* Invalid configuration */
+#define BPLIB_APP_STATE_ERR                             ((BPLib_Status_t) -16) /* Invalid application state */
+
 /*
 
 #define BPLIB_GENERIC_ERROR_17              ((BPLib_Status_t) -17) // Error description

@@ -27,6 +27,7 @@
 #include "bplib_bi.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
+#include "bplib_stor.h"
 
 /* =========== */
 /* Global Data */
@@ -306,13 +307,25 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     return Status;
 }
 
-BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
+BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t ContactId)
 {
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
+    BPLib_Bundle_t             *Bundle;
 
+    if (Inst == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
+        /* Push any bundles waiting for egress back into storage */
+        while (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContactId], &Bundle, 0))
+        {
+            BPLib_STOR_StoreBundle(Inst, Bundle);
+        }
+
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
         if (RunState == BPLIB_CLA_STOPPED || RunState == BPLIB_CLA_SETUP)
         {

@@ -33,6 +33,7 @@
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
 #include "bplib_ebp.h"
+#include "bplib_stor.h"
 #include <stdio.h>
 
 
@@ -93,9 +94,59 @@ BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
 }
 
 /* Remove application configurations */
-BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId)
 {
-    return BPLIB_SUCCESS;
+    BPLib_Bundle_t *Bundle;
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    if (Inst == NULL)
+    {
+        /* Not a normal ops error, this can be reported by the general NC error event */
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be stopped or added */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_ADDED && AppState != BPLIB_NC_APP_STATE_STOPPED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Push any bundles waiting for egress back into storage */
+    while (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, 0))
+    {
+        BPLib_STOR_StoreBundle(Inst, Bundle);
+    }
+    
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {
+        /* Set app state to removed */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_REMOVED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;
 }
 
 /* Validate channel configuration parameters */

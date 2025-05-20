@@ -224,7 +224,7 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId);
  *                                       successful operation
  * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID is invalid
  */
-BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId);
+BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t ContactId);
 
 /**
   * \brief      Get access to the run state of a particular contact

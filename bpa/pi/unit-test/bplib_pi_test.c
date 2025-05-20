@@ -36,8 +36,9 @@ void Test_BPLib_PI_AddApplication_Nominal(void)
 void Test_BPLib_PI_RemoveApplication_Nominal(void)
 {
     uint8_t ChanId = 0;
+    BPLib_Instance_t Inst;
 
-    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
 }
 
 /* Test nominal validate configs function */

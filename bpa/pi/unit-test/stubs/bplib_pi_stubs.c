@@ -89,11 +89,12 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Ad
  * Generated stub function for BPLib_PI_RemoveApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_PI_RemoveApplication, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_PI_RemoveApplication, uint8_t, ChanId);
+    UT_GenStub_AddParam(BPLib_PI_RemoveApplication, BPLib_Instance_t *, Inst);
+    UT_GenStub_AddParam(BPLib_PI_RemoveApplication, uint32_t, ChanId);
 
     UT_GenStub_Execute(BPLib_PI_RemoveApplication, Basic, NULL);
 

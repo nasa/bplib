@@ -186,8 +186,9 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
  * Generated stub function for BPLib_NC_ContactTeardown()
  * ----------------------------------------------------
  */
-void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
+void BPLib_NC_ContactTeardown(BPLib_Instance_t *Inst, const BPLib_ContactTeardown_Payload_t Payload)
 {
+    UT_GenStub_AddParam(BPLib_NC_ContactTeardown, BPLib_Instance_t *, Inst);
     UT_GenStub_AddParam(BPLib_NC_ContactTeardown, const BPLib_ContactTeardown_Payload_t, Payload);
 
     UT_GenStub_Execute(BPLib_NC_ContactTeardown, Basic, NULL);
@@ -253,8 +254,9 @@ void BPLib_NC_ReloadSavedData(void)
  * Generated stub function for BPLib_NC_RemoveApplication()
  * ----------------------------------------------------
  */
-void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
+void BPLib_NC_RemoveApplication(BPLib_Instance_t *Inst, const BPLib_RemoveApplication_Payload_t Payload)
 {
+    UT_GenStub_AddParam(BPLib_NC_RemoveApplication, BPLib_Instance_t *, Inst);
     UT_GenStub_AddParam(BPLib_NC_RemoveApplication, const BPLib_RemoveApplication_Payload_t, Payload);
 
     UT_GenStub_Execute(BPLib_NC_RemoveApplication, Basic, NULL);

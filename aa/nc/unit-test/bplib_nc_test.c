@@ -620,11 +620,12 @@ void Test_BPLib_NC_AddApplication_Error(void)
 void Test_BPLib_NC_RemoveApplication_Nominal(void)
 {
     BPLib_RemoveApplication_Payload_t Payload;
+    BPLib_Instance_t Inst;
 
     memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
 
     Payload.ChanId = 2;
-    BPLib_NC_RemoveApplication(Payload);
+    BPLib_NC_RemoveApplication(&Inst, Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
@@ -637,6 +638,7 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
 void Test_BPLib_NC_RemoveApplication_Error(void)
 {
     BPLib_RemoveApplication_Payload_t Payload;
+    BPLib_Instance_t Inst;
 
     memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
 
@@ -644,7 +646,7 @@ void Test_BPLib_NC_RemoveApplication_Error(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
-    BPLib_NC_RemoveApplication(Payload);
+    BPLib_NC_RemoveApplication(&Inst, Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
@@ -1133,11 +1135,12 @@ void Test_BPLib_NC_ContactStop_Error(void)
 void Test_BPLib_NC_ContactTeardown_Nominal(void)
 {
     BPLib_ContactTeardown_Payload_t Payload;
+    BPLib_Instance_t Inst;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_SUCCESS);
 
     Payload.ContactId = 0;
-    BPLib_NC_ContactTeardown(Payload);
+    BPLib_NC_ContactTeardown(&Inst, Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
@@ -1150,11 +1153,12 @@ void Test_BPLib_NC_ContactTeardown_Nominal(void)
 void Test_BPLib_NC_ContactTeardown_Error(void)
 {
     BPLib_ContactTeardown_Payload_t Payload;
+    BPLib_Instance_t Inst;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_ERROR);
 
     Payload.ContactId = 0;
-    BPLib_NC_ContactTeardown(Payload);
+    BPLib_NC_ContactTeardown(&Inst, Payload);
 
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);

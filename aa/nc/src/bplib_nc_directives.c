@@ -24,6 +24,7 @@
 
 #include "bplib_nc_directives.h"
 #include "bplib_cla.h"
+#include "bplib_pi.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -392,12 +393,12 @@ void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
     }
 }
 
-void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
+void BPLib_NC_RemoveApplication(BPLib_Instance_t *Inst, const BPLib_RemoveApplication_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
     /* Remove application configurations */
-    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication(Payload.ChanId);
+    Status = BPLib_PI_RemoveApplication(Inst, Payload.ChanId);
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -859,11 +860,11 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
     }
 }
 
-void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
+void BPLib_NC_ContactTeardown(BPLib_Instance_t *Inst, const BPLib_ContactTeardown_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_CLA_ContactTeardown(Payload.ContactId);
+    Status = BPLib_CLA_ContactTeardown(Inst, Payload.ContactId);
 
     if (Status == BPLIB_SUCCESS)
     {

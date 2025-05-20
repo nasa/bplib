@@ -194,7 +194,7 @@ void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload);
   * \param[in] Payload BPLib_RemoveApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    void
   */
-void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload);
+void BPLib_NC_RemoveApplication(BPLib_Instance_t *Inst, const BPLib_RemoveApplication_Payload_t Payload);
 
 /**
   * \brief     Set given application's channel state to specified state
@@ -347,7 +347,7 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload);
   * \param[in] Payload BPLib_ContactTeardown_Payload_t type found in bplib_nc_payloads.h
   * \return    void
   */
-void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload);
+void BPLib_NC_ContactTeardown(BPLib_Instance_t *Inst, const BPLib_ContactTeardown_Payload_t Payload);
 
 /**
   * \brief     Add given EID pattern as key to map of MIB counters accessed by source EID

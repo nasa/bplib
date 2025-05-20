@@ -181,6 +181,9 @@
 #define BPLIB_PI_EGRESS_ERR_EID                         (681u)
 #define BPLIB_PI_INGRESS_DBG_EID                        (682u)
 #define BPLIB_PI_INGRESS_ERR_EID                        (683u)
+#define BPLIB_PI_REMOVE_STATE_ERR_EID                   (684u)
+#define BPLIB_PI_REMOVE_ID_ERR_EID                      (685u)
+#define BPLIB_PI_REMOVE_FWP_ERR_EID                     (686u)
 
 /* QM event IDs */
 #define BPLIB_QM_EBP_OUT_ERR_EID                        (690u)
