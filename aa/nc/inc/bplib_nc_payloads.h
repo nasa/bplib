@@ -100,14 +100,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ChanId;         /** \brief Channel ID */
-    uint8_t Spare[3];       /** \brief Spare bytes */
+    uint32_t ChanId;         /** \brief Channel ID */
 } BPLib_AddApplication_Payload_t;
 
 typedef struct
 {
-    uint8_t ChanId;         /** \brief Channel ID */
-    uint8_t Spare[3];       /** \brief Spare bytes */
+    uint32_t ChanId;         /** \brief Channel ID */
 } BPLib_RemoveApplication_Payload_t;
 
 typedef struct
@@ -117,14 +115,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ChanId;         /** \brief Channel ID */
-    uint8_t Spare[3];       /** \brief Spare bytes */
+    uint32_t ChanId;         /** \brief Channel ID */
 } BPLib_StartApplication_Payload_t;
 
 typedef struct
 {
-    uint8_t ChanId;         /** \brief Channel ID */
-    uint8_t Spare[3];       /** \brief Spare bytes */
+    uint32_t ChanId;         /** \brief Channel ID */
 } BPLib_StopApplication_Payload_t;
 
 typedef struct
