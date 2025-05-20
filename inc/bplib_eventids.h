@@ -184,8 +184,17 @@
 #define BPLIB_PI_REMOVE_STATE_ERR_EID                   (684u)
 #define BPLIB_PI_REMOVE_ID_ERR_EID                      (685u)
 #define BPLIB_PI_REMOVE_FWP_ERR_EID                     (686u)
+#define BPLIB_PI_ADD_ID_ERR_EID                         (687u)
+#define BPLIB_PI_ADD_STATE_ERR_EID                      (688u)
+#define BPLIB_PI_ADD_FWP_ERR_EID                        (689u)
+#define BPLIB_PI_START_ID_ERR_EID                       (690u)
+#define BPLIB_PI_START_STATE_ERR_EID                    (691u)
+#define BPLIB_PI_START_FWP_ERR_EID                      (692u)
+#define BPLIB_PI_STOP_ID_ERR_EID                        (693u)
+#define BPLIB_PI_STOP_STATE_ERR_EID                     (694u)
+#define BPLIB_PI_STOP_FWP_ERR_EID                       (695u)
 
 /* QM event IDs */
-#define BPLIB_QM_EBP_OUT_ERR_EID                        (690u)
+#define BPLIB_QM_EBP_OUT_ERR_EID                        (700u)
 
 #endif /* BPLIB_EVENTIDS_H */

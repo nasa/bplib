@@ -99,7 +99,8 @@ typedef struct
  * \brief Add Application
  *
  *  \par Description
- *       Add application configurations to Payload Interface
+ *       Run add-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -109,18 +110,54 @@ typedef struct
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId);
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId);
 
 /**
- * \brief Remove Application
+ * \brief Start Application
  *
  *  \par Description
- *       Remove application configurations from Payload Interface
+ *       Run start-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
  *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId);
+
+/**
+ * \brief Stop Application
+ *
+ *  \par Description
+ *       Run stop-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId);
+
+/**
+ * \brief Remove Application
+ *
+ *  \par Description
+ *       Run remove-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *  \param[in] Inst Instance of bplib
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful

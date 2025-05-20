@@ -27,20 +27,170 @@
 /* Test nominal add application function */
 void Test_BPLib_PI_AddApplication_Nominal(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_REMOVED);
 
     UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+/* Test BPLib_PI_AddApplication when the channel ID is invalid */
+void Test_BPLib_PI_AddApplication_BadId(void)
+{
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+
+    UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_ID_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with add-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_AddApplication when the app state is neither stopped or added */
+void Test_BPLib_PI_AddApplication_BadState(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+
+    UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_APP_STATE_ERR);
+
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_STATE_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with add-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test nominal start application function */
+void Test_BPLib_PI_StartApplication_Nominal(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
+
+    UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+/* Test nominal start application function when starting from stopped state */
+void Test_BPLib_PI_StartApplication_Stopped(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
+
+    UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+/* Test BPLib_PI_StartApplication when the channel ID is invalid */
+void Test_BPLib_PI_StartApplication_BadId(void)
+{
+    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+
+    UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_ID_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with start-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_StartApplication when the app state is not added */
+void Test_BPLib_PI_StartApplication_BadState(void)
+{
+    uint8_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+
+    UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_APP_STATE_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_STATE_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with start-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test nominal stop application function */
+void Test_BPLib_PI_StopApplication_Nominal(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+
+    UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+/* Test BPLib_PI_StopApplication when the channel ID is invalid */
+void Test_BPLib_PI_StopApplication_BadId(void)
+{
+    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+
+    UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_ID_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with stop-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_StopApplication when the app state is not started */
+void Test_BPLib_PI_StopApplication_BadState(void)
+{
+    uint8_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
+
+    UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_APP_STATE_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_STATE_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with stop-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 /* Test nominal remove application function */
 void Test_BPLib_PI_RemoveApplication_Nominal(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     BPLib_Instance_t Inst;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+
+/* Test BPLib_PI_RemoveApplication */
+void Test_BPLib_PI_RemoveApplication_Added(void)
+{
+    uint8_t ChanId = 0;
+    BPLib_Instance_t Inst;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
+/* Test BPLib_PI_RemoveApplication when the channel ID is invalid */
+void Test_BPLib_PI_RemoveApplication_BadId(void)
+{
+    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    BPLib_Instance_t Inst;
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_INVALID_CHAN_ID_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_ID_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_RemoveApplication when the app state is not stopped */
+void Test_BPLib_PI_RemoveApplication_BadState(void)
+{
+    uint8_t ChanId = 0;
+    BPLib_Instance_t Inst;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_APP_STATE_ERR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_STATE_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 /* Test nominal validate configs function */
@@ -322,7 +472,7 @@ void Test_BPLib_PI_ValidateConfigs_BadPayloadBlk(void)
 /* Test nominal ingress function */
 void Test_BPLib_PI_Ingress_Nominal(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t AduSize = 0;
     BPLib_Bundle_t Bundle;
@@ -341,7 +491,7 @@ void Test_BPLib_PI_Ingress_Nominal(void)
 /* Test ingress function null checks */
 void Test_BPLib_PI_Ingress_Null(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t AduSize = 0;
 
@@ -362,7 +512,7 @@ void Test_BPLib_PI_Ingress_Null(void)
 /* Test ingress function channel ID check */
 void Test_BPLib_PI_Ingress_BadChanId(void)
 {
-    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
     uint8_t AduPtr[10];
     size_t AduSize = 0;
 
@@ -372,7 +522,7 @@ void Test_BPLib_PI_Ingress_BadChanId(void)
 /* Test ingress function null memory allocation */
 void Test_BPLib_PI_Ingress_NullMem(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t AduSize = 0;
 
@@ -387,7 +537,7 @@ void Test_BPLib_PI_Ingress_NullMem(void)
 /* Test nominal egress function */
 void Test_BPLib_PI_Egress_Nominal(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t BufLen = 10;
     size_t AduSize;
@@ -408,7 +558,7 @@ void Test_BPLib_PI_Egress_Nominal(void)
 /* Test egress function when copy fails */
 void Test_BPLib_PI_Egress_BadCopy(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t BufLen = 10;
     size_t AduSize;
@@ -430,7 +580,7 @@ void Test_BPLib_PI_Egress_BadCopy(void)
 /* Test egress function null checks */
 void Test_BPLib_PI_Egress_Null(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t BufLen = 10;
     size_t AduSize;
@@ -449,7 +599,7 @@ void Test_BPLib_PI_Egress_Null(void)
 /* Test egress function invalid channel ID  */
 void Test_BPLib_PI_Egress_BadChanId(void)
 {
-    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
     uint8_t AduPtr[10];
     size_t BufLen = 10;
     size_t AduSize = 10;
@@ -462,7 +612,7 @@ void Test_BPLib_PI_Egress_BadChanId(void)
 /* Test egress function timeout */
 void Test_BPLib_PI_Egress_Timeout(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     uint8_t AduPtr[10];
     size_t BufLen = 10;
     size_t AduSize;
@@ -477,8 +627,22 @@ void Test_BPLib_PI_Egress_Timeout(void)
 void TestBplibPi_Register(void)
 {
     ADD_TEST(Test_BPLib_PI_AddApplication_Nominal);
+    ADD_TEST(Test_BPLib_PI_AddApplication_BadId);
+    ADD_TEST(Test_BPLib_PI_AddApplication_BadState);
+
+    ADD_TEST(Test_BPLib_PI_StartApplication_Nominal);
+    ADD_TEST(Test_BPLib_PI_StartApplication_Stopped);
+    ADD_TEST(Test_BPLib_PI_StartApplication_BadId);
+    ADD_TEST(Test_BPLib_PI_StartApplication_BadState);
+
+    ADD_TEST(Test_BPLib_PI_StopApplication_Nominal);
+    ADD_TEST(Test_BPLib_PI_StopApplication_BadId);
+    ADD_TEST(Test_BPLib_PI_StopApplication_BadState);
 
     ADD_TEST(Test_BPLib_PI_RemoveApplication_Nominal);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_Added);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_BadId);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_BadState);
 
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_Nominal);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_RegStateInv);

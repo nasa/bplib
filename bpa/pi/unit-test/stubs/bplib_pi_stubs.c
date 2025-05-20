@@ -32,11 +32,11 @@
  * Generated stub function for BPLib_PI_AddApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_PI_AddApplication, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_PI_AddApplication, uint8_t, ChanId);
+    UT_GenStub_AddParam(BPLib_PI_AddApplication, uint32_t, ChanId);
 
     UT_GenStub_Execute(BPLib_PI_AddApplication, Basic, NULL);
 
@@ -99,6 +99,38 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     UT_GenStub_Execute(BPLib_PI_RemoveApplication, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_PI_RemoveApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_StartApplication()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_StartApplication, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_StartApplication, uint32_t, ChanId);
+
+    UT_GenStub_Execute(BPLib_PI_StartApplication, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_StartApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_StopApplication()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_StopApplication, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_StopApplication, uint32_t, ChanId);
+
+    UT_GenStub_Execute(BPLib_PI_StopApplication, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_StopApplication, BPLib_Status_t);
 }
 
 /*

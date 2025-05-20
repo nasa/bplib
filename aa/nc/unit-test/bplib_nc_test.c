@@ -604,7 +604,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
     memset((void*) &Payload, 0, sizeof(BPLib_AddApplication_Payload_t));
 
     /* Check channel error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_AddApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
     BPLib_NC_AddApplication(Payload);
@@ -704,7 +704,7 @@ void Test_BPLib_NC_StartApplication_Error(void)
     BPLib_StartApplication_Payload_t Payload;
 
     /* Channel error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_StartApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     BPLib_NC_StartApplication(Payload);
@@ -737,7 +737,7 @@ void Test_BPLib_NC_StopApplication_Error(void)
     BPLib_StopApplication_Payload_t Payload;
 
     /* Invalid channel return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_StopApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     BPLib_NC_StopApplication(Payload);

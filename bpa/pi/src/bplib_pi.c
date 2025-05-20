@@ -88,9 +88,135 @@ BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConf
 */
 
 /* Add application configurations */
-BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
 {
-    return BPLIB_SUCCESS;
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be either stopped or added */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState == BPLIB_NC_APP_STATE_STARTED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {        
+        /* Set app state to added */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_ADDED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
+{
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be added */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_ADDED &&
+        AppState != BPLIB_NC_APP_STATE_STOPPED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState,
+                            ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {        
+        /* Set app state to added */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STARTED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;    
+}
+
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
+{
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be started */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_STARTED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {        
+        /* Set app state to added */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STOPPED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;  
 }
 
 /* Remove application configurations */
