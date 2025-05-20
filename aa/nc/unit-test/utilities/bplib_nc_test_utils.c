@@ -128,7 +128,6 @@ void BPLib_NC_Test_Setup(void)
     UT_ResetState(0);
 
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication            = BPA_ADUP_AddApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication         = BPA_ADUP_RemoveApplication;
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication          = BPA_ADUP_StartApplication;
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication           = BPA_ADUP_StopApplication;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt      = BPA_TLMP_SendNodeMibConfigPkt;

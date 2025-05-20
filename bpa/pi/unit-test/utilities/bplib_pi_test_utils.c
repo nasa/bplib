@@ -46,6 +46,8 @@ void BPLib_PI_Test_Setup(void)
 
     BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
 
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication = BPA_ADUP_RemoveApplication;
+
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
 }

@@ -643,7 +643,7 @@ void Test_BPLib_NC_RemoveApplication_Error(void)
     memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
 
     /* Check channel error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_RemoveApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
     BPLib_NC_RemoveApplication(&Inst, Payload);

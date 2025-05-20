@@ -38,6 +38,8 @@ void Test_BPLib_PI_RemoveApplication_Nominal(void)
     uint8_t ChanId = 0;
     BPLib_Instance_t Inst;
 
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
+
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
 }
 
