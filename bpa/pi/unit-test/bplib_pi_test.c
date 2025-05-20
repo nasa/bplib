@@ -60,6 +60,20 @@ void Test_BPLib_PI_AddApplication_BadState(void)
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
+/* Test BPLib_PI_AddApplication when the proxy returns an error */
+void Test_BPLib_PI_AddApplication_ProxyErr(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_REMOVED);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_ERROR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_FWP_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with add-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 /* Test nominal start application function */
 void Test_BPLib_PI_StartApplication_Nominal(void)
 {
@@ -85,7 +99,7 @@ void Test_BPLib_PI_StartApplication_Stopped(void)
 /* Test BPLib_PI_StartApplication when the channel ID is invalid */
 void Test_BPLib_PI_StartApplication_BadId(void)
 {
-    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
 
     UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_ID_ERR_EID);
@@ -96,13 +110,27 @@ void Test_BPLib_PI_StartApplication_BadId(void)
 /* Test BPLib_PI_StartApplication when the app state is not added */
 void Test_BPLib_PI_StartApplication_BadState(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
 
     UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_APP_STATE_ERR);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_STATE_ERR_EID);
     UtAssert_STRINGBUF_EQ("Error with start-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_StartApplication when the proxy returns an error */
+void Test_BPLib_PI_StartApplication_ProxyErr(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_ERROR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_FWP_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with start-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -120,7 +148,7 @@ void Test_BPLib_PI_StopApplication_Nominal(void)
 /* Test BPLib_PI_StopApplication when the channel ID is invalid */
 void Test_BPLib_PI_StopApplication_BadId(void)
 {
-    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
 
     UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_ID_ERR_EID);
@@ -131,7 +159,7 @@ void Test_BPLib_PI_StopApplication_BadId(void)
 /* Test BPLib_PI_StopApplication when the app state is not started */
 void Test_BPLib_PI_StopApplication_BadState(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
 
@@ -141,11 +169,28 @@ void Test_BPLib_PI_StopApplication_BadState(void)
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
+/* Test BPLib_PI_StopApplication when the proxy returns an error */
+void Test_BPLib_PI_StopApplication_ProxyErr(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_ERROR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_FWP_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with stop-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 /* Test nominal remove application function */
 void Test_BPLib_PI_RemoveApplication_Nominal(void)
 {
     uint32_t ChanId = 0;
     BPLib_Instance_t Inst;
+
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
 
@@ -157,7 +202,7 @@ void Test_BPLib_PI_RemoveApplication_Nominal(void)
 /* Test BPLib_PI_RemoveApplication */
 void Test_BPLib_PI_RemoveApplication_Added(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     BPLib_Instance_t Inst;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
@@ -167,10 +212,18 @@ void Test_BPLib_PI_RemoveApplication_Added(void)
     UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
 }
 
+/* Test BPLib_PI_RemoveApplication when inst is null */
+void Test_BPLib_PI_RemoveApplication_NullInst(void)
+{
+    uint32_t ChanId = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(NULL, ChanId), BPLIB_NULL_PTR_ERROR);
+}
+
 /* Test BPLib_PI_RemoveApplication when the channel ID is invalid */
 void Test_BPLib_PI_RemoveApplication_BadId(void)
 {
-    uint8_t ChanId = BPLIB_MAX_NUM_CHANNELS;
+    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
     BPLib_Instance_t Inst;
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_INVALID_CHAN_ID_ERR);
@@ -182,7 +235,7 @@ void Test_BPLib_PI_RemoveApplication_BadId(void)
 /* Test BPLib_PI_RemoveApplication when the app state is not stopped */
 void Test_BPLib_PI_RemoveApplication_BadState(void)
 {
-    uint8_t ChanId = 0;
+    uint32_t ChanId = 0;
     BPLib_Instance_t Inst;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
@@ -190,6 +243,21 @@ void Test_BPLib_PI_RemoveApplication_BadState(void)
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_APP_STATE_ERR);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_STATE_ERR_EID);
     UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_RemoveApplication when the proxy returns an error */
+void Test_BPLib_PI_RemoveApplication_ProxyErr(void)
+{
+    uint32_t ChanId = 0;
+    BPLib_Instance_t Inst;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_ERROR);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_FWP_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Error with remove-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -629,20 +697,25 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_AddApplication_Nominal);
     ADD_TEST(Test_BPLib_PI_AddApplication_BadId);
     ADD_TEST(Test_BPLib_PI_AddApplication_BadState);
+    ADD_TEST(Test_BPLib_PI_AddApplication_ProxyErr);
 
     ADD_TEST(Test_BPLib_PI_StartApplication_Nominal);
     ADD_TEST(Test_BPLib_PI_StartApplication_Stopped);
     ADD_TEST(Test_BPLib_PI_StartApplication_BadId);
     ADD_TEST(Test_BPLib_PI_StartApplication_BadState);
+    ADD_TEST(Test_BPLib_PI_StartApplication_ProxyErr);
 
     ADD_TEST(Test_BPLib_PI_StopApplication_Nominal);
     ADD_TEST(Test_BPLib_PI_StopApplication_BadId);
     ADD_TEST(Test_BPLib_PI_StopApplication_BadState);
+    ADD_TEST(Test_BPLib_PI_StopApplication_ProxyErr);
 
     ADD_TEST(Test_BPLib_PI_RemoveApplication_Nominal);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_NullInst);
     ADD_TEST(Test_BPLib_PI_RemoveApplication_Added);
     ADD_TEST(Test_BPLib_PI_RemoveApplication_BadId);
     ADD_TEST(Test_BPLib_PI_RemoveApplication_BadState);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_ProxyErr);
 
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_Nominal);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_RegStateInv);
