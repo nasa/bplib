@@ -57,6 +57,20 @@ int64_t BPLib_TIME_GetCorrelationFactor(void)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetCurrentDtnTime()
+ * ----------------------------------------------------
+ */
+uint64_t BPLib_TIME_GetCurrentDtnTime(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetCurrentDtnTime, uint64_t);
+
+    UT_GenStub_Execute(BPLib_TIME_GetCurrentDtnTime, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetCurrentDtnTime, uint64_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_GetDtnTime()
  * ----------------------------------------------------
  */
