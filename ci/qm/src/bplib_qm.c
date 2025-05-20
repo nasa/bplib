@@ -285,9 +285,9 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool Loca
     }
 
     /* If the duct is empty, try to load more from storage */
-    if ((BPLib_QM_IsDuctEmpty(Inst, EgressID, LocalDelivery) == true) && DuctActive)
+    if (DuctActive && (BPLib_QM_IsDuctEmpty(Inst, EgressID, LocalDelivery) == true))
     {
-        Status = BPLib_STOR_EgressForID(Inst, EgressID, false, &NumStoredEgressed);
+        Status = BPLib_STOR_EgressForID(Inst, EgressID, LocalDelivery, &NumStoredEgressed);
         if (Status != BPLIB_SUCCESS)
         {
             return Status;
