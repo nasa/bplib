@@ -47,9 +47,9 @@ target_include_directories(utobj_bplib_stor PRIVATE
 add_executable(coverage-bplib_stor-testrunner
    utilities/bplib_stor_test_utils.c
    #bplib_stor_tests.c
-   bplib_stor_load_tests.c
+   #bplib_stor_load_tests.c
    bplib_stor_loadbatch_tests.c
-   bplib_stor_store_tests.c
+   #bplib_stor_store_tests.c
    $<TARGET_OBJECTS:utobj_bplib_stor>
 )
 

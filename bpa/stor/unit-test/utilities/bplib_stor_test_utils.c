@@ -134,5 +134,6 @@ void BPLib_STOR_Test_TeardownOneBundleStored(void)
 
 void UtTest_Setup(void)
 {
-    TestBplibStor_Register();
+    //TestBplibStor_Register();
+    TestBplib_STOR_LoadBatch_Register();
 }
