@@ -50,6 +50,8 @@ extern BPLib_QM_CreateJobContext_t Context_BPLib_QM_CreateJob[];
 
 void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
+void UT_Handler_BPLib_QM_DuctPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
 void UT_Handler_BPLib_QM_CreateJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 #endif /* BPLIB_QM_HANDLERS_H */

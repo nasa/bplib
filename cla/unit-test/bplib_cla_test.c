@@ -155,7 +155,7 @@ void Test_BPLib_CLA_Egress_NullInstanceInputError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -177,7 +177,7 @@ void Test_BPLib_CLA_Egress_NullBundleOutBufferError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -199,7 +199,7 @@ void Test_BPLib_CLA_Egress_NullSizeBufferError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -222,7 +222,7 @@ void Test_BPLib_CLA_Egress_BadContId(void)
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONT_ID_ERR);
     UtAssert_INT32_EQ(NumBytesCopiedToOutputBuf, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -236,7 +236,7 @@ void Test_BPLib_CLA_Egress_QueuePullTimeout(void)
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_TIMEOUT);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
@@ -246,7 +246,7 @@ void Test_BPLib_CLA_Egress_QueuePullTimeout(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_TIMEOUT);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -260,7 +260,7 @@ void Test_BPLib_CLA_Egress_BlobCopyFail(void)
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_BUF_LEN_ERROR);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
@@ -271,7 +271,7 @@ void Test_BPLib_CLA_Egress_BlobCopyFail(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_BUF_LEN_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
 }
 
@@ -287,9 +287,9 @@ void Test_BPLib_CLA_Egress_Nominal(void)
     BPLib_Bundle_t Bundle;
     BPLib_Bundle_t *BundlePtr = &Bundle;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_DuctPull), &BundlePtr, sizeof(BundlePtr), false);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
@@ -299,7 +299,7 @@ void Test_BPLib_CLA_Egress_Nominal(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
 }
 

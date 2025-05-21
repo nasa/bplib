@@ -81,12 +81,12 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
     /* Null checks */
     if ((Inst == NULL) || (BundleOut == NULL) || (Size == NULL))
     {
-        Status = BPLIB_NULL_PTR_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
     else if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
         *Size = 0;
-        Status = BPLIB_INVALID_CONT_ID_ERR;
+        return BPLIB_INVALID_CONT_ID_ERR;
     }
     *Size = 0;
 

@@ -284,12 +284,12 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
     {
-        Status = BPLIB_NULL_PTR_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
     else if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
         *AduSize = 0;
-        Status = BPLIB_INVALID_CHAN_ID_ERR;
+        return BPLIB_INVALID_CHAN_ID_ERR;
     }
     *AduSize = 0;
 

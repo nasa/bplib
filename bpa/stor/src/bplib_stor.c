@@ -243,7 +243,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
         if (Status != BPLIB_SUCCESS)
         {
             BPLib_EM_SendEvent(BPLIB_STOR_SQL_LOAD_ERR_EID, BPLib_EM_EventType_ERROR,
-                "BPLib_SQL_EgressForDestEID failed to load bundle. RC=%d", Status);
+                "BPLib_SQL_FindForEIDs failed to load bundle. RC=%d", Status);
         }
     }
 

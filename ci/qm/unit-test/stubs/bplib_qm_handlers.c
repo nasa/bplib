@@ -41,6 +41,20 @@ void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, 
     }
 }
 
+void UT_Handler_BPLib_QM_DuctPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    BPLib_Bundle_t **RetBundle = UT_Hook_GetArgValueByName(Context, "RetBundle", BPLib_Bundle_t **);
+    int32 Status;
+
+    UT_Stub_GetInt32StatusCode(Context, &Status);
+
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_QM_DuctPull), RetBundle, sizeof(BPLib_Bundle_t **));
+    }
+}
+
+
 void UT_Handler_BPLib_QM_CreateJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     uint16 CallNum;
