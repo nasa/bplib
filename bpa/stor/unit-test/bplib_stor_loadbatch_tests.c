@@ -71,18 +71,33 @@ void Test_BPLib_STOR_LoadBatch_IsEmptyNull(void)
 
 void Test_BPLib_STOR_LoadBatch_IsEmptyNominal(void)
 {
+    BPLib_STOR_LoadBatch_t Batch;
+
+    Batch.Size = 0;
+    UtAssert_BOOL_TRUE(BPLib_STOR_LoadBatch_IsEmpty(&Batch));
+
+    Batch.Size = 1;
+    UtAssert_BOOL_FALSE(BPLib_STOR_LoadBatch_IsEmpty(&Batch));
 
 }
 
 void Test_BPLib_STOR_LoadBatch_IsConsumedNull(void)
 {
     /* If IsConsumed is given a null pointer, correct behavior is to return true */
-    UtAssert_BOOL_TRUE(BPLib_STOR_LoadBatch_IsEmpty(NULL));
+    UtAssert_BOOL_TRUE(BPLib_STOR_LoadBatch_IsConsumed(NULL));
 }
 
 void Test_BPLib_STOR_LoadBatch_IsConsumedNominal(void)
 {
+    BPLib_STOR_LoadBatch_t Batch;
 
+    Batch.Size = 1;
+    Batch.ReadIndex = 0;
+    UtAssert_BOOL_FALSE(BPLib_STOR_LoadBatch_IsConsumed(&Batch));
+
+    Batch.Size = 1;
+    Batch.ReadIndex = 1;
+    UtAssert_BOOL_TRUE(BPLib_STOR_LoadBatch_IsConsumed(&Batch));
 }
 
 void Test_BPLib_STOR_LoadBatch_AddIDNull(void)
@@ -92,7 +107,16 @@ void Test_BPLib_STOR_LoadBatch_AddIDNull(void)
 
 void Test_BPLib_STOR_LoadBatch_AddIDNominal(void)
 {
-    
+    BPLib_STOR_LoadBatch_t Batch;
+
+    /* Add an ID with space available. This should succeed */
+    Batch.Size = 0;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_AddID(&Batch, 123), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(Batch.BundleIDs[0], 123);
+
+    /* Add an ID with no space available. This should return BATCH_FULL */
+    Batch.Size = BPLIB_STOR_LOADBATCHSIZE;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_AddID(&Batch, 234), BPLIB_STOR_BATCH_FULL);
 }
 
 void Test_BPLib_STOR_LoadBatch_PeekNextIDNull(void)
@@ -106,7 +130,25 @@ void Test_BPLib_STOR_LoadBatch_PeekNextIDNull(void)
 
 void Test_BPLib_STOR_LoadBatch_PeekNextIDNominal(void)
 {
+    BPLib_STOR_LoadBatch_t Batch;
+    int64_t RetID;
 
+    /* Peek with an empty batch. This should return BATCH_EMPTY */
+    Batch.Size = 0;
+    Batch.ReadIndex = 0;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_PeekNextID(&Batch, &RetID), BPLIB_STOR_BATCH_EMPTY);
+
+    /* Peek with a bundle ID available */
+    Batch.ReadIndex = 0;
+    Batch.Size = 1;
+    Batch.BundleIDs[0] = 123;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_PeekNextID(&Batch, &RetID), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(RetID, 123);
+
+    /* Peek with batch already consumed */
+    Batch.Size = 1;
+    Batch.ReadIndex = 1;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_PeekNextID(&Batch, &RetID), BPLIB_STOR_BATCH_CONSUMED);
 }
 
 void Test_BPLib_STOR_LoadBatch_AdvanceReaderNull(void)
@@ -116,7 +158,20 @@ void Test_BPLib_STOR_LoadBatch_AdvanceReaderNull(void)
 
 void Test_BPLib_STOR_LoadBatch_AdvanceReaderNominal(void)
 {
+    BPLib_STOR_LoadBatch_t Batch;
 
+    /* Advance on an empty batch */
+    Batch.ReadIndex = 0;
+    Batch.Size = 0;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_AdvanceReader(&Batch), BPLIB_STOR_BATCH_EMPTY);
+
+    /* Advance, simulating after a read */
+    Batch.Size = 1;
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_AdvanceReader(&Batch), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(Batch.ReadIndex, 1);
+
+    /* Advance again, which should fail because the batch was consumed */
+    UtAssert_INT32_EQ(BPLib_STOR_LoadBatch_AdvanceReader(&Batch), BPLIB_STOR_BATCH_CONSUMED);
 }
 
 void TestBplib_STOR_LoadBatch_Register(void)
