@@ -30,7 +30,7 @@
 ** fast we egress (good problem to have right now). To perform rate limiting, BPNode or other
 ** callee application needs to manage how fast it calls CLA/Channel Egress API.
 */
-#ifndef BPLIB_STOR_LOADBATCH_SIZE
+#ifndef BPLIB_STOR_LOADBATCHSIZE
 #define BPLIB_STOR_LOADBATCHSIZE 1000
 #endif
 

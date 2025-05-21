@@ -433,17 +433,13 @@ void Test_BPLib_PI_Egress_Null(void)
     uint32_t Timeout = 1000;
 
     /* Null BPLib instance */
-    printf("Before 1\n");
     UtAssert_INT32_EQ(BPLib_PI_Egress(NULL, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
-    printf("done 1\n");
 
     /* Null ADU pointer */
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, NULL, &AduSize, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
-    printf("done 2\n");
 
     /* Null ADU size */
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, NULL, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
-    printf("done 3\n");
 }
 
 /* Test egress function invalid channel ID  */
