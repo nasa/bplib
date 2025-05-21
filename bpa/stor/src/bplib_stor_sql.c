@@ -141,7 +141,7 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     sqlite3* ActiveDB;
     int ForeignKeysEnabled;
     sqlite3_stmt* ForeignKeyCheckStmt;
-    uint32_t NumStoredBundles;
+    uint32_t NumStoredBundles = 0;
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
