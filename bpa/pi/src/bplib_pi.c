@@ -36,6 +36,11 @@
 #include "bplib_stor.h"
 #include <stdio.h>
 
+/* 
+** Global Data 
+*/
+
+uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Internal Function Definitions
@@ -114,10 +119,13 @@ BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
         return BPLIB_APP_STATE_ERR;
     }
 
+    /* Initialize sequence number */
+    BPLib_PI_SequenceNums[ChanId] = 0;
+
     /* Do any framework-specific operations */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication(ChanId);
     if (Status == BPLIB_SUCCESS)
-    {        
+    {
         /* Set app state to added */
         BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_ADDED);
     }
@@ -257,6 +265,9 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     {
         BPLib_STOR_StoreBundle(Inst, Bundle);
     }
+
+    /* Reset sequence number */
+    BPLib_PI_SequenceNums[ChanId] = 0;
     
     /* Do any framework-specific operations */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication(ChanId);
@@ -413,6 +424,14 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         */
         BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
         NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+        NewBundle->blocks.PrimaryBlock.Timestamp.SequenceNumber = BPLib_PI_SequenceNums[ChanId];
+
+        /* Update sequence number */
+        BPLib_PI_SequenceNums[ChanId]++;
+        if (BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM] > BPLib_PI_SequenceNums[ChanId])
+        {
+            BPLib_PI_SequenceNums[ChanId] = 0;
+        }
 
         /* Initialize payload block */
         NewBundle->blocks.PayloadHeader.BlockType = BPLib_BlockType_Payload;

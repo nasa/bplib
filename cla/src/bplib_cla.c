@@ -61,9 +61,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
         return BPLIB_SUCCESS;
     }
     else
-    {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_RECEIVED, 1);
-        
+    {        
         /* Receive a RFC 9171 bundle and pass it to BI */
         /* Note: An argument can be made to simply implement RecvFullBundleIn here
         * and do away with BI_RecvFullBundleIn()

@@ -31,7 +31,7 @@
 
 BPLib_Instance_t BplibInst;
 BPLib_PI_ChannelTable_t TestChanTbl;
-
+BPLib_NC_MibPerNodeConfig_t TestMibTbl;
 
 /*
 ** Function Definitions
@@ -45,6 +45,9 @@ void BPLib_PI_Test_Setup(void)
     memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
 
     BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr = &TestMibTbl;
+
+    TestMibTbl.Configs[PARAM_SET_MAX_SEQUENCE_NUM] = 100;
 
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = BPA_ADUP_AddApplication;
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = BPA_ADUP_StartApplication;
@@ -53,6 +56,8 @@ void BPLib_PI_Test_Setup(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
+
+    memset(&BPLib_PI_SequenceNums, 0, sizeof(BPLib_PI_SequenceNums));
 }
 
 void BPLib_PI_Test_Teardown(void)

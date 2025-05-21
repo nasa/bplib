@@ -46,7 +46,7 @@
 */
 
 extern BPLib_Instance_t BplibInst;
-
+extern uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Function Definitions

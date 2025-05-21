@@ -1607,7 +1607,8 @@ void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
 
     TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 5;
-    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 10;
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH]  = 10;
+    TestTblData.Configs[PARAM_SET_MAX_SEQUENCE_NUM]   = 10;
 
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), BPLIB_SUCCESS);
 }
