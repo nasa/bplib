@@ -57,7 +57,7 @@ extern "C" {
  *          This drives the number of entries in the CLA configuration
  *          tables, as well as the number of CLA In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CONTACTS                  1
+#define BPLIB_MAX_NUM_CONTACTS 2
 
 /**
  * \brief Maximum number of destination EID patterns per contact
