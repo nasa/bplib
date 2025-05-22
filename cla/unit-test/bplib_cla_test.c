@@ -438,9 +438,6 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
     /* Verify that Status is as expected */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
 
-    /* Verify that run state is unchanged */
-    //UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
-
     /* Verify that the event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
