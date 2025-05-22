@@ -201,6 +201,14 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
     {
         return BPLIB_NULL_PTR_ERROR;
     }
+    if (LocalDelivery && EgressID >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+    if (!LocalDelivery && EgressID >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
 
     if (BPLib_QM_IsIngressIdle(Inst) == false)
     {

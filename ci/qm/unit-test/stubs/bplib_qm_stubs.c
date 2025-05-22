@@ -53,13 +53,13 @@ BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t *inst, BPLib_Bundle_t *bundle
  * Generated stub function for BPLib_QM_DuctPull()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t *Inst, int EgressID, bool LocalDelivery, int TimeoutMs,
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t *Inst, uint32_t EgressID, bool LocalDelivery, int TimeoutMs,
                                  BPLib_Bundle_t **RetBundle)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_DuctPull, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_QM_DuctPull, BPLib_Instance_t *, Inst);
-    UT_GenStub_AddParam(BPLib_QM_DuctPull, int, EgressID);
+    UT_GenStub_AddParam(BPLib_QM_DuctPull, uint32_t, EgressID);
     UT_GenStub_AddParam(BPLib_QM_DuctPull, bool, LocalDelivery);
     UT_GenStub_AddParam(BPLib_QM_DuctPull, int, TimeoutMs);
     UT_GenStub_AddParam(BPLib_QM_DuctPull, BPLib_Bundle_t **, RetBundle);
@@ -74,12 +74,12 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t *Inst, int EgressID, bool Loca
  * Generated stub function for BPLib_QM_IsDuctEmpty()
  * ----------------------------------------------------
  */
-bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t *Inst, int EgressID, bool LocalDelivery)
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t *Inst, uint32_t EgressID, bool LocalDelivery)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_IsDuctEmpty, bool);
 
     UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, BPLib_Instance_t *, Inst);
-    UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, int, EgressID);
+    UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, uint32_t, EgressID);
     UT_GenStub_AddParam(BPLib_QM_IsDuctEmpty, bool, LocalDelivery);
 
     UT_GenStub_Execute(BPLib_QM_IsDuctEmpty, Basic, NULL);

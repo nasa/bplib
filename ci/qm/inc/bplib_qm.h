@@ -116,10 +116,10 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, i
 bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst);
 
 
-bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery);
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery);
 
 
-BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
     int TimeoutMs, BPLib_Bundle_t** RetBundle);
 
 /**

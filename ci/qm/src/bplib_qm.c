@@ -228,7 +228,7 @@ bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst)
     return BPLib_QM_WaitQueueIsEmpty(&(Inst->GenericWorkerJobs));
 }
 
-bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery)
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery)
 {
     BPLib_QM_WaitQueue_t* DuctQueue;
 
@@ -236,6 +236,14 @@ bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelive
     {
         /* NULL PTR ERROR will be caught in DuctPull */
         return true;
+    }
+    if (LocalDelivery && EgressID >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+    if (!LocalDelivery && EgressID >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
     }
 
     /* Determine which queue to pull from */
@@ -251,7 +259,7 @@ bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, int EgressID, bool LocalDelive
     return BPLib_QM_WaitQueueIsEmpty(DuctQueue);
 }
 
-BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool LocalDelivery,
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
     int TimeoutMs, BPLib_Bundle_t** RetBundle)
 {
     BPLib_Bundle_t* Bundle;
@@ -263,11 +271,19 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, int EgressID, bool Loca
     BPLib_Status_t Status = BPLIB_SUCCESS;
     size_t NumStoredEgressed = 0;
 
-    if (RetBundle == NULL)
+    if ((Inst == NULL) || (RetBundle == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
     *RetBundle = NULL;
+    if (LocalDelivery && EgressID >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+    if (!LocalDelivery && EgressID >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
 
     /* Determine which queue to pull from */
     if (LocalDelivery == true)
