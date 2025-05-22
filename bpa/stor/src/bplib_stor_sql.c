@@ -208,14 +208,14 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
-    BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
+    //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
     uint64_t DtnNowMs;
 
     *NumDiscarded = 0;
 
     /* Get DTN Time */
-    BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
-    DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
+    // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
+    // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
     DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
     /* Create a batch query */
