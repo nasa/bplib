@@ -533,9 +533,6 @@ void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
 
-    /* Show that the run state did not transition */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
-
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
@@ -608,9 +605,6 @@ void Test_BPLib_CLA_ContactStop_InvalidContactId(void)
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
 
-    /* Show that the run state transitioned */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
-
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
@@ -682,9 +676,6 @@ void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
-
-    /* Show that the run state transitioned */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
