@@ -41,6 +41,17 @@ void Test_BPLib_STOR_InitNullInst(void)
     UtAssert_INT32_EQ(BPLib_STOR_Init(NULL), BPLIB_NULL_PTR_ERROR);
 }
 
+/* Test the STOR Correctly initializes the stored bundle count */
+void Test_BPLib_STOR_InitStoredCount(void)
+{
+    /* The fixture for this function pre-stores one bundle. therefore the check is simply that the
+    ** stored count is already 1.
+    */
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_STORED, 
+                                                Context_BPLib_AS_Increment[1].Counter);
+    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[1].Amount);
+}
+
 /* Test Destroy runs without segfault */
 void Test_BPLib_STOR_Destroy(void)
 {
@@ -129,6 +140,7 @@ void TestBplib_STOR_Register(void)
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init_NullInst");
     UtTest_Add(Test_BPLib_STOR_Destroy, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Destroy");
+    UtTest_Add(Test_BPLib_STOR_InitStoredCount, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_InitStoredCount");
 
     /* Storage Table Tests */
     UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
