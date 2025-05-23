@@ -93,9 +93,13 @@ void BPLib_STOR_Test_Setup(void)
     BPLib_NC_ConfigPtrs.ChanConfigPtr = &TestChanTbl;
     BPLib_NC_ConfigPtrs.ContactsConfigPtr = &TestContTbl;
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_IsIngressIdle), (UT_IntReturn_t) true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPush), (UT_IntReturn_t) true);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_CreateJob), UT_Handler_BPLib_QM_CreateJob, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPush), UT_Handler_BPLib_QM_WaitQueueTryPush, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_Decrement, NULL);
 
     /* Init Storage */
     BPLib_STOR_Init(&BplibInst);
@@ -134,5 +138,8 @@ void BPLib_STOR_Test_TeardownOneBundleStored(void)
 
 void UtTest_Setup(void)
 {
-    TestBplibStor_Register();
+    TestBplib_STOR_Register();
+    TestBplib_STOR_Store_Register();
+    TestBplib_STOR_LoadBatch_Register();
+    TestBplib_STOR_Load_Register();
 }

@@ -57,7 +57,7 @@ void BPLib_CLA_Test_Setup(void)
     memset((void*) &TestContactsTbl,  0, sizeof(BPLib_CLA_ContactsTable_t));
     BPLib_NC_ConfigPtrs.ContactsConfigPtr = &TestContactsTbl;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_DuctPull), UT_Handler_BPLib_QM_DuctPull, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
 }
 
