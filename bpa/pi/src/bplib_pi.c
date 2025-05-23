@@ -101,7 +101,7 @@ BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
     /* Check for channel ID validity */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_ADD_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with add-application directive, invalid ChanId=%d",
                             ChanId);
 
@@ -112,7 +112,7 @@ BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
     AppState = BPLib_NC_GetAppState(ChanId);
     if (AppState == BPLIB_NC_APP_STATE_STARTED)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_ADD_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with add-application directive, invalid AppState=%d for ChanId=%d",
                             AppState, ChanId);
 
@@ -131,7 +131,7 @@ BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
     }
     else
     {
-        BPLib_EM_SendEvent(BPLIB_PI_ADD_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with add-application directive, framework specific error code = %d",
                             Status);
     }
@@ -147,7 +147,7 @@ BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
     /* Check for channel ID validity */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_START_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_START_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with start-application directive, invalid ChanId=%d",
                             ChanId);
 
@@ -159,7 +159,7 @@ BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
     if (AppState != BPLIB_NC_APP_STATE_ADDED &&
         AppState != BPLIB_NC_APP_STATE_STOPPED)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_START_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_START_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with start-application directive, invalid AppState=%d for ChanId=%d",
                             AppState,
                             ChanId);
@@ -176,7 +176,7 @@ BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
     }
     else
     {
-        BPLib_EM_SendEvent(BPLIB_PI_START_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_START_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with start-application directive, framework specific error code = %d",
                             Status);
     }
@@ -192,7 +192,7 @@ BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
     /* Check for channel ID validity */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_STOP_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with stop-application directive, invalid ChanId=%d",
                             ChanId);
 
@@ -203,7 +203,7 @@ BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
     AppState = BPLib_NC_GetAppState(ChanId);
     if (AppState != BPLIB_NC_APP_STATE_STARTED)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_STOP_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with stop-application directive, invalid AppState=%d for ChanId=%d",
                             AppState, ChanId);
 
@@ -219,7 +219,7 @@ BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
     }
     else
     {
-        BPLib_EM_SendEvent(BPLIB_PI_STOP_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with stop-application directive, framework specific error code = %d",
                             Status);
     }
@@ -242,7 +242,7 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
 
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_ID_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with remove-application directive, invalid ChanId=%d",
                             ChanId);
 
@@ -253,7 +253,7 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     AppState = BPLib_NC_GetAppState(ChanId);
     if (AppState != BPLIB_NC_APP_STATE_ADDED && AppState != BPLIB_NC_APP_STATE_STOPPED)
     {
-        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_STATE_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with remove-application directive, invalid AppState=%d for ChanId=%d",
                             AppState, ChanId);
 
@@ -278,7 +278,7 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     }
     else
     {
-        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_FWP_ERR_EID, BPLib_EM_EventType_DEBUG,
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with remove-application directive, framework specific error code = %d",
                             Status);
     }

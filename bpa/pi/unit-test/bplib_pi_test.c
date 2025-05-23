@@ -41,7 +41,7 @@ void Test_BPLib_PI_AddApplication_BadId(void)
     uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
 
     UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_ID_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_ID_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with add-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -55,7 +55,7 @@ void Test_BPLib_PI_AddApplication_BadState(void)
 
     UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_APP_STATE_ERR);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_STATE_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_STATE_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with add-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -69,7 +69,7 @@ void Test_BPLib_PI_AddApplication_ProxyErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
 
     UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_ERROR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_FWP_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_ADD_FWP_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with add-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -102,7 +102,7 @@ void Test_BPLib_PI_StartApplication_BadId(void)
     uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
 
     UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_ID_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_ID_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with start-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -115,7 +115,7 @@ void Test_BPLib_PI_StartApplication_BadState(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
 
     UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_APP_STATE_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_STATE_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_STATE_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with start-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -129,7 +129,7 @@ void Test_BPLib_PI_StartApplication_ProxyErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
 
     UtAssert_INT32_EQ(BPLib_PI_StartApplication(ChanId), BPLIB_ERROR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_FWP_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_START_FWP_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with start-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -151,7 +151,7 @@ void Test_BPLib_PI_StopApplication_BadId(void)
     uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
 
     UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_INVALID_CHAN_ID_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_ID_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_ID_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with stop-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -164,7 +164,7 @@ void Test_BPLib_PI_StopApplication_BadState(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
 
     UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_APP_STATE_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_STATE_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_STATE_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with stop-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -178,7 +178,7 @@ void Test_BPLib_PI_StopApplication_ProxyErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
 
     UtAssert_INT32_EQ(BPLib_PI_StopApplication(ChanId), BPLIB_ERROR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_FWP_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_STOP_FWP_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with stop-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -227,7 +227,7 @@ void Test_BPLib_PI_RemoveApplication_BadId(void)
     BPLib_Instance_t Inst;
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_INVALID_CHAN_ID_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_ID_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_ID_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -241,7 +241,7 @@ void Test_BPLib_PI_RemoveApplication_BadState(void)
     UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STARTED);
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_APP_STATE_ERR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_STATE_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_STATE_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
@@ -256,7 +256,7 @@ void Test_BPLib_PI_RemoveApplication_ProxyErr(void)
     UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_ERROR);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_FWP_ERR_EID);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_FWP_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with remove-application directive, framework specific error code = %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
