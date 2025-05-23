@@ -369,7 +369,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 }
 
 /* Ingress an ADU */
-BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
     BPLib_Bundle_t *NewBundle;
@@ -469,7 +469,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 }
 
 /* Egress an ADU */
-BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Bundle_t    *Bundle = NULL;
