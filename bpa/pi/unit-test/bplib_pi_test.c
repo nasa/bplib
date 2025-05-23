@@ -35,6 +35,17 @@ void Test_BPLib_PI_AddApplication_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
 }
 
+/* Test nominal add application function when the state is added */
+void Test_BPLib_PI_AddApplication_Added(void)
+{
+    uint32_t ChanId = 0;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_ADDED);
+
+    UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+}
+
 /* Test BPLib_PI_AddApplication when the channel ID is invalid */
 void Test_BPLib_PI_AddApplication_BadId(void)
 {
@@ -459,6 +470,7 @@ void Test_BPLib_PI_ValidateConfigs_BadPrevNodeBlk(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
 
     ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = 5;
@@ -478,6 +490,7 @@ void Test_BPLib_PI_ValidateConfigs_BadAgeBlk(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
     ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
     ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
@@ -500,6 +513,7 @@ void Test_BPLib_PI_ValidateConfigs_BadHopBlk(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
     ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
     ChanTbl.Configs[0].AgeBlkConfig.BlockNum = 3;
@@ -523,6 +537,7 @@ void Test_BPLib_PI_ValidateConfigs_BadPayloadBlk(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
     ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
     ChanTbl.Configs[0].AgeBlkConfig.BlockNum = 3;
@@ -550,6 +565,29 @@ void Test_BPLib_PI_Ingress_Nominal(void)
     UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BundleAlloc), 1, (UT_IntReturn_t) &Bundle);
 
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+    UtAssert_EQ(uint64_t, BPLib_PI_SequenceNums[ChanId], 1);
+
+    /* Ensure Node Config is locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderLock, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_ReaderUnlock, 1);
+}
+
+/* Test nominal ingress function when the sequence number gets reset */
+void Test_BPLib_PI_Ingress_ResetSequence(void)
+{
+    uint32_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t AduSize = 0;
+    BPLib_Bundle_t Bundle;
+
+    memset(&Bundle, 0, sizeof(Bundle));
+
+    BPLib_PI_SequenceNums[ChanId] = BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM];
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BundleAlloc), 1, (UT_IntReturn_t) &Bundle);
+
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+    UtAssert_EQ(uint64_t, BPLib_PI_SequenceNums[ChanId], 0);
 
     /* Ensure Node Config is locked and unlocked */
     UtAssert_STUB_COUNT(BPLib_NC_ReaderLock, 1);
@@ -698,6 +736,7 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_AddApplication_BadId);
     ADD_TEST(Test_BPLib_PI_AddApplication_BadState);
     ADD_TEST(Test_BPLib_PI_AddApplication_ProxyErr);
+    ADD_TEST(Test_BPLib_PI_AddApplication_Added);
 
     ADD_TEST(Test_BPLib_PI_StartApplication_Nominal);
     ADD_TEST(Test_BPLib_PI_StartApplication_Stopped);
@@ -735,6 +774,7 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_BadPayloadBlk);
 
     ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
+    ADD_TEST(Test_BPLib_PI_Ingress_ResetSequence);
     ADD_TEST(Test_BPLib_PI_Ingress_Null);
     ADD_TEST(Test_BPLib_PI_Ingress_BadChanId);
     ADD_TEST(Test_BPLib_PI_Ingress_NullMem);

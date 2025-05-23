@@ -426,7 +426,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
 
         /* Update sequence number */
         BPLib_PI_SequenceNums[ChanId]++;
-        if (BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM] > BPLib_PI_SequenceNums[ChanId])
+        if (BPLib_PI_SequenceNums[ChanId] > BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM])
         {
             BPLib_PI_SequenceNums[ChanId] = 0;
         }
