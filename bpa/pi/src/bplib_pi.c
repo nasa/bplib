@@ -108,9 +108,9 @@ BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
         return BPLIB_INVALID_CHAN_ID_ERR;
     }
 
-    /* App state must be either stopped or added */
+    /* App state must be either added or removed */
     AppState = BPLib_NC_GetAppState(ChanId);
-    if (AppState == BPLIB_NC_APP_STATE_STARTED)
+    if (AppState != BPLIB_NC_APP_STATE_REMOVED && AppState != BPLIB_NC_APP_STATE_ADDED)
     {
         BPLib_EM_SendEvent(BPLIB_PI_ADD_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with add-application directive, invalid AppState=%d for ChanId=%d",
@@ -154,15 +154,13 @@ BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
         return BPLIB_INVALID_CHAN_ID_ERR;
     }
 
-    /* App state must be added */
+    /* App state must be added or stopped */
     AppState = BPLib_NC_GetAppState(ChanId);
-    if (AppState != BPLIB_NC_APP_STATE_ADDED &&
-        AppState != BPLIB_NC_APP_STATE_STOPPED)
+    if (AppState != BPLIB_NC_APP_STATE_ADDED && AppState != BPLIB_NC_APP_STATE_STOPPED)
     {
         BPLib_EM_SendEvent(BPLIB_PI_START_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with start-application directive, invalid AppState=%d for ChanId=%d",
-                            AppState,
-                            ChanId);
+                            AppState, ChanId);
 
         return BPLIB_APP_STATE_ERR;
     }
@@ -249,9 +247,9 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
         return BPLIB_INVALID_CHAN_ID_ERR;
     }
 
-    /* App state must be stopped or added */
+    /* App state must be added, stopped, or removed */
     AppState = BPLib_NC_GetAppState(ChanId);
-    if (AppState != BPLIB_NC_APP_STATE_ADDED && AppState != BPLIB_NC_APP_STATE_STOPPED)
+    if (AppState == BPLIB_NC_APP_STATE_STARTED)
     {
         BPLib_EM_SendEvent(BPLIB_PI_REMOVE_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "Error with remove-application directive, invalid AppState=%d for ChanId=%d",
