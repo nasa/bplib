@@ -27,6 +27,7 @@
 #include "bplib_qm_handlers.h"
 
 BPLib_QM_CreateJobContext_t Context_BPLib_QM_CreateJob[QM_MAX_INCDEC_DEPTH];
+BPLib_QM_WaitQueuePushContext_t Context_BPLib_QM_WaitQueueTryPush[QM_MAX_INCDEC_DEPTH];
 
 void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
@@ -54,6 +55,24 @@ void UT_Handler_BPLib_QM_DuctPull(void *UserObj, UT_EntryKey_t FuncKey, const UT
     }
 }
 
+void UT_Handler_BPLib_QM_WaitQueueTryPush(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint16 CallNum;
+    uint16 CallCount;
+
+    CallCount = UT_GetStubCount(UT_KEY(BPLib_QM_WaitQueueTryPush));
+    if (CallCount > QM_MAX_INCDEC_DEPTH)
+    {
+        UtAssert_Failed("BPLib_QM_CreateJob call history depth exceeded. Called: %u, Max: %u",
+                        CallCount,
+                        QM_MAX_INCDEC_DEPTH);
+    }
+    else
+    {
+        CallNum = CallCount - 1;
+        Context_BPLib_QM_WaitQueueTryPush[CallNum].Bundle = *UT_Hook_GetArgValueByName(Context, "item", BPLib_Bundle_t**);
+    }
+}
 
 void UT_Handler_BPLib_QM_CreateJob(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {

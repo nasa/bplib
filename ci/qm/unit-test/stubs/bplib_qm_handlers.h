@@ -39,16 +39,24 @@ typedef struct
     BPLib_Bundle_t* Bundle;
 } BPLib_QM_CreateJobContext_t;
 
+typedef struct
+{
+    BPLib_Bundle_t* Bundle;
+} BPLib_QM_WaitQueuePushContext_t;
+
 /*
 ** Global Data
 */
 extern BPLib_QM_CreateJobContext_t Context_BPLib_QM_CreateJob[];
+extern BPLib_QM_WaitQueuePushContext_t Context_BPLib_QM_WaitQueueTryPush[];
 
 /*
 ** Function Definitions
 */
 
 void UT_Handler_BPLib_QM_WaitQueueTryPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+void UT_Handler_BPLib_QM_WaitQueueTryPush(void* UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 void UT_Handler_BPLib_QM_DuctPull(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 

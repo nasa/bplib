@@ -243,6 +243,16 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
 
     pthread_mutex_lock(&CacheInst->lock);
 
+    /* If a previous batch was fully egressed, mark it as egressed */
+    if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
+    {
+        /* Mark the batch as egressed */
+        Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
+
+        /* Clear the batch */
+        (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
+    }
+
     /* If the load batch is empty, try to read more from storage */
     if (BPLib_STOR_LoadBatch_IsEmpty(LoadBatch))
     {
@@ -254,17 +264,6 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
                 "BPLib_SQL_FindForEIDs failed to load bundle. RC=%d", Status);
         }
     }
-
-    /* All of the bundles for this batch have been egressed */
-    else if (BPLib_STOR_LoadBatch_IsConsumed(LoadBatch))
-    {
-        /* Mark the batch as egressed */
-        Status = BPLib_SQL_MarkBatchEgressed(Inst, LoadBatch);
-
-        /* Clear the batch */
-        (void) BPLib_STOR_LoadBatch_Reset(LoadBatch);
-    }
-
     /* There are bundles in the current batch that need to be egressed */
     else
     {
