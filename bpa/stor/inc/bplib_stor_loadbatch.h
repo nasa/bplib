@@ -31,7 +31,7 @@
 ** callee application needs to manage how fast it calls CLA/Channel Egress API.
 */
 #ifndef BPLIB_STOR_LOADBATCHSIZE
-#define BPLIB_STOR_LOADBATCHSIZE 10000
+#define BPLIB_STOR_LOADBATCHSIZE 20000
 #endif
 
 typedef struct BPLib_STOR_LoadBatch

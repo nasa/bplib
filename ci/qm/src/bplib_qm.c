@@ -76,7 +76,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
+        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), BPLIB_QM_TX_QUEUE_DEPTH))
         {
             QueueInit = false;
         }
@@ -84,7 +84,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
+        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), sizeof(BPLib_Bundle_t*), BPLIB_QM_TX_QUEUE_DEPTH))
         {
             QueueInit = false;
         }

@@ -32,6 +32,10 @@
 #define QM_WAIT_FOREVER    -1L /**< Constant representing an indefinite wait */
 #define QM_MAX_GEN_WORKERS  8L /**< Constant representing maximum allowed generic workers */
 
+#ifndef BPLIB_QM_TX_QUEUE_DEPTH
+#define BPLIB_QM_TX_QUEUE_DEPTH 2048
+#endif
+
 typedef struct BPLib_QM_WorkerState
 {
     BPLib_QM_Job_t CurrJob;
@@ -61,7 +65,6 @@ struct BPLib_Instance
 
     /* Bundle Storage */
     BPLib_BundleCache_t BundleStorage;
-
 };
 
 /**
