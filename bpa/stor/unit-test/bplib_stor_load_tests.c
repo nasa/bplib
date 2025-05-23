@@ -45,7 +45,6 @@ void Test_BPLib_STOR_EgressForID_NullParams(void)
 /* Test STOR_EgressForID Nominal Contact Behavior */
 void Test_BPLib_STOR_EgressForID_NominalChan(void)
 {
-    BPLib_EID_Pattern_t DestEID;
     size_t NumEgressed = 0;
     BPLib_Bundle_t *LoadedBundle;
     uint32_t EgressID = 0;
@@ -97,7 +96,6 @@ void Test_BPLib_STOR_EgressForID_NominalChan(void)
 /* Test STOR_EgressForID Nominal Contact Behavior */
 void Test_BPLib_STOR_EgressForID_NominalCont(void)
 {
-    BPLib_EID_Pattern_t DestEID;
     size_t NumEgressed = 0;
     BPLib_Bundle_t *LoadedBundle;
     uint32_t EgressID = 0;
@@ -151,9 +149,7 @@ void Test_BPLib_STOR_EgressForID_NominalCont(void)
 /* Test STOR_EgressForID frees Bundles if the bundle can't be pushed */
 void Test_BPLib_STOR_EgressForID_WaitQueuePushFail(void)
 {
-    BPLib_EID_Pattern_t DestEID;
     size_t NumEgressed = 0;
-    BPLib_Bundle_t *LoadedBundle;
     uint32_t EgressID = 0;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPush), (UT_IntReturn_t) false);
@@ -190,11 +186,9 @@ void Test_BPLib_STOR_EgressForID_WaitQueuePushFail(void)
 /* Test that one bundle without an available contact path does not get egressed */
 void Test_BPLib_STOR_EgressForID_NoBundles(void)
 {
-    BPLib_EID_Pattern_t DestEID;
     size_t NumEgressed = 0;
-    BPLib_Bundle_t *LoadedBundle;
-    uint32_t EgressID = 0;
     uint32_t InvalidServ = 3;
+    uint32_t EgressID = 0;
 
     /** Step 1: Load all available bundles into an egress batch **/
 
@@ -215,8 +209,6 @@ void Test_BPLib_STOR_EgressForID_NoBundles(void)
 void Test_BPLib_STOR_EgressForID_SQLFail(void)
 {
     size_t NumEgressed;
-    BPLib_EID_Pattern_t DestEID;
-    uint32_t EgressID = 0;
 
     /* Force sql statements to fail by passing a NULL instance */
     BplibInst.BundleStorage.db = NULL;

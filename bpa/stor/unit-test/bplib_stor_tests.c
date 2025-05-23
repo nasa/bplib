@@ -121,8 +121,6 @@ void Test_BPLib_STOR_GarbageCollect_NominalExpired(void)
 /* Test STOR_GarbageCollect handles a SQL Failure */
 void Test_BPLib_STOR_GarbageCollect_SQLFail(void)
 {
-    size_t NumDiscarded;
-
     /* Force sql statements to fail by passing a NULL instance */
     BplibInst.BundleStorage.db = NULL;
     UtAssert_INT32_EQ(BPLib_STOR_GarbageCollect(&BplibInst), BPLIB_STOR_SQL_DISCARD_ERR);
