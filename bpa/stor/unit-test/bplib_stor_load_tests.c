@@ -42,13 +42,13 @@ void Test_BPLib_STOR_EgressForID_NullParams(void)
     UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, BPLIB_MAX_NUM_CONTACTS + 1, false, &NumEgressed), BPLIB_STOR_PARAM_ERR);
 }
 
-/* Test STOR_EgressForID */
+/* Test STOR_EgressForID Nominal Contact Behavior */
 void Test_BPLib_STOR_EgressForID_NominalChan(void)
 {
     BPLib_EID_Pattern_t DestEID;
-    size_t NumEgressed;
+    size_t NumEgressed = 0;
     BPLib_Bundle_t *LoadedBundle;
-    int16_t EgressID = 0;
+    uint32_t EgressID = 0;
 
     /** Step 1: Load all available bundles into an egress batch **/
 
@@ -59,6 +59,7 @@ void Test_BPLib_STOR_EgressForID_NominalChan(void)
     /* Verify Egress Success and Egress Count remains 0 */
     UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, EgressID, true, &NumEgressed), BPLIB_SUCCESS);
     UtAssert_INT32_EQ(NumEgressed, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPush, 0);
 
     /* Verify bundle is in the batch */
     UtAssert_INT32_EQ(BplibInst.BundleStorage.ChannelLoadBatches[EgressID].Size, 1);
@@ -87,7 +88,64 @@ void Test_BPLib_STOR_EgressForID_NominalChan(void)
         (char*)LoadedBundle->blob->user_data.raw_bytes, "CBOR Blob");
 
     /** Step 3: Verify batch was reset as a result of being consumed **/
+    UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, EgressID, true, &NumEgressed), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(NumEgressed, 0);
+    /* This check ensures LoadBatch_Reset was called */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.ChannelLoadBatches[EgressID].Size, 0);
+}
 
+/* Test STOR_EgressForID Nominal Contact Behavior */
+void Test_BPLib_STOR_EgressForID_NominalCont(void)
+{
+    BPLib_EID_Pattern_t DestEID;
+    size_t NumEgressed = 0;
+    BPLib_Bundle_t *LoadedBundle;
+    uint32_t EgressID = 0;
+
+    /** Step 1: Load all available bundles into an egress batch **/
+
+    /* Select a filter for the DestEID range matching the test bundle */
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MaxNode = 100;
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MinNode = 100;
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MaxService = 1;
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[0].DestEIDs[0].MinService = 1;
+    
+    /* Verify Egress Success and Egress Count remains 0 */
+    UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, EgressID, false, &NumEgressed), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(NumEgressed, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPush, 0);
+
+    /* Verify bundle is in the batch */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.ContactLoadBatches[EgressID].Size, 1);
+
+    /** Step 2: Push the egress batch into QM **/
+
+    /* Call Egress Again, this time it should be egressed because there was a batch loaded */
+    UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, EgressID, false, &NumEgressed), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(NumEgressed, 1);
+
+    /* Ensure bundle egressed to channel */
+    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPush, 1);
+
+    /* Check Bundle Contents */
+    LoadedBundle = Context_BPLib_QM_WaitQueueTryPush[0].Bundle;
+    UtAssert_NOT_NULL(LoadedBundle);
+    UtAssert_INT32_EQ(LoadedBundle->Meta.EgressID, EgressID);
+    UtAssert_UINT32_EQ(LoadedBundle->blocks.PrimaryBlock.Timestamp.CreateTime, 797186475264);
+    UtAssert_UINT32_EQ(LoadedBundle->blocks.PrimaryBlock.Lifetime, 5000);
+    UtAssert_UINT32_EQ(LoadedBundle->blocks.PrimaryBlock.DestEID.Node, 100);
+    UtAssert_UINT32_EQ(LoadedBundle->blocks.PrimaryBlock.DestEID.Service, 1);
+    UtAssert_UINT32_EQ(((BPLib_MEM_Block_t *)(LoadedBundle))->used_len, sizeof(BPLib_BBlocks_t));
+
+    /* Check blob contents */
+    UtAssert_StrCmp((char*)LoadedBundle->blob->user_data.raw_bytes, "CBOR Blob", "Blob Comparison: %s == %s",
+        (char*)LoadedBundle->blob->user_data.raw_bytes, "CBOR Blob");
+
+    /** Step 3: Verify batch was reset as a result of being consumed **/
+    UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, EgressID, false, &NumEgressed), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(NumEgressed, 0);
+    /* This check ensures LoadBatch_Reset was called */
+    UtAssert_INT32_EQ(BplibInst.BundleStorage.ChannelLoadBatches[EgressID].Size, 0);
 }
 
 // /* Test STOR_EgressForID Nominal Contact Behavior */
@@ -280,7 +338,7 @@ void TestBplib_STOR_Load_Register(void)
     /* Load (Egress) Tests */
     UtTest_Add(Test_BPLib_STOR_EgressForID_NullParams, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_NullParams");
     UtTest_Add(Test_BPLib_STOR_EgressForID_NominalChan, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_NominalChan");
-    // UtTest_Add(Test_BPLib_STOR_EgressForID_NominalCont, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_NominalCont");
+    UtTest_Add(Test_BPLib_STOR_EgressForID_NominalCont, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_NominalCont");
     // UtTest_Add(Test_BPLib_STOR_EgressForID_SQLFail, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_SQLFail");
     // UtTest_Add(Test_BPLib_STOR_EgressForID_AddJobFail, BPLib_STOR_Test_SetupOneBundleStored, BPLib_STOR_Test_TeardownOneBundleStored, "Test_BPLib_STOR_Egress_AddJobFail");
 }

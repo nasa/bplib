@@ -329,7 +329,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     {
         return BPLIB_NULL_PTR_ERROR;
     }
-    if ((NumEIDs == 0) || (NumEIDs >= BPLIB_MAX_CONTACT_DEST_EIDS))
+    if ((NumEIDs == 0) || (NumEIDs > BPLIB_MAX_CONTACT_DEST_EIDS))
     {
         return BPLIB_STOR_PARAM_ERR;
     }
