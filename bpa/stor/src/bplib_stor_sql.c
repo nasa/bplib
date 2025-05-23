@@ -121,7 +121,7 @@ static int BPLib_SQL_GetNumStoredBundles(sqlite3 *db, uint32_t *BundleCnt)
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        return SQLITE_OK;
+        return SQLStatus;
     }
 
     SQLStatus = sqlite3_step(stmt);
