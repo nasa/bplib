@@ -290,6 +290,12 @@ void Test_BPLib_PI_ValidateConfigs_Nominal(void)
         ChanTbl.Configs[ChanId].PayloadBlkConfig.IncludeBlock = true;
         ChanTbl.Configs[ChanId].PayloadBlkConfig.BlockNum = 1;
 
+        ChanTbl.Configs[ChanId].AgeBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].AgeBlkConfig.BlockNum = 2;
+        ChanTbl.Configs[ChanId].PrevNodeBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].PrevNodeBlkConfig.BlockNum = 3;
+        ChanTbl.Configs[ChanId].HopCountBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].HopCountBlkConfig.BlockNum = 4;
     }
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_SUCCESS);
@@ -301,6 +307,7 @@ void Test_BPLib_PI_ValidateConfigs_RegStateInv(void)
 
     memset(&ChanTbl, 0, sizeof(ChanTbl));
 
+    /* Invalid registration state */
     ChanTbl.Configs[0].RegState = 10;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -312,8 +319,10 @@ void Test_BPLib_PI_ValidateConfigs_HopLimitInv(void)
 
     memset(&ChanTbl, 0, sizeof(ChanTbl));
 
-    ChanTbl.Configs[0].HopLimit = 0;
     ChanTbl.Configs[0].RegState = BPLIB_PI_ACTIVE;
+
+    /* Invalid hop limit */
+    ChanTbl.Configs[0].HopLimit = 0;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
 }
@@ -326,6 +335,8 @@ void Test_BPLib_PI_ValidateConfigs_CrcTypeInv(void)
 
     ChanTbl.Configs[0].HopLimit = 10;
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_DEFER;
+
+    /* Invalid CRC type */
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_None;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -340,6 +351,8 @@ void Test_BPLib_PI_ValidateConfigs_FlagsInv(void)
     ChanTbl.Configs[0].HopLimit = 10;
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+
+    /* Invalid bundle proc flags */
     ChanTbl.Configs[0].BundleProcFlags = 0xFF;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -354,6 +367,8 @@ void Test_BPLib_PI_ValidateConfigs_DtnDestEid(void)
     ChanTbl.Configs[0].HopLimit = 10;
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
+
+    /* Invalid destination EID type */
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_DTN;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -370,6 +385,7 @@ void Test_BPLib_PI_ValidateConfigs_DestEidInv(void)
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
 
+    /* Invalid destination EID */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -387,6 +403,8 @@ void Test_BPLib_PI_ValidateConfigs_RepToEidInv(void)
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
 
     UT_SetDeferredRetcode(UT_KEY(BPLib_EID_IsValid), 1, true);
+
+    /* Invalid report-to-EID */
     UT_SetDeferredRetcode(UT_KEY(BPLib_EID_IsValid), 1, false);
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
@@ -402,6 +420,8 @@ void Test_BPLib_PI_ValidateConfigs_SizeInv(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    /* Invalid payload size */
     ChanTbl.Configs[0].MaxBundlePayloadSize = BPLIB_MAX_PAYLOAD_SIZE + 1;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -419,6 +439,8 @@ void Test_BPLib_PI_ValidateConfigs_LifetimeInv(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    /* Invalid lifetime */
     ChanTbl.Configs[0].Lifetime = BPLIB_MAX_LIFETIME_ALLOWED + 1;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -436,6 +458,8 @@ void Test_BPLib_PI_ValidateConfigs_NoPayload(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    /* No payload block included */
     ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = false;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -453,6 +477,8 @@ void Test_BPLib_PI_ValidateConfigs_BadPayloadBlockNum(void)
     ChanTbl.Configs[0].RegState = BPLIB_PI_PASSIVE_ABANDON;
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_CRC32C;
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+
+    /* Invalid payload block number */
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 100;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -473,6 +499,8 @@ void Test_BPLib_PI_ValidateConfigs_BadPrevNodeBlk(void)
     ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
 
+    /* Invalid CRC type */
+    ChanTbl.Configs[0].PrevNodeBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = 5;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -496,6 +524,8 @@ void Test_BPLib_PI_ValidateConfigs_BadAgeBlk(void)
     ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
     ChanTbl.Configs[0].AgeBlkConfig.CrcType = BPLib_CRC_Type_CRC32C;
 
+    /* Invalid block proc flags */
+    ChanTbl.Configs[0].AgeBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].AgeBlkConfig.BlockProcFlags = 0xffffff;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
@@ -515,11 +545,15 @@ void Test_BPLib_PI_ValidateConfigs_BadHopBlk(void)
     ChanTbl.Configs[0].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
     ChanTbl.Configs[0].PayloadBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PayloadBlkConfig.BlockNum = 1;
+    ChanTbl.Configs[0].PrevNodeBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].PrevNodeBlkConfig.BlockNum = 2;
+    ChanTbl.Configs[0].AgeBlkConfig.IncludeBlock = true;
     ChanTbl.Configs[0].AgeBlkConfig.BlockNum = 3;
     ChanTbl.Configs[0].PrevNodeBlkConfig.CrcType = BPLib_CRC_Type_CRC16;
     ChanTbl.Configs[0].AgeBlkConfig.CrcType = BPLib_CRC_Type_CRC32C;
 
+    /* Duplicate block number error */
+    ChanTbl.Configs[0].HopCountBlkConfig.IncludeBlock = true;    
     ChanTbl.Configs[0].HopCountBlkConfig.BlockNum = 3;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
