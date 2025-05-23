@@ -188,7 +188,7 @@ bool BPLib_QM_WaitQueueIsEmpty(BPLib_QM_WaitQueue_t* q)
     }
 
     pthread_mutex_lock(&q->lock);
-    IsEmpty = q->size == 0;
+    IsEmpty = (q->size == 0);
     pthread_mutex_unlock(&q->lock);
 
     return IsEmpty;
