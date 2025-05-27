@@ -151,6 +151,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
         SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i]);
         if (SQLStatus != SQLITE_DONE)
         {
+            /* If there was an error, don't keep trying to construsct the SQL INSERT */
             break;
         }
     }
@@ -193,19 +194,22 @@ BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst)
     SQLStatus = sqlite3_prepare_v2(db, InsertMetadataSQL, -1, &InsertMetadataStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        return BPLIB_STOR_SQL_STORAGE_ERR;
+        Status = BPLIB_STOR_SQL_STORAGE_ERR;
     }
     SQLStatus = sqlite3_prepare_v2(db, InsertBlobSQL, -1, &InsertBlobStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        return BPLIB_STOR_SQL_STORAGE_ERR;
+        Status = BPLIB_STOR_SQL_STORAGE_ERR;
     }
 
-    /* Run the batch storage logic */
-    SQLStatus = BPLib_SQL_StoreImpl(Inst);
-    if (SQLStatus != SQLITE_OK)
+    if (Status == BPLIB_SUCCESS)
     {
-        Status = BPLIB_STOR_SQL_STORAGE_ERR;
+        /* Run the batch storage logic */
+        SQLStatus = BPLib_SQL_StoreImpl(Inst);
+        if (SQLStatus != SQLITE_OK)
+        {
+            Status = BPLIB_STOR_SQL_STORAGE_ERR;
+        }
     }
 
     /* Finalize */

@@ -673,7 +673,6 @@ void Test_BPLib_PI_Ingress_NullMem(void)
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_INGRESS_ERR_EID);
 }
 
-
 /* Test nominal egress function */
 void Test_BPLib_PI_Egress_Nominal(void)
 {
@@ -686,9 +685,9 @@ void Test_BPLib_PI_Egress_Nominal(void)
     BPLib_Bundle_t *BundlePtr = &Bundle;
 
     Bundle.blocks.PayloadHeader.DataSize = 10;
-    
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
-    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_DuctPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
 
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_SUCCESS);
     UtAssert_INT32_EQ(AduSize, Bundle.blocks.PayloadHeader.DataSize);
@@ -708,8 +707,8 @@ void Test_BPLib_PI_Egress_BadCopy(void)
 
     Bundle.blocks.PayloadHeader.DataSize = 10;
     
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
-    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_DuctPull), &BundlePtr, sizeof(BPLib_Bundle_t *), false);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_CopyOutFromOffset), BPLIB_ERROR);
 
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_ERROR);
@@ -758,7 +757,7 @@ void Test_BPLib_PI_Egress_Timeout(void)
     size_t AduSize;
     uint32_t Timeout = 1000;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_TIMEOUT);
 
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_PI_TIMEOUT);
 }

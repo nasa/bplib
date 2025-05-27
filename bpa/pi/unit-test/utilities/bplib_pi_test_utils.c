@@ -56,6 +56,7 @@ void BPLib_PI_Test_Setup(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_QM_WaitQueueTryPull), UT_Handler_BPLib_QM_WaitQueueTryPull, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_QM_DuctPull), UT_Handler_BPLib_QM_DuctPull, NULL);
 
     memset(&BPLib_PI_SequenceNums, 0, sizeof(BPLib_PI_SequenceNums));
 }

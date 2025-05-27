@@ -30,6 +30,7 @@
 #include "uttest.h"
 
 #include "bplib_api_types.h"
+#include "bplib_as_handlers.h"
 #include "bplib_stor.h"
 #include "bplib_stor_sql.h"
 #include "bplib_em_handlers.h"
@@ -58,6 +59,9 @@ void BPLib_STOR_Test_Teardown(void);
 void BPLib_STOR_Test_SetupOneBundleStored(void);
 void BPLib_STOR_Test_TeardownOneBundleStored(void);
 
-void TestBplibStor_Register(void);
+void TestBplib_STOR_Register(void);
+void TestBplib_STOR_LoadBatch_Register(void);
+void TestBplib_STOR_Load_Register(void);
+void TestBplib_STOR_Store_Register(void);
 
 #endif /* BPLIB_STOR_TEST_UTILS_H */
