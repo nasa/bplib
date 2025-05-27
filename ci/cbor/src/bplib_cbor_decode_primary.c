@@ -34,7 +34,7 @@ struct _PrimaryBlockParser
     QCBOR_EIDParser ReportEIDParser;
     QCBOR_TimestampParser CreationTimestampParser;
     QCBOR_UInt64Parser LifetimeParser;
-    QCBOR_CRCParser CRCParser; 
+    QCBOR_CRCParser CRCParser;
 };
 
 /* Parser Initialization (only needs to be created once) */
@@ -136,7 +136,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Validate CRC Type */
     /* Note: CRC NONE is not currently supported since bundle security blocks are not allowed yet */
-    if (bundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_CRC16 && 
+    if (bundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_CRC16 &&
         bundle->blocks.PrimaryBlock.CrcType != BPLib_CRC_Type_CRC32C)
     {
         return BPLIB_CBOR_DEC_TYPES_CRC_UNSUPPORTED_TYPE_ERR;
@@ -202,24 +202,24 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     Status = BPLib_CBOR_ValidateBlockCrc(CandBundle, bundle->blocks.PrimaryBlock.CrcType,
                                     bundle->blocks.PrimaryBlock.CrcVal,
                                     bundle->blocks.PrimaryBlock.BlockOffsetStart,
-                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd - 
+                                    bundle->blocks.PrimaryBlock.BlockOffsetEnd -
                                     bundle->blocks.PrimaryBlock.BlockOffsetStart + 1);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
-    }  
+    }
 
     #if (BPLIB_CBOR_DEBUG_PRINTS_ENABLED)
     printf("Primary Block: \n");
     printf("\t CRC Type: %lu\n", bundle->blocks.PrimaryBlock.CrcType);
     printf("\t Flags: %lu\n", bundle->blocks.PrimaryBlock.BundleProcFlags);
-    printf("\t Dest EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.DestEID.Scheme, 
+    printf("\t Dest EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.DestEID.Scheme,
                                                                bundle->blocks.PrimaryBlock.DestEID.Node,
                                                                bundle->blocks.PrimaryBlock.DestEID.Service);
-    printf("\t Source EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.SrcEID.Scheme, 
+    printf("\t Source EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.SrcEID.Scheme,
                                                                  bundle->blocks.PrimaryBlock.SrcEID.Node,
                                                                  bundle->blocks.PrimaryBlock.SrcEID.Service);
-    printf("\t Report-To EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.ReportToEID.Scheme, 
+    printf("\t Report-To EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.ReportToEID.Scheme,
                                                                     bundle->blocks.PrimaryBlock.ReportToEID.Node,
                                                                     bundle->blocks.PrimaryBlock.ReportToEID.Service);
     printf("\t Timestamp (created, seq): %lu, %lu\n", bundle->blocks.PrimaryBlock.Timestamp.CreateTime,

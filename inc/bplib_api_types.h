@@ -43,7 +43,7 @@ extern "C" {
 /**
  * @brief Canonical block type
  *
- * @note The numeric values match the block type values in BPv7 section 9.1. The v6 types 
+ * @note The numeric values match the block type values in BPv7 section 9.1. The v6 types
  *       are not included.
  */
 enum BPLib_BlockType
@@ -103,7 +103,7 @@ typedef enum
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION                   (7u)     /** @brief Version of Bundle Protocol being implemented */
 
-/** 
+/**
  * @defgroup Block Processing Control Flags
  * @{
  */
@@ -118,11 +118,11 @@ typedef enum
 /** @} */
 
 /*
- * \brief Job egress ID to use before a bundle's route is known 
+ * \brief Job egress ID to use before a bundle's route is known
 */
 #define BPLIB_UNKNOWN_ROUTE_ID                          (BPLIB_MAX_NUM_CHANNELS + BPLIB_MAX_NUM_CONTACTS)
 
-/** 
+/**
  * @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
