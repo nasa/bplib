@@ -50,19 +50,19 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
     .CRCParser = BPLib_QCBOR_CRCParserImpl
 };
 
-BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(BPLib_PrimaryBlock_t* PriBlock)
+BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(uint64_t BundleProcFlags)
 {
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    if (PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG)
+    if (BundleProcFlags & BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG)
     { /* Bundle processing flags indicate this is an admin record bundle */
         /* Status reporting flags should be 0 */
-        if (PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG ||
-            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_FORWARD_FLAG     ||
-            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_DELIVERY_FLAG    ||
-            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_DELETE_FLAG)
+        if (BundleProcFlags & BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG ||
+            BundleProcFlags & BPLIB_BUNDLE_PROC_FORWARD_FLAG     ||
+            BundleProcFlags & BPLIB_BUNDLE_PROC_DELIVERY_FLAG    ||
+            BundleProcFlags & BPLIB_BUNDLE_PROC_DELETE_FLAG)
         {
             Status = BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR;
         }
@@ -121,7 +121,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
 
-    Status = BPLib_CBOR_VerifyBundleProcFlags(&(bundle->blocks.PrimaryBlock));
+    Status = BPLib_CBOR_VerifyBundleProcFlags(bundle->blocks.PrimaryBlock.BundleProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;

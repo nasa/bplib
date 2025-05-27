@@ -398,18 +398,4 @@ BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
 void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t CrcType,
                                 size_t BlockOffsetStart, size_t BlockLength);
 
-/**
- * \brief     Verify that the bundle processing flags aren't invalid
- * \note      RFC 9171 policy that anonymous bundle transmission is permitted is
- *            not honored by the DTN requirements. Therefore, there is no check on
- *            the state of the "Bundle must not be fragmented" flag in relation to
- *            all status report request flags being zero.
- * \param[in] PriBlock (BPLib_PrimaryBlock_t*) Primary block whose processing flags
- *            are to be validated
- * \return    Execution Status
- * \retval    BPLIB_SUCCESS: Bundle processing flags are valid
- * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: Bundle processing flags are invalid
- */
-BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(BPLib_PrimaryBlock_t* PriBlock);
-
 #endif /* BPLIB_CBOR_INTERNAL_H */

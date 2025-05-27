@@ -34,6 +34,7 @@
 #include "bplib_nc.h"
 #include "bplib_ebp.h"
 #include "bplib_stor.h"
+#include "bplib_cbor.h"
 #include <stdio.h>
 
 /* 
@@ -330,7 +331,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
         }
 
         /* Validate bundle proc flags are all supported */
-        if ((TblDataPtr->Configs[ChanId].BundleProcFlags | BPLIB_VALID_BUNDLE_PROC_FLAG_MASK) != BPLIB_VALID_BUNDLE_PROC_FLAG_MASK)
+        if (BPLib_CBOR_VerifyBundleProcFlags(TblDataPtr->Configs[ChanId].BundleProcFlags) != BPLIB_SUCCESS)
         {
             return BPLIB_INVALID_CONFIG_ERR;
         }
