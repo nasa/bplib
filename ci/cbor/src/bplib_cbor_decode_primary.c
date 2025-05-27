@@ -50,7 +50,7 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
     .CRCParser = BPLib_QCBOR_CRCParserImpl
 };
 
-BPLib_Status_t BPLib_CBOR_VerifyProcFlags(BPLib_PrimaryBlock_t* PriBlock)
+BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(BPLib_PrimaryBlock_t* PriBlock)
 {
     BPLib_Status_t Status;
 
@@ -121,7 +121,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
 
-    Status = BPLib_CBOR_VerifyProcFlags(&(bundle->blocks.PrimaryBlock));
+    Status = BPLib_CBOR_VerifyBundleProcFlags(&(bundle->blocks.PrimaryBlock));
     if (Status != BPLIB_SUCCESS)
     {
         return Status;

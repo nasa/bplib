@@ -407,9 +407,9 @@ void BPLib_CBOR_GenerateBlockCrc(const void *EncodedBundle, BPLib_CRC_Type_t Crc
  * \param[in] PriBlock (BPLib_PrimaryBlock_t*) Primary block whose processing flags
  *            are to be validated
  * \return    Execution Status
- * \retval    BPLIB_SUCCESS: 
- * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: Flag field was invalid
+ * \retval    BPLIB_SUCCESS: Bundle processing flags are valid
+ * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: Bundle processing flags are invalid
  */
-BPLib_Status_t BPLib_CBOR_VerifyProcFlags(BPLib_PrimaryBlock_t* PriBlock);
+BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(BPLib_PrimaryBlock_t* PriBlock);
 
 #endif /* BPLIB_CBOR_INTERNAL_H */
