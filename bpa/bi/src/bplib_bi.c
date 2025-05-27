@@ -118,6 +118,10 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
     }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_RECEIVED, 1);
+    }
 
     return Status;
 }

@@ -73,8 +73,7 @@ bool BPLib_NC_ValidParamBundleSizeNoFragment(BPLib_NC_MibPerNodeConfig_t *TblDat
 /* Validation function for PARAM_SET_MAX_SEQUENCE_NUM */
 bool BPLib_NC_ValidParamSetMaxSequenceNum(BPLib_NC_MibPerNodeConfig_t *TblDataPtr)
 {
-    /* All values accepted */
-    return true;
+    return TblDataPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM] > 0;
 }
 
 /* Validation function for PARAM_SET_MAX_PAYLOAD_LENGTH */

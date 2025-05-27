@@ -172,12 +172,6 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
     }
 
-    /* Check flags to make sure we support the requested options */
-    if ((CanonicalBlockHdr->BlockProcFlags | BPLIB_VALID_BLOCK_PROC_FLAG_MASK) != BPLIB_VALID_BLOCK_PROC_FLAG_MASK)
-    {
-        return BPLIB_CBOR_DEC_CANON_BLOCK_FLAG_DEC_ERR;
-    }
-
     /* CRC Type */
     Status = CanonicalBlockParser.CRCTypeParser(ctx, &CanonicalBlockHdr->CrcType);
     if (Status != BPLIB_SUCCESS)

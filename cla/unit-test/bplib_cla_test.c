@@ -643,6 +643,7 @@ void Test_BPLib_CLA_ContactTeardown_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32_t       ContactId;
+    BPLib_Instance_t Inst;
 
     /* Assign a valid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
@@ -650,20 +651,72 @@ void Test_BPLib_CLA_ContactTeardown_Nominal(void)
     /* Put the contact in a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STOPPED;
 
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the contact was started successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 
     /* Show that the run state transitioned */
     UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    UtAssert_STUB_COUNT(BPLib_STOR_StoreBundle, 1);
+}
+
+void Test_BPLib_CLA_ContactTeardown_StorErr(void)
+{
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
+    BPLib_Instance_t Inst;
+
+    /* Assign a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    /* Put the contact in a valid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STOPPED;
+
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_STOR_StoreBundle), 1, BPLIB_ERROR);
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
+
+    /* Show that the contact was started successfully */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID,
+                                "Contact with ID #%d failed to push a bundle back to storage, Status = %d");
+
+    UtAssert_STUB_COUNT(BPLib_STOR_StoreBundle, 1);
+}
+
+void Test_BPLib_CLA_ContactTeardown_NullInst(void)
+{
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
+
+    /* Assign a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    Status = BPLib_CLA_ContactTeardown(NULL, ContactId);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NULL_PTR_ERROR);
 }
 
 void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
 {
     BPLib_Status_t Status;
     uint32_t ContactId;
+    BPLib_Instance_t Inst;
 
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
@@ -672,7 +725,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
 
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
@@ -688,6 +741,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
 {
     BPLib_Status_t Status;
     uint32_t       ContactId;
+    BPLib_Instance_t Inst;
 
     /* Create a valid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
@@ -696,7 +750,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STARTED;
 
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INCORRECT_STATE);
@@ -736,6 +790,8 @@ void TestBplibCla_Register(void)
     ADD_TEST(Test_BPLib_CLA_ContactStop_InvalidRunState);
 
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_NullInst);
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidContactId);
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidRunState);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_StorErr);
 }

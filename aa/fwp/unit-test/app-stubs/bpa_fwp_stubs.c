@@ -32,7 +32,7 @@
  * Generated stub function for BPA_ADUP_AddApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_AddApplication, BPLib_Status_t);
 
@@ -48,7 +48,7 @@ BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_RemoveApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_RemoveApplication, BPLib_Status_t);
 
@@ -64,7 +64,7 @@ BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_StartApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_StartApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_StartApplication, BPLib_Status_t);
 
@@ -80,7 +80,7 @@ BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_StopApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_StopApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_StopApplication, BPLib_Status_t);
 
