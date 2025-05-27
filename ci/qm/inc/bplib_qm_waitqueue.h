@@ -104,4 +104,15 @@ bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, const void* item, int ti
  */
 bool BPLib_QM_WaitQueueTryPull(BPLib_QM_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
+/**
+ * @brief Determine if the queue is currently empty
+ * 
+ * This function checks if the queue is empty in a non-blocking manner.
+ * 
+ * @param[in] q The queue to pull the item from.
+ * 
+ * @return `true` if the queue is empty, `false` otherwise
+ */
+bool BPLib_QM_WaitQueueIsEmpty(BPLib_QM_WaitQueue_t* q);
+
 #endif /* BPLIB_QM_WAITQUEUE_H */

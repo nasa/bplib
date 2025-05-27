@@ -32,6 +32,10 @@
 #define QM_WAIT_FOREVER    -1L /**< Constant representing an indefinite wait */
 #define QM_MAX_GEN_WORKERS  8L /**< Constant representing maximum allowed generic workers */
 
+#ifndef BPLIB_QM_TX_QUEUE_DEPTH
+#define BPLIB_QM_TX_QUEUE_DEPTH 2048
+#endif
+
 typedef struct BPLib_QM_WorkerState
 {
     BPLib_QM_Job_t CurrJob;
@@ -61,7 +65,6 @@ struct BPLib_Instance
 
     /* Bundle Storage */
     BPLib_BundleCache_t BundleStorage;
-
 };
 
 /**
@@ -112,6 +115,16 @@ BPLib_Status_t BPLib_QM_RegisterWorker(BPLib_Instance_t* inst, int32_t* WorkerID
  */
 BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, int TimeoutMs);
 
+
+bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst);
+
+
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery);
+
+
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
+    int TimeoutMs, BPLib_Bundle_t** RetBundle);
+
 /**
  * @brief Adds a job to the queue.
  * 
@@ -128,5 +141,6 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, i
  */
 BPLib_Status_t BPLib_QM_CreateJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int TimeoutMs);
+
 
 #endif /* BPLIB_QM_H */

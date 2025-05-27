@@ -77,6 +77,7 @@ target_link_libraries(coverage-bplib_cla-testrunner PUBLIC
     bplib_em_stubs
     bplib_eid_stubs
     bplib_as_stubs
+    bplib_stor_stubs
 )
 
 add_test(coverage-bplib_cla-testrunner coverage-bplib_cla-testrunner)

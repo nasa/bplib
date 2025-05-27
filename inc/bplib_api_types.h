@@ -144,6 +144,7 @@ typedef enum
 #define BPLIB_INVALID_CHAN_ID_ERR                      ((BPLib_Status_t) -13) /* Invalid Channel ID */
 #define BPLIB_INVALID_CONT_ID_ERR                      ((BPLib_Status_t) -14) /* Invalid Contact ID */
 #define BPLIB_INVALID_CONFIG_ERR                       ((BPLib_Status_t) -15) /* Invalid configuration */
+#define BPLIB_APP_STATE_ERR                            ((BPLib_Status_t) -16) /* Invalid application state */
 /*
 
 #define BPLIB_GENERIC_ERROR_17              ((BPLib_Status_t) -17) // Error description
@@ -310,6 +311,9 @@ typedef enum
 #define BPLIB_STOR_SQL_LOAD_ERR                        ((BPLib_Status_t) -232)
 #define BPLIB_STOR_SQL_DISCARD_ERR                     ((BPLib_Status_t) -233)
 #define BPLIB_STOR_PARAM_ERR                           ((BPLib_Status_t) -234)
+#define BPLIB_STOR_BATCH_EMPTY                         ((BPLib_Status_t) -235)
+#define BPLIB_STOR_BATCH_FULL                          ((BPLib_Status_t) -236)
+#define BPLIB_STOR_BATCH_CONSUMED                      ((BPLib_Status_t) -237)
 
 /* Bundle Interface Errors */
 #define BPLIB_BI_INVALID_BUNDLE_ERR                    ((BPLib_Status_t) -240)

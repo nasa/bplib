@@ -52,13 +52,13 @@ void BPA_PERFLOGP_Entry(uint32_t PerfLogID);
 
 void BPA_PERFLOGP_Exit(uint32_t PerfLogID);
 
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_StartApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_StopApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint32_t ChanId);
 
 BPLib_Status_t BPA_TLMP_SendNodeMibConfigPkt(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
 

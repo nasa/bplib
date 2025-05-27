@@ -33,8 +33,14 @@
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
 #include "bplib_ebp.h"
+#include "bplib_stor.h"
 #include <stdio.h>
 
+/* 
+** Global Data 
+*/
+
+uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Internal Function Definitions
@@ -87,15 +93,209 @@ BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConf
 */
 
 /* Add application configurations */
-BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId)
 {
-    return BPLIB_SUCCESS;
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be either added or removed */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_REMOVED && AppState != BPLIB_NC_APP_STATE_ADDED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Initialize sequence number */
+    BPLib_PI_SequenceNums[ChanId] = 0;
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {
+        /* Set app state to added */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_ADDED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_ADD_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with add-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
+{
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be added or stopped */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_ADDED && AppState != BPLIB_NC_APP_STATE_STOPPED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {        
+        /* Set app state to started */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STARTED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_START_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with start-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;    
+}
+
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
+{
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Check for channel ID validity */
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be started */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState != BPLIB_NC_APP_STATE_STARTED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {        
+        /* Set app state to stopped */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STOPPED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_STOP_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with stop-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;  
 }
 
 /* Remove application configurations */
-BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId)
 {
-    return BPLIB_SUCCESS;
+    BPLib_Bundle_t *Bundle;
+    BPLib_NC_ApplicationState_t AppState;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    if (Inst == NULL)
+    {
+        /* Not a normal ops error, this can be reported by the general NC error event */
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, invalid ChanId=%d",
+                            ChanId);
+
+        return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    /* App state must be added, stopped, or removed */
+    AppState = BPLib_NC_GetAppState(ChanId);
+    if (AppState == BPLIB_NC_APP_STATE_STARTED)
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_STATE_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, invalid AppState=%d for ChanId=%d",
+                            AppState, ChanId);
+
+        return BPLIB_APP_STATE_ERR;
+    }
+
+    /* Push any bundles waiting for egress back into storage */
+    while (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, QM_NO_WAIT))
+    {
+        Status = BPLib_STOR_StoreBundle(Inst, Bundle);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_PI_REMOVE_QUEUE_FLUSH_DBG_EID, BPLib_EM_EventType_DEBUG,
+                                "Error with remove-application directive pushing a bundle back to storage, Status=%d for ChanId=%d",
+                                Status, ChanId);
+
+            /* Bundle is effectively getting dropped */
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
+
+            /* This is still considered a successful directive just with some bundle loss */
+            Status = BPLIB_SUCCESS;
+        }
+    }
+
+    /* Reset sequence number */
+    BPLib_PI_SequenceNums[ChanId] = 0;
+    
+    /* Do any framework-specific operations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication(ChanId);
+    if (Status == BPLIB_SUCCESS)
+    {
+        /* Set app state to removed */
+        BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_REMOVED);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_PI_REMOVE_FWP_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Error with remove-application directive, framework specific error code = %d",
+                            Status);
+    }
+
+    return Status;
 }
 
 /* Validate channel configuration parameters */
@@ -183,7 +383,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 }
 
 /* Ingress an ADU */
-BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
     BPLib_Bundle_t *NewBundle;
@@ -236,6 +436,14 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         */
         BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
         NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+        NewBundle->blocks.PrimaryBlock.Timestamp.SequenceNumber = BPLib_PI_SequenceNums[ChanId];
+
+        /* Update sequence number */
+        BPLib_PI_SequenceNums[ChanId]++;
+        if (BPLib_PI_SequenceNums[ChanId] > BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_SEQUENCE_NUM])
+        {
+            BPLib_PI_SequenceNums[ChanId] = 0;
+        }
 
         /* Initialize payload block */
         NewBundle->blocks.PayloadHeader.BlockType = BPLib_BlockType_Payload;
@@ -275,7 +483,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 }
 
 /* Egress an ADU */
-BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Bundle_t    *Bundle = NULL;
@@ -284,29 +492,24 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
     {
-        Status = BPLIB_NULL_PTR_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
     else if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
         *AduSize = 0;
-        Status = BPLIB_INVALID_CHAN_ID_ERR;
+        return BPLIB_INVALID_CHAN_ID_ERR;
     }
+    *AduSize = 0;
+
     /* Get the next bundle in the channel egress queue */
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
+    Status = BPLib_QM_DuctPull(Inst, ChanId, true, Timeout, &Bundle);
+    if (Status == BPLIB_SUCCESS)
     {
         /* Copy out the contents of the bundle payload to the return pointer */
         Status = BPLib_MEM_CopyOutFromOffset(Bundle,
                                 Bundle->blocks.PayloadHeader.DataOffsetStart,
                                 Bundle->blocks.PayloadHeader.DataSize, AduPtr, BufLen);
-
-        if (Status != BPLIB_SUCCESS)
-        {
-            *AduSize = 0;
-            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "[ADU Out #%d]: Error copying ADU out for egress, Status = %d.", 
-                            ChanId, Status); 
-        }
-        else
+        if (Status == BPLIB_SUCCESS)
         {
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, ADU_COUNT_DELIVERED, 1);
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED, 1);
@@ -316,14 +519,19 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
                     "[ADU Out #%d]: Egressing ADU of %lu bytes", 
                     ChanId, *AduSize);
         }
+        else
+        {
+            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "[ADU Out #%d]: Error copying ADU out for egress, Status = %d.",
+                            ChanId, Status);
+        }
 
         /* Free the bundle */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
-    /* No packet was pulled, presumably queue is empty */
-    else 
+
+    if (Status == BPLIB_TIMEOUT)
     {
-        *AduSize = 0;
         Status = BPLIB_PI_TIMEOUT;
     }
 

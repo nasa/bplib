@@ -27,6 +27,7 @@
 #include "bplib_bi.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
+#include "bplib_stor.h"
 
 /* =========== */
 /* Global Data */
@@ -60,9 +61,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
         return BPLIB_SUCCESS;
     }
     else
-    {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_RECEIVED, 1);
-        
+    {        
         /* Receive a RFC 9171 bundle and pass it to BI */
         /* Note: An argument can be made to simply implement RecvFullBundleIn here
         * and do away with BI_RecvFullBundleIn()
@@ -76,20 +75,23 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
                                 size_t *Size, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
-    BPLib_Bundle_t    *Bundle;
+    BPLib_Bundle_t    *Bundle = NULL;
 
     /* Null checks */
     if ((Inst == NULL) || (BundleOut == NULL) || (Size == NULL))
     {
-        Status = BPLIB_NULL_PTR_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
     else if (ContId >= BPLIB_MAX_NUM_CONTACTS)
     {
         *Size = 0;
-        Status = BPLIB_INVALID_CONT_ID_ERR;
+        return BPLIB_INVALID_CONT_ID_ERR;
     }
+    *Size = 0;
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContId], &Bundle, Timeout))
+    /* Try to pull bundle from the duct using user-specified timeout. */
+    Status = BPLib_QM_DuctPull(Inst, ContId, false, Timeout, &Bundle);
+    if (Status == BPLIB_SUCCESS)
     {
         /* Copy the bundle to the CLA buffer */
         Status = BPLib_BI_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
@@ -100,18 +102,13 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
             BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
                             "[CLA Out #%d]: Forwarding bundle of %lu bytes", ContId, *Size);
         }
-        else
-        {
-            *Size = 0;
-        }
 
         /* Free the bundle blocks */
         BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
-    /* No packet was pulled, presumably queue is empty */
-    else
+
+    if (Status == BPLIB_TIMEOUT)
     {
-        *Size = 0;
         Status = BPLIB_CLA_TIMEOUT;
     }
 
@@ -306,47 +303,70 @@ BPLib_Status_t BPLib_CLA_ContactStop(uint32_t ContactId)
     return Status;
 }
 
-BPLib_Status_t BPLib_CLA_ContactTeardown(uint32_t ContactId)
+BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t ContactId)
 {
     BPLib_Status_t              Status;
     BPLib_CLA_ContactRunState_t RunState;
+    BPLib_Bundle_t             *Bundle;
 
-    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    if (Inst == NULL)
     {
-        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
-        if (RunState == BPLIB_CLA_STOPPED || RunState == BPLIB_CLA_SETUP)
-        {
-            BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
-            (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
-            Status = BPLIB_SUCCESS;
-        }
-        else if (RunState == BPLIB_CLA_TORNDOWN)
-        {
-            Status = BPLIB_SUCCESS;
-            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                BPLib_EM_EventType_DEBUG,
-                                "Contact with ID #%d Contact is already torn down",
-                                ContactId);
-        }
-        else
-        {
-            Status = BPLIB_CLA_INCORRECT_STATE;
-            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                BPLib_EM_EventType_DEBUG,
-                                "Contact with ID #%d needs to be stopped or set up first",
-                                ContactId);
-        }
+        return BPLIB_NULL_PTR_ERROR;
     }
-    else
+    
+    if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
     {
-        Status = BPLIB_INVALID_CONT_ID_ERR;
-        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-                            BPLib_EM_EventType_DEBUG,
-                            "Contact ID %d is invalid",
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                           "Contact ID %d is invalid", ContactId);
+        
+        return BPLIB_INVALID_CONT_ID_ERR;
+    }
+    
+    (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
+
+    /* Contact state should be either set up or stopped */
+    if (RunState == BPLIB_CLA_TORNDOWN)
+    {
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Contact with ID #%d Contact is already torn down",
                             ContactId);
+
+        return BPLIB_SUCCESS;
+    }
+    else if (RunState != BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_SETUP) 
+    {
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Contact with ID #%d needs to be stopped or set up first",
+                            ContactId);
+
+        return BPLIB_CLA_INCORRECT_STATE;
     }
 
-    return Status;
+    /* Push any bundles waiting for egress back into storage */
+    while (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContactId], &Bundle, QM_NO_WAIT))
+    {
+        Status = BPLib_STOR_StoreBundle(Inst, Bundle);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID, BPLib_EM_EventType_DEBUG,
+                                "Contact with ID #%d failed to push a bundle back to storage, Status = %d",
+                                ContactId, Status);
+
+            /* Bundle is effectively getting dropped */
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
+
+            /* This is still considered a successful contact-teardown, just with some bundle loss */
+        }
+    }
+
+    /* Do any framework-specific operations */
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
+    
+    (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
+
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState)

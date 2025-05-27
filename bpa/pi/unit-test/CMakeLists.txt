@@ -64,6 +64,8 @@ target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
     bplib_nc_stubs
     bplib_em_stubs
     bplib_ebp_stubs
+    bplib_stor_stubs
+    bpa_fwp_stubs
 )
 
 add_test(coverage-bplib_pi-testrunner coverage-bplib_pi-testrunner)
