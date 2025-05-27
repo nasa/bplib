@@ -38,6 +38,35 @@
 #include <stdio.h>
 #endif
 
+/* =============== */
+/* Type Defintions */
+/* =============== */
+
+typedef enum
+{
+    BPLIB_PROC_FLAG_FRAGGED_BUNDLE_BIT   =  0, /** \brief Bundle is a fragment flag */
+    BPLIB_PROC_FLAG_ADMIN_RECORD_BIT     =  1, /** \brief ADU is an administrative record flag */
+    BPLIB_PROC_FLAG_NO_FRAG_BUNDLE_BIT   =  2, /** \brief Bundle must not be fragmented flag */
+    /* RESERVED                          =  3, */
+    /* RESERVED                          =  4, */
+    BPLIB_PROC_FLAG_ACK_REQ_BIT          =  5, /** \brief Acknowledgement by application is requested flag */
+    BPLIB_PROC_FLAG_STATUS_TIME_REQ_BIT  =  6, /** \brief Status time requested in reports flag */
+    /* RESERVED                          =  7, */
+    /* RESERVED                          =  8, */
+    /* RESERVED                          =  9, */
+    /* RESERVED                          = 10, */
+    /* RESERVED                          = 11, */
+    /* RESERVED                          = 12, */
+    /* RESERVED                          = 13, */
+    BPLIB_PROC_FLAG_RECEPTION_REPORT_BIT = 14, /** \brief Request reporting of bundle reception flag */
+    /* RESERVED                          = 15, */
+    BPLIB_PROC_FLAG_FORWARD_REPORT_BIT   = 16, /** \brief Request reporting of bundle forwarding flag */
+    BPLIB_PROC_FLAG_DELIVERY_REPORT_BIT  = 17, /** \brief Request reporting of bundle delivery flag */
+    BPLIB_PROC_FLAG_DELETE_REPORT_BIT    = 18, /** \brief Request reporting of bundle deletion flag */
+    /* RESERVED                          = 19, */
+    /* RESERVED                          = 20, */
+    /* UNASSIGNED                        = 21 to 63 */
+} BPLib_BundleProcFlagBits_t;
 
 /*
 ** Exported Functions

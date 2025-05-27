@@ -53,35 +53,19 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
 BPLib_Status_t BPLib_CBOR_VerifyProcFlags(BPLib_PrimaryBlock_t* PriBlock)
 {
     BPLib_Status_t Status;
-    uint8_t        AdminRecordBit;
     uint8_t        AdminRecordMask;
-    uint8_t        NoFragBit;
-    uint8_t        NoFragMask;
-    uint8_t        BundleReceiptReportBit;
     uint8_t        BundleReceiptReportMask;
-    uint8_t        BundleForwardReportBit;
     uint8_t        BundleForwardReportMask;
-    uint8_t        BundleDeliveryReportBit;
     uint8_t        BundleDeliveryReportMask;
-    uint8_t        BundleDeletionReportBit;
     uint8_t        BundleDeletionReportMask;
 
     Status = BPLIB_SUCCESS;
 
-    AdminRecordBit  = 1;
-    AdminRecordMask = (1 << AdminRecordBit);
-
-    BundleReceiptReportBit  = 14;
-    BundleReceiptReportMask = (1 << BundleReceiptReportBit);
-
-    BundleForwardReportBit  = 16;
-    BundleForwardReportMask = (1 << BundleForwardReportBit);
-
-    BundleDeliveryReportBit  = 17;
-    BundleDeliveryReportMask = (1 << BundleDeliveryReportBit);
-
-    BundleDeletionReportBit  = 18;
-    BundleDeletionReportMask = (1 << BundleDeletionReportBit);
+    AdminRecordMask          = (1 << BPLIB_PROC_FLAG_ADMIN_RECORD_BIT);
+    BundleReceiptReportMask  = (1 << BPLIB_PROC_FLAG_RECEPTION_REPORT_BIT);
+    BundleForwardReportMask  = (1 << BPLIB_PROC_FLAG_FORWARD_REPORT_BIT);
+    BundleDeliveryReportMask = (1 << BPLIB_PROC_FLAG_DELIVERY_REPORT_BIT);
+    BundleDeletionReportMask = (1 << BPLIB_PROC_FLAG_DELETE_REPORT_BIT);
 
     if (PriBlock->BundleProcFlags & AdminRecordMask)
     { /* Bundle processing flags indicate this is an admin record bundle */
