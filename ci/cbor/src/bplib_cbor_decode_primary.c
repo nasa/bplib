@@ -53,27 +53,16 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
 BPLib_Status_t BPLib_CBOR_VerifyProcFlags(BPLib_PrimaryBlock_t* PriBlock)
 {
     BPLib_Status_t Status;
-    uint8_t        AdminRecordMask;
-    uint8_t        BundleReceiptReportMask;
-    uint8_t        BundleForwardReportMask;
-    uint8_t        BundleDeliveryReportMask;
-    uint8_t        BundleDeletionReportMask;
 
     Status = BPLIB_SUCCESS;
 
-    AdminRecordMask          = (1 << BPLIB_PROC_FLAG_ADMIN_RECORD_BIT);
-    BundleReceiptReportMask  = (1 << BPLIB_PROC_FLAG_RECEPTION_REPORT_BIT);
-    BundleForwardReportMask  = (1 << BPLIB_PROC_FLAG_FORWARD_REPORT_BIT);
-    BundleDeliveryReportMask = (1 << BPLIB_PROC_FLAG_DELIVERY_REPORT_BIT);
-    BundleDeletionReportMask = (1 << BPLIB_PROC_FLAG_DELETE_REPORT_BIT);
-
-    if (PriBlock->BundleProcFlags & AdminRecordMask)
+    if (PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG)
     { /* Bundle processing flags indicate this is an admin record bundle */
         /* Status reporting flags should be 0 */
-        if (PriBlock->BundleProcFlags & BundleReceiptReportMask  ||
-            PriBlock->BundleProcFlags & BundleForwardReportMask  ||
-            PriBlock->BundleProcFlags & BundleDeliveryReportMask ||
-            PriBlock->BundleProcFlags & BundleDeletionReportMask)
+        if (PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG ||
+            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_FORWARD_FLAG     ||
+            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_DELIVERY_FLAG    ||
+            PriBlock->BundleProcFlags & BPLIB_BUNDLE_PROC_DELETE_FLAG)
         {
             Status = BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR;
         }
@@ -132,7 +121,11 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR;
     }
 
-    
+    Status = BPLib_CBOR_VerifyProcFlags(&(bundle->blocks.PrimaryBlock));
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }
 
     /* CRC Type */
     Status = PrimaryBlockParser.CRCTypeParser(ctx, &bundle->blocks.PrimaryBlock.CrcType);

@@ -71,31 +71,37 @@ typedef struct BPLib_Instance BPLib_Instance_t;
 
 typedef struct BPLib_BundleCache BPLib_BundleCache_t;
 
+typedef enum
+{
+    BPLIB_BUNDLE_PROC_FRAG_FLAG         = 0x0000001, /** \brief Bundle is a fragment flag */
+    BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG = 0x0000002, /** \brief ADU is an administrative record flag */
+    BPLIB_BUNDLE_PROC_NO_FRAG_FLAG      = 0x0000004, /** \brief Bundle must not be fragmented flag */
+    /* RESERVED                         = 0x0000008, */
+    /* RESERVED                         = 0x0000010, */
+    BPLIB_BUNDLE_PROC_ACK_FLAG          = 0x0000020, /** \brief Acknowledgement by application is requested flag */
+    BPLIB_BUNDLE_PROC_STATUS_TIME_FLAG  = 0x0000040, /** \brief Status time requested in reports flag */
+    /* RESERVED                         = 0x0000080, */
+    /* RESERVED                         = 0x0000100, */
+    /* RESERVED                         = 0x0000200, */
+    /* RESERVED                         = 0x0000400, */
+    /* RESERVED                         = 0x0000800, */
+    /* RESERVED                         = 0x0001000, */
+    /* RESERVED                         = 0x0002000, */
+    BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG  = 0x0004000, /** \brief Request reporting of bundle reception flag */
+    /* RESERVED                         = 0x0008000, */
+    BPLIB_BUNDLE_PROC_FORWARD_FLAG      = 0x0010000, /** \brief Request reporting of bundle forwarding flag */
+    BPLIB_BUNDLE_PROC_DELIVERY_FLAG     = 0x0020000, /** \brief Request reporting of bundle delivery flag */
+    BPLIB_BUNDLE_PROC_DELETE_FLAG       = 0x0040000, /** \brief Request reporting of bundle deletion flag */
+    /* RESERVED                         = 0x0080000, */
+    /* RESERVED                         = 0x0100000, */
+    /* UNASSIGNED                       = 0x0200000 to 0x8000000000000000 */
+} BPLib_BundleProcFlagBits_t;
+
 /*
 ** Macros
 */
 
 #define BPLIB_BUNDLE_PROTOCOL_VERSION                   (7u)     /** @brief Version of Bundle Protocol being implemented */
-
-
-/** 
- * @defgroup Bundle Processing Control Flags
- * @{
- */
-#define BPLIB_BUNDLE_PROC_FRAG_FLAG         0x000001    /** @brief Bundle is a fragment */
-#define BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG 0x000002    /** @brief ADU is an administrative record */
-#define BPLIB_BUNDLE_PROC_NO_FRAG_FLAG      0x000004    /** @brief Bundle must not be fragmented */
-#define BPLIB_BUNDLE_PROC_ACK_FLAG          0x000020    /** @brief Acknowledgement by application is requested */
-#define BPLIB_BUNDLE_PROC_STATUS_TIME_FLAG  0x000040    /** @brief Status time requested in reports */
-#define BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG  0x004000    /** @brief Request reporting of bundle reception */
-#define BPLIB_BUNDLE_PROC_FORWARD_FLAG      0x010000    /** @brief Request reporting of bundle forwarding */
-#define BPLIB_BUNDLE_PROC_DELIVERY_FLAG     0x020000    /** @brief Request reporting of bundle delivery */
-#define BPLIB_BUNDLE_PROC_DELETE_FLAG       0x040000    /** @brief Request reporting of bundle deletion */
-
-/* Currently only this bundle flag is supported */
-#define BPLIB_VALID_BUNDLE_PROC_FLAG_MASK   BPLIB_BUNDLE_PROC_NO_FRAG_FLAG
-
-/** @} */
 
 /** 
  * @defgroup Block Processing Control Flags
