@@ -73,6 +73,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
  * \retval    BPLIB_CBOR_DEC_PRIM_VERSION_DEC_ERR: CBOR primary block decode error - decode version field
  * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_VERSION_ERR: CBOR primary block decode error - wrong version field
  * \retval    BPLIB_CBOR_DEC_PRIM_FLAG_DEC_ERR: CBOR primary block decode error - decode flag field
+ * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: CBOR primary block decode error - wrong flag field
  * \retval    BPLIB_CBOR_DEC_PRIM_CRC_TYPE_DEC_ERR: CBOR primary block decode error - decode crc type field
  * \retval    BPLIB_CBOR_DEC_PRIM_DEST_EID_DEC_ERR: CBOR primary block decode error - decode Dest EID field
  * \retval    BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR: CBOR primary block decode error - decode Src EID field
