@@ -314,48 +314,59 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t Contac
         return BPLIB_NULL_PTR_ERROR;
     }
     
-    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    if (ContactId >= BPLIB_MAX_NUM_CONTACTS)
     {
-        /* Push any bundles waiting for egress back into storage */
-        while (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContactId], &Bundle, 0))
-        {
-            BPLib_STOR_StoreBundle(Inst, Bundle);
-        }
-
-        (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
-        if (RunState == BPLIB_CLA_STOPPED || RunState == BPLIB_CLA_SETUP)
-        {
-            BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
-            (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
-            Status = BPLIB_SUCCESS;
-        }
-        else if (RunState == BPLIB_CLA_TORNDOWN)
-        {
-            Status = BPLIB_SUCCESS;
-            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                BPLib_EM_EventType_DEBUG,
-                                "Contact with ID #%d Contact is already torn down",
-                                ContactId);
-        }
-        else
-        {
-            Status = BPLIB_CLA_INCORRECT_STATE;
-            BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID,
-                                BPLib_EM_EventType_DEBUG,
-                                "Contact with ID #%d needs to be stopped or set up first",
-                                ContactId);
-        }
+        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID, BPLib_EM_EventType_DEBUG,
+                           "Contact ID %d is invalid", ContactId);
+        
+        return BPLIB_INVALID_CONT_ID_ERR;
     }
-    else
+    
+    (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return status since ContactId is valid */
+
+    /* Contact state should be either set up or stopped */
+    if (RunState == BPLIB_CLA_TORNDOWN)
     {
-        Status = BPLIB_INVALID_CONT_ID_ERR;
-        BPLib_EM_SendEvent(BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID,
-                            BPLib_EM_EventType_DEBUG,
-                            "Contact ID %d is invalid",
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Contact with ID #%d Contact is already torn down",
                             ContactId);
+
+        return BPLIB_SUCCESS;
+    }
+    else if (RunState != BPLIB_CLA_STOPPED && RunState != BPLIB_CLA_SETUP) 
+    {
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID, BPLib_EM_EventType_DEBUG,
+                            "Contact with ID #%d needs to be stopped or set up first",
+                            ContactId);
+
+        return BPLIB_CLA_INCORRECT_STATE;
     }
 
-    return Status;
+    /* Push any bundles waiting for egress back into storage */
+    while (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs[ContactId], &Bundle, QM_NO_WAIT))
+    {
+        Status = BPLib_STOR_StoreBundle(Inst, Bundle);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID, BPLib_EM_EventType_DEBUG,
+                                "Contact with ID #%d failed to push a bundle back to storage, Status = %d",
+                                ContactId, Status);
+
+            /* Bundle is effectively getting dropped */
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
+
+            /* This is still considered a successful contact-teardown, just with some bundle loss */
+        }
+    }
+
+    /* Do any framework-specific operations */
+    BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactTeardown(ContactId);
+    
+    (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_TORNDOWN); /* Ignore return since pre-call run state is valid */
+
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState)

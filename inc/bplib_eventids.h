@@ -166,6 +166,7 @@
 #define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID          (661u)
 #define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
 #define BPLIB_CLA_EGRESS_DBG_EID                        (663u)
+#define BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID            (664u)
 
 /* ============= */
 /* MEM event IDs */
@@ -193,6 +194,7 @@
 #define BPLIB_PI_STOP_ID_DBG_EID                        (693u)
 #define BPLIB_PI_STOP_STATE_DBG_EID                     (694u)
 #define BPLIB_PI_STOP_FWP_DBG_EID                       (695u)
+#define BPLIB_PI_REMOVE_QUEUE_FLUSH_DBG_EID             (696u)
 
 /* QM event IDs */
 #define BPLIB_QM_EBP_OUT_ERR_EID                        (700u)

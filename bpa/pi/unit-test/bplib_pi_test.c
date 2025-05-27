@@ -207,6 +207,7 @@ void Test_BPLib_PI_RemoveApplication_Nominal(void)
 
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(BPLib_NC_SetAppState, 1);
+    UtAssert_STUB_COUNT(BPLib_STOR_StoreBundle, 1);
 }
 
 
@@ -254,6 +255,24 @@ void Test_BPLib_PI_RemoveApplication_BadState(void)
     UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_APP_STATE_ERR);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_STATE_DBG_EID);
     UtAssert_STRINGBUF_EQ("Error with remove-application directive, invalid AppState=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
+/* Test BPLib_PI_RemoveApplication when storing a bundle fails */
+void Test_BPLib_PI_RemoveApplication_StorErr(void)
+{
+    uint32_t ChanId = 0;
+    BPLib_Instance_t Inst;
+
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_GetAppState), BPLIB_NC_APP_STATE_STOPPED);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_StoreBundle), BPLIB_ERROR);
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(&Inst, ChanId), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_REMOVE_QUEUE_FLUSH_DBG_EID);
+    UtAssert_STRINGBUF_EQ("Error with remove-application directive pushing a bundle back to storage, Status=%d for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -788,6 +807,7 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_RemoveApplication_BadId);
     ADD_TEST(Test_BPLib_PI_RemoveApplication_BadState);
     ADD_TEST(Test_BPLib_PI_RemoveApplication_ProxyErr);
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_StorErr);
 
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_Nominal);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_RegStateInv);

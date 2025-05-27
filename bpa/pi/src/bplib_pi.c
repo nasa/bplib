@@ -169,7 +169,7 @@ BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId)
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication(ChanId);
     if (Status == BPLIB_SUCCESS)
     {        
-        /* Set app state to added */
+        /* Set app state to started */
         BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STARTED);
     }
     else
@@ -212,7 +212,7 @@ BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId)
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication(ChanId);
     if (Status == BPLIB_SUCCESS)
     {        
-        /* Set app state to added */
+        /* Set app state to stopped */
         BPLib_NC_SetAppState(ChanId, BPLIB_NC_APP_STATE_STOPPED);
     }
     else
@@ -259,9 +259,23 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     }
 
     /* Push any bundles waiting for egress back into storage */
-    while (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, 0))
+    while (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, QM_NO_WAIT))
     {
-        BPLib_STOR_StoreBundle(Inst, Bundle);
+        Status = BPLib_STOR_StoreBundle(Inst, Bundle);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_PI_REMOVE_QUEUE_FLUSH_DBG_EID, BPLib_EM_EventType_DEBUG,
+                                "Error with remove-application directive pushing a bundle back to storage, Status=%d for ChanId=%d",
+                                Status, ChanId);
+
+            /* Bundle is effectively getting dropped */
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+            BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
+
+            /* This is still considered a successful directive just with some bundle loss */
+            Status = BPLIB_SUCCESS;
+        }
     }
 
     /* Reset sequence number */
