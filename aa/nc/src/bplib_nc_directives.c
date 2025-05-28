@@ -35,11 +35,12 @@ void BPLib_NC_Noop(void)
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
     BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID,
                         BPLib_EM_EventType_INFORMATION,
-                        "BPLib Version: v%u.%u.%u-sprint-%u",
+                        "BPLib Version: v%u.%u.%u-sprint-%u. NODE_STARTUP_COUNTER is %d",
                         BPLIB_MAJOR_VERSION,
                         BPLIB_MINOR_VERSION,
                         BPLIB_REVISION,
-                        BPLIB_BUILD_NUMBER);
+                        BPLIB_BUILD_NUMBER,
+                        BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, NODE_STARTUP_COUNTER));
 }
 
 void BPLib_NC_AddAllApplications(void)

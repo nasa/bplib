@@ -43,6 +43,19 @@ osal_id_t MutexId;
 /* Function Definitions */
 /* ==================== */
 
+uint32_t BPLib_AS_GetCounterImpl(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter)
+{
+    if (BPLib_EID_IsMatch(EID, &BPLIB_EID_INSTANCE))
+    {
+        return BPLib_AS_NodeCountersPayload.NodeCounters[Counter];
+    }
+    else
+    {
+        /* Source counters are unimplemented */
+        return 0;
+    }
+}
+
 BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
     BPLib_Status_t Status;

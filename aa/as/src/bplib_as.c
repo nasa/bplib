@@ -49,6 +49,16 @@ BPLib_Status_t BPLib_AS_Init(void)
     return Status;
 }
 
+uint32_t BPLib_AS_GetCounter(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter)
+{
+    if (BPLib_EID_IsValid(EID) && Counter < BPLIB_AS_NUM_NODE_CNTRS)
+    {
+        return BPLib_AS_GetCounterImpl(EID, Counter);
+    }
+
+    return 0;
+}
+
 void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
     BPLib_Status_t Status;
