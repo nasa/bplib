@@ -304,11 +304,11 @@ void Test_BPLib_PI_ValidateConfigs_Nominal(void)
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
         ChanTbl.Configs[ChanId].HopLimit = 10;
+        ChanTbl.Configs[ChanId].LocalServiceNumber = ChanId;
         ChanTbl.Configs[ChanId].CrcType = BPLib_CRC_Type_CRC16;
         ChanTbl.Configs[ChanId].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
         ChanTbl.Configs[ChanId].PayloadBlkConfig.IncludeBlock = true;
         ChanTbl.Configs[ChanId].PayloadBlkConfig.BlockNum = 1;
-
         ChanTbl.Configs[ChanId].AgeBlkConfig.IncludeBlock = true;
         ChanTbl.Configs[ChanId].AgeBlkConfig.BlockNum = 2;
         ChanTbl.Configs[ChanId].PrevNodeBlkConfig.IncludeBlock = true;
@@ -359,6 +359,39 @@ void Test_BPLib_PI_ValidateConfigs_CrcTypeInv(void)
     ChanTbl.Configs[0].CrcType = BPLib_CRC_Type_None;
 
     UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_PI_ValidateConfigs_ServiceNumInv(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+    uint32_t ChanId;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
+    {
+        ChanTbl.Configs[ChanId].HopLimit = 10;
+        ChanTbl.Configs[ChanId].LocalServiceNumber = ChanId;
+        ChanTbl.Configs[ChanId].CrcType = BPLib_CRC_Type_CRC16;
+        ChanTbl.Configs[ChanId].DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].PayloadBlkConfig.BlockNum = 1;
+        ChanTbl.Configs[ChanId].AgeBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].AgeBlkConfig.BlockNum = 2;
+        ChanTbl.Configs[ChanId].PrevNodeBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].PrevNodeBlkConfig.BlockNum = 3;
+        ChanTbl.Configs[ChanId].HopCountBlkConfig.IncludeBlock = true;
+        ChanTbl.Configs[ChanId].HopCountBlkConfig.BlockNum = 4;
+    }
+
+    /* Set two service numbers to the same value */
+    ChanTbl.Configs[BPLIB_MAX_NUM_CHANNELS - 1].LocalServiceNumber = ChanTbl.Configs[0].LocalServiceNumber;
+
+#if BPLIB_MAX_NUM_CHANNELS > 1
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_INVALID_CONFIG_ERR);
+#endif
 }
 
 void Test_BPLib_PI_ValidateConfigs_FlagsInv(void)
@@ -813,6 +846,7 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_HopLimitInv);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_CrcTypeInv);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_FlagsInv);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_ServiceNumInv);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_DtnDestEid);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_DestEidInv);
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_RepToEidInv);

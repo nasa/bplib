@@ -72,6 +72,11 @@ BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConf
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    if (CanBlkConfig->BlockNum == 0)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
     /* Validate that this block number is unique */
     for (i = 0; i < *BlockNumsInArr; i++)
     {
@@ -305,6 +310,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
     uint32_t ChanId;
     uint32_t BlockNums[4];
     uint8_t  BlockNumsInArr;
+    uint32_t i;
 
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
@@ -327,6 +333,16 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
             TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC32C)
         {
             return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate uniqueness of service numbers */
+        for (i = 0; i < ChanId; i++)
+        {
+            if (TblDataPtr->Configs[i].LocalServiceNumber == 
+                TblDataPtr->Configs[ChanId].LocalServiceNumber)
+            {
+                return BPLIB_INVALID_CONFIG_ERR;
+            }
         }
 
         /* Validate bundle proc flags are all supported */
