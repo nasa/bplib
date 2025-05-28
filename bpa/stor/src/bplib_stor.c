@@ -221,6 +221,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
     }
 
     /* Determine which channel or contact's batch we're examining */
+    BPLib_NC_ReaderLock();
     CacheInst = &Inst->BundleStorage;
     if (LocalDelivery)
     {
@@ -240,6 +241,7 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
         NumEIDs = BPLIB_MAX_CONTACT_DEST_EIDS;
         EgressQueue = &(Inst->ContactEgressJobs[EgressID]);
     }
+    BPLib_NC_ReaderUnlock();
 
     pthread_mutex_lock(&CacheInst->lock);
 
