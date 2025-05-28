@@ -59,7 +59,9 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
-
+    QCBORError NextElementType;
+    QCBORItem PeekItem;
+    
     if ((ctx == NULL) || (bundle == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
@@ -169,6 +171,12 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRIM_EXIT_ARRAY_ERR;
+    }
+
+    NextElementType = QCBORDecode_PeekNext(ctx, &PeekItem);
+    if (NextElementType == QCBOR_ERR_NO_MORE_ITEMS)
+    {
+        return BPLIB_CBOR_DEC_NO_PAYLOAD_ERR;
     }
 
     /* Grab the current offset, to be kept in the primary block's metadata */

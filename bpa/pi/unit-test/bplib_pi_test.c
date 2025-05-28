@@ -710,7 +710,6 @@ void Test_BPLib_PI_Egress_Nominal(void)
 
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_SUCCESS);
     UtAssert_INT32_EQ(AduSize, Bundle.blocks.PayloadHeader.DataSize);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_PI_EGRESS_DBG_EID);
 }
 
 /* Test egress function when copy fails */

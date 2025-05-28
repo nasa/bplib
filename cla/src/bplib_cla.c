@@ -98,9 +98,6 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint32_t ContId, void *B
         if (Status == BPLIB_SUCCESS)
         {
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED, 1);
-
-            BPLib_EM_SendEvent(BPLIB_CLA_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                            "[CLA Out #%d]: Forwarding bundle of %lu bytes", ContId, *Size);
         }
 
         /* Free the bundle blocks */

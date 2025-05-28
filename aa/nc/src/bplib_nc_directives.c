@@ -324,7 +324,7 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_RESET_SRC_CTRS_ERR_EID,
-                            BPLib_EM_EventType_DEBUG,
+                            BPLib_EM_EventType_ERROR,
                             "Could not reset source counters at index %d, RC = %d",
                             Payload.MibArrayIndex,
                             Status);

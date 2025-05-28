@@ -467,8 +467,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_GENERATED_ACCEPTED, 1);
-        BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-            "[ADU In #%d]: Ingressed ADU of %lu bytes.", ChanId, AduSize);
     }
     else 
     {
@@ -515,9 +513,6 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *Ad
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED, 1);
 
             *AduSize = Bundle->blocks.PayloadHeader.DataSize;
-            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                    "[ADU Out #%d]: Egressing ADU of %lu bytes", 
-                    ChanId, *AduSize);
         }
         else
         {
