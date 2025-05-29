@@ -40,7 +40,7 @@ uint8_t CandPrimary[] = {
     0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 0x01, 0x82, 
     0x1b, 0x00, 0x00, 0x00, 0xaf, 0xe9, 0x53, 0x7a, 
     0x38, 0x00, 0x1a, 0x00, 0x36, 0xee, 0x80, 0x42, 
-    0x0b, 0x19,
+    0x0b, 0x19, 0xff
 };
 
 /*
@@ -106,6 +106,23 @@ void Test_BPLib_CBOR_DecodePrimary_InvalidCrc(void)
     UT_SetDeferredRetcode(UT_KEY(BPLib_CRC_Calculate), 1, 0xbeef);
 
     UtAssert_INT32_EQ(BPLib_CBOR_DecodePrimary(&ctx, &Bundle, CandBundle), BPLIB_INVALID_CRC_ERROR);    
+}
+
+/* Test a bundle with no canonical blocks */
+void Test_BPLib_CBOR_DecodePrimary_NoCanonBlks(void)
+{
+    BPLib_Bundle_t Bundle;
+    QCBORDecodeContext ctx;
+    UsefulBufC UBufC;
+    QCBORItem OuterArr;
+
+    /* Initialize QCBOR context */
+    UBufC.ptr = (const void *)(CandPrimary);
+    UBufC.len = sizeof(CandPrimary);
+    QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
+    QCBORDecode_EnterArray(&ctx, &OuterArr);    
+
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodePrimary(&ctx, &Bundle, CandPrimary), BPLIB_CBOR_DEC_NO_PAYLOAD_ERR);    
 }
 
 void Test_BPLib_CBOR_DecodePrimary_InvalidFlags(void)
@@ -248,7 +265,7 @@ void Test_BPLib_CBOR_DecodeCanonical_AgeBlk(void)
          CRC Value: 0x3129    
     */
     uint8_t GoodAgeBlk[] = {
-        0x86, 0x07, 0x01, 0x00, 0x01, 0x45, 
+        0x86, 0x07, 0x02, 0x00, 0x01, 0x45, 
         0x1a, 0x00, 0x01, 0xa5, 0xe0, 0x42, 
         0x31, 0x29
     };
@@ -267,6 +284,44 @@ void Test_BPLib_CBOR_DecodeCanonical_AgeBlk(void)
 
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, GoodAgeBlk), BPLIB_SUCCESS);    
 }
+
+/* Test an age block with a bad block number */
+void Test_BPLib_CBOR_DecodeCanonical_InvBlkNum(void)
+{
+    /* 
+      Canonical Block [0]: 
+         Block Type: 7
+         Block Number: 0
+         Flags: 0
+         CRC Type: 1
+         Block Offset Start: 45
+         Data Offset Start: 51
+         Data Size: 5
+         Block Offset End: 58
+         Block Size: 14
+         Age Block Data: 
+                 Age Block MetaData Length: 8
+                 Age (in milliseconds): 108000
+         CRC Value: 0x3129    
+    */
+    uint8_t AgeBlk[] = {
+        0x86, 0x07, 0x00, 0x00, 0x01, 0x45, 
+        0x1a, 0x00, 0x01, 0xa5, 0xe0, 0x42, 
+        0x31, 0x29
+    };
+
+    BPLib_Bundle_t Bundle;
+    QCBORDecodeContext ctx;
+    UsefulBufC UBufC;
+
+    /* Initialize QCBOR context */
+    UBufC.ptr = (const void*)(AgeBlk);
+    UBufC.len = sizeof(AgeBlk);
+    QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
+
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeCanonical(&ctx, &Bundle, 0, AgeBlk), BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR);    
+}
+
 
 /* Test a valid prev node block */
 void Test_BPLib_CBOR_DecodeCanonical_PrevNodeBlk(void)
@@ -518,11 +573,13 @@ void TestBplibCborDecodeInternal_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodePrimary_InvalidCrc, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodePrimary_InvalidCrc");
     UtTest_Add(Test_BPLib_CBOR_DecodePrimary_InvalidFlags, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodePrimary_InvalidFlags");
     UtTest_Add(Test_BPLib_CBOR_DecodePrimary_CrcNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodePrimary_CrcNone");
-
+    UtTest_Add(Test_BPLib_CBOR_DecodePrimary_NoCanonBlks, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodePrimary_NoCanonBlks");
+    
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_InvalidCrc, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_InvalidCrc");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_BadBlockNum, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_BadBlockNum");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_BadCrcType, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_BadCrcType");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_AgeBlk, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_AgeBlk");
+    UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_InvBlkNum, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_InvBlkNum");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_PrevNodeBlk, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_PrevNodeBlk");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_HopCountBlk, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_HopCountBlk");
     UtTest_Add(Test_BPLib_CBOR_DecodeCanonical_LimitTooSmall, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeCanonical_LimitTooSmall");
