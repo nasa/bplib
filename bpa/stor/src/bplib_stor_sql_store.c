@@ -39,25 +39,28 @@ static sqlite3_stmt* InsertBlobStmt;
 /*******************************************************************************
 ** Static Functions
 */
-static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
+static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
 {
     int SQLStatus;
 
     sqlite3_reset(InsertMetadataStmt);
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
-        (int64_t)BBlocks->PrimaryBlock.Lifetime);
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)Bundle->blocks.PrimaryBlock.Timestamp.CreateTime + 
+                                                          (int64_t)Bundle->blocks.PrimaryBlock.Lifetime);
+
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to bind action_timestamp in store_meta\n");
         return SQLStatus;
     }
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
+
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Node);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to bind dest_node in store_meta\n");
         return SQLStatus;
     }
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)BBlocks->PrimaryBlock.DestEID.Service);
+
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Service);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to bind dest_service in store_meta\n");
