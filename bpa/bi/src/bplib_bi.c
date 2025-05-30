@@ -96,14 +96,6 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     /* If decode and validation were successful, create the job to ingress bundle */
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-            "[CLA In #%d]: Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
-            ContId, (unsigned long) Size,
-            CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
-            CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
-            CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
-            CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
-
         Status = BPLib_QM_CreateJob(Inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
     
@@ -112,7 +104,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     {
         BPLib_MEM_BundleFree(&Inst->pool, CandidateBundle);
 
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_INF_EID, BPLib_EM_EventType_INFORMATION,
                             "[CLA In #%d]: Error ingressing bundle, RC = %d", ContId, Status);
 
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);

@@ -213,7 +213,7 @@ void Test_BPLib_NC_Noop_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_NOOP_SUCCESS_EID,
-                                "BPLib Version: v%u.%u.%u-sprint-%u");
+                                "BPLib Version: v%u.%u.%u-sprint-%u. NODE_STARTUP_COUNTER is %d");
 }
 
 void Test_BPLib_NC_AddAllApplications_Nominal(void)

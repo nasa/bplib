@@ -1094,34 +1094,89 @@ void Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error(void)
     }
 }
 
+void Test_BPLib_AS_GetCounter_Nominal(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), true);
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED] = 0xdead;
+
+    UtAssert_EQ(uint32_t, BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED),
+                          BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED]);
+}
+
+void Test_BPLib_AS_GetCounter_Null(void)
+{
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED] = 0xdead;
+
+    UtAssert_EQ(uint32_t, BPLib_AS_GetCounter(NULL, BUNDLE_COUNT_DELIVERED), 0);
+}
+
+void Test_BPLib_AS_GetCounter_InvalidEid(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED] = 0xdead;
+
+    UtAssert_EQ(uint32_t, BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED), 0);
+}
+
+void Test_BPLib_AS_GetCounter_InvalidCounter(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    UtAssert_EQ(uint32_t, BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, BPLIB_AS_NUM_NODE_CNTRS), 0);
+}
+
+void Test_BPLib_AS_GetCounter_SrcCounter(void)
+{
+    BPLib_EID_t Eid;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
+
+    UtAssert_EQ(uint32_t, BPLib_AS_GetCounter(&Eid, BUNDLE_COUNT_DELIVERED), 0);
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
     ADD_TEST(Test_BPLib_AS_Init_Error);
+
     ADD_TEST(Test_BPLib_AS_Increment_NodeCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_Increment_SourceCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_Increment_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_Increment_UnkNodeCtr_Error);
     ADD_TEST(Test_BPLib_AS_Increment_UnkSrcCtr_Error);
+
     ADD_TEST(Test_BPLib_AS_Decrement_NodeCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_Decrement_SourceCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_Decrement_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_UnkNodeCtr_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_UnkSrcCtr_Error);
+
     ADD_TEST(Test_BPLib_AS_ResetCounter_NodeCtr_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetCounter_SrcCtr_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetCounter_InvalidIndex_Error);
     ADD_TEST(Test_BPLib_AS_ResetCounter_UnkNodeCtr_Error);
     ADD_TEST(Test_BPLib_AS_ResetCounter_UnkSrcCtr_Error);
+
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Error);
+
     ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Nominal);
+
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
+
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
+
     ADD_TEST(Test_BPLib_AS_SendNodeMibCountersHk_Nominal);
+
     ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
+
     ADD_TEST(Test_BPLib_AS_SendNodeMibReportsHk_Nominal);
+
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_Nominal);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error);
@@ -1129,4 +1184,10 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_FullArray_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error);
+
+    ADD_TEST(Test_BPLib_AS_GetCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_GetCounter_Null);
+    ADD_TEST(Test_BPLib_AS_GetCounter_InvalidCounter);
+    ADD_TEST(Test_BPLib_AS_GetCounter_InvalidEid);
+    ADD_TEST(Test_BPLib_AS_GetCounter_SrcCounter);
 }

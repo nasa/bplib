@@ -156,8 +156,7 @@
 /* ============ */
 /* BI event IDs */
 /* ============ */
-#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID            (650u)
-#define BPLIB_BI_INGRESS_DBG_EID                        (651u)
+#define BPLIB_BI_INGRESS_CBOR_DECODE_INF_EID            (650u)
 
 /* ============= */
 /* CLA event IDs */
@@ -165,8 +164,7 @@
 
 #define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID          (661u)
 #define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
-#define BPLIB_CLA_EGRESS_DBG_EID                        (663u)
-#define BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID            (664u)
+#define BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID            (663u)
 
 /* ============= */
 /* MEM event IDs */
@@ -178,9 +176,7 @@
 /* PI event IDs */
 /* ============ */
 
-#define BPLIB_PI_EGRESS_DBG_EID                         (680u)
-#define BPLIB_PI_EGRESS_ERR_EID                         (681u)
-#define BPLIB_PI_INGRESS_DBG_EID                        (682u)
+#define BPLIB_PI_EGRESS_ERR_EID                         (682u)
 #define BPLIB_PI_INGRESS_ERR_EID                        (683u)
 #define BPLIB_PI_REMOVE_STATE_DBG_EID                   (684u)
 #define BPLIB_PI_REMOVE_ID_DBG_EID                      (685u)

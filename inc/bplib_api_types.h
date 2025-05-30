@@ -257,6 +257,7 @@ typedef enum
 #define BPLIB_CBOR_DEC_UNKNOWN_BLOCK_DEC_ERR           ((BPLib_Status_t) -155) /* CBOR canon block decode error: can't process block */
 #define BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR         ((BPLib_Status_t) -156) /* CBOR decode error: bundle is too long */
 #define BPLIB_CBOR_DEC_EXTRA_DATA_DEC_ERR              ((BPLib_Status_t) -157) /* CBOR decode error: extra data after payload  */
+#define BPLIB_CBOR_DEC_NO_PAYLOAD_ERR                  ((BPLib_Status_t) -158) /* CBOR decode error: no payload detected in bundle */
 
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_QCBOR_ERR ((BPLib_Status_t) -158) /* CBOR decode types error: enter def array */
 #define BPLIB_CBOR_DEC_TYPES_ENTER_DEF_ARRAY_COUNT_ERR ((BPLib_Status_t) -159) /* CBOR decode types error: def array size */

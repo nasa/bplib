@@ -73,6 +73,11 @@ BPLib_Status_t BPLib_PI_ValidateCanBlkConfig(BPLib_PI_CanBlkConfig_t *CanBlkConf
         return BPLIB_INVALID_CONFIG_ERR;
     }
 
+    if (CanBlkConfig->BlockNum == 0)
+    {
+        return BPLIB_INVALID_CONFIG_ERR;
+    }
+
     /* Validate that this block number is unique */
     for (i = 0; i < *BlockNumsInArr; i++)
     {
@@ -306,6 +311,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
     uint32_t ChanId;
     uint32_t BlockNums[4];
     uint8_t  BlockNumsInArr;
+    uint32_t i;
 
     for (ChanId = 0; ChanId < BPLIB_MAX_NUM_CHANNELS; ChanId++)
     {
@@ -328,6 +334,16 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
             TblDataPtr->Configs[ChanId].CrcType != BPLib_CRC_Type_CRC32C)
         {
             return BPLIB_INVALID_CONFIG_ERR;
+        }
+
+        /* Validate uniqueness of service numbers */
+        for (i = 0; i < ChanId; i++)
+        {
+            if (TblDataPtr->Configs[i].LocalServiceNumber == 
+                TblDataPtr->Configs[ChanId].LocalServiceNumber)
+            {
+                return BPLIB_INVALID_CONFIG_ERR;
+            }
         }
 
         /* Validate bundle proc flags are all supported */
@@ -468,8 +484,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_GENERATED_ACCEPTED, 1);
-        BPLib_EM_SendEvent(BPLIB_PI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-            "[ADU In #%d]: Ingressed ADU of %lu bytes.", ChanId, AduSize);
     }
     else 
     {
@@ -516,9 +530,6 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *Ad
             BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELIVERED, 1);
 
             *AduSize = Bundle->blocks.PayloadHeader.DataSize;
-            BPLib_EM_SendEvent(BPLIB_PI_EGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-                    "[ADU Out #%d]: Egressing ADU of %lu bytes", 
-                    ChanId, *AduSize);
         }
         else
         {
