@@ -55,6 +55,17 @@ extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 /* =================== */
 
 /**
+ * \brief     Returns counter value for the provided EID
+ * \note      Source counters are unimplemented and return 0 by default
+ * \param[in] EID Endpoint identifier
+ * \param[in] Counter Enumeration of counter to return
+ * \return    Counter value
+ * \retval    A counter value of 0 could be the real value or indicate a silent validation 
+ *            error
+ */
+uint32_t BPLib_AS_GetCounterImpl(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter);
+
+/**
  * \brief     Set given counter associated with given EID to given value
  * \details   Reference the BPLib_AS_Counter_t struct to see what each counter represents
  * \note      Directly sets counter in counter payloads to given value

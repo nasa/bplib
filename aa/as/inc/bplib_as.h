@@ -242,6 +242,17 @@ typedef struct
 BPLib_Status_t BPLib_AS_Init(void);
 
 /**
+ * \brief     Returns counter value for the provided EID
+ * \note      Source counters are unimplemented and return 0 by default
+ * \param[in] EID Endpoint identifier
+ * \param[in] Counter Enumeration of counter to return
+ * \return    Counter value
+ * \retval    A counter value of 0 could be the real value or indicate a silent validation 
+ *            error
+ */
+uint32_t BPLib_AS_GetCounter(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter);
+
+/**
  * \brief     Add an amount to the counter specified by the given EID and counter
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Amount must be positive

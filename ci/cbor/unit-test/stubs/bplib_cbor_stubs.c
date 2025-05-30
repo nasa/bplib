@@ -27,7 +27,6 @@
 #include "bplib_cbor.h"
 #include "utgenstub.h"
 
-
 #include "qcbor/qcbor_encode.h"
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
@@ -50,16 +49,13 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void *CandBundle, size_t CandBundle
     return UT_GenStub_GetReturnValue(BPLib_CBOR_DecodeBundle, BPLib_Status_t);
 }
 
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_CBOR_EncodeBundle()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t *StoredBundle,
-    void *OutputBuffer,
-    size_t OutputBufferSize,
-    size_t *NumBytesCopied)
+BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t *StoredBundle, void *OutputBuffer, size_t OutputBufferSize,
+                                       size_t *NumBytesCopied)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_CBOR_EncodeBundle, BPLib_Status_t);
 
@@ -71,4 +67,20 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t *StoredBundle,
     UT_GenStub_Execute(BPLib_CBOR_EncodeBundle, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_CBOR_EncodeBundle, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CBOR_VerifyBundleProcFlags()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(uint64_t BundleProcFlags)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_VerifyBundleProcFlags, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CBOR_VerifyBundleProcFlags, uint64_t, BundleProcFlags);
+
+    UT_GenStub_Execute(BPLib_CBOR_VerifyBundleProcFlags, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CBOR_VerifyBundleProcFlags, BPLib_Status_t);
 }

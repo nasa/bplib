@@ -165,6 +165,12 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         return BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR;
     }
 
+    /* Block number cannot be 0 */
+    if (CanonicalBlockHdr->BlockNum == 0)
+    {
+        return BPLIB_CBOR_DEC_CANON_BLOCK_NUM_DEC_ERR;
+    }
+
     /* Flags */
     Status = CanonicalBlockParser.FlagsParser(ctx, &CanonicalBlockHdr->BlockProcFlags);
     if (Status != BPLIB_SUCCESS)
