@@ -522,6 +522,35 @@ void Test_BPLib_CBOR_DecodeBundle_TooBig(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR);
 }
 
+void Test_BPLib_CBOR_VerifyBundleProcFlags_Nominal(void)
+{
+    uint64_t BundleProcFlags;
+
+    BundleProcFlags = BPLIB_BUNDLE_PROC_FRAG_FLAG;
+
+    UtAssert_EQ(BPLib_Status_t, BPLib_CBOR_VerifyBundleProcFlags(BundleProcFlags), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CBOR_VerifyBundleProcFlags_UnrecogFlags(void)
+{
+    uint64_t BundleProcFlags;
+
+    BundleProcFlags = 0x0000008; /* Currently reserved flags */
+
+    UtAssert_EQ(BPLib_Status_t, BPLib_CBOR_VerifyBundleProcFlags(BundleProcFlags), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CBOR_VerifyBundleProcFlags_InvalidFlags(void)
+{
+    uint64_t BundleProcFlags;
+
+    BundleProcFlags = 0;
+    BundleProcFlags |= BPLIB_BUNDLE_PROC_ADMIN_RECORD_FLAG; /* Set the admin record flag */
+    BundleProcFlags |= BPLIB_BUNDLE_PROC_RECV_REPORT_FLAG;  /* Set a reporting flag to make these flags invalid */
+
+    UtAssert_EQ(BPLib_Status_t, BPLib_CBOR_VerifyBundleProcFlags(BundleProcFlags), BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR);
+}
+
 
 void TestBplibCborDecode_Register(void)
 {
@@ -533,6 +562,8 @@ void TestBplibCborDecode_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_CrcNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_CrcNone");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Crc32, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Crc32");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_TooBig, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_TooBig");    
-    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_DtnNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_DtnNone");    
-    
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_DtnNone, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_DtnNone");
+    UtTest_Add(Test_BPLib_CBOR_VerifyBundleProcFlags_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_VerifyBundleProcFlags_Nominal");
+    UtTest_Add(Test_BPLib_CBOR_VerifyBundleProcFlags_UnrecogFlags, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_VerifyBundleProcFlags_UnrecogFlags");
+    UtTest_Add(Test_BPLib_CBOR_VerifyBundleProcFlags_InvalidFlags, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_VerifyBundleProcFlags_InvalidFlags");
 }

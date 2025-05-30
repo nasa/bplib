@@ -61,5 +61,18 @@ BPLib_Status_t BPLib_CBOR_EncodeBundle(BPLib_Bundle_t* StoredBundle,
     size_t OutputBufferSize,
     size_t* NumBytesCopied);
 
+/**
+ * \brief     Verify that the bundle processing flags aren't invalid
+ * \note      RFC 9171 policy that anonymous bundle transmission is permitted is
+ *            not honored by the DTN requirements. Therefore, there is no check on
+ *            the state of the "Bundle must not be fragmented" flag in relation to
+ *            all status report request flags being zero.
+ * \param[in] BundleProcFlags (uint64_t) Bundle processing flags to be verified
+ *            are to be validated
+ * \return    Execution Status
+ * \retval    BPLIB_SUCCESS: Bundle processing flags are valid
+ * \retval    BPLIB_CBOR_DEC_PRIM_WRONG_FLAG_ERR: Bundle processing flags are invalid
+ */
+BPLib_Status_t BPLib_CBOR_VerifyBundleProcFlags(uint64_t BundleProcFlags);
 
 #endif /* BPLIB_CBOR_H */

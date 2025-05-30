@@ -38,7 +38,6 @@
 #include <stdio.h>
 #endif
 
-
 /*
 ** Exported Functions
 */
@@ -133,7 +132,7 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
  */
-typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed, 
+typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed,
                                             uint64_t crc_type);
 
 
@@ -385,8 +384,8 @@ BPLib_Status_t BPLib_CBOR_EncodeCrcValue(QCBOREncodeContext* Context, uint64_t C
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_INVALID_CRC_ERROR: CRC was invalid
  */
-BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle, 
-    BPLib_CRC_Type_t CrcType, BPLib_CRC_Val_t ExpectedCrc, 
+BPLib_Status_t BPLib_CBOR_ValidateBlockCrc(const void *EncodedBundle,
+    BPLib_CRC_Type_t CrcType, BPLib_CRC_Val_t ExpectedCrc,
     size_t BlockOffsetStart, size_t BlockLength);
 
 /**
