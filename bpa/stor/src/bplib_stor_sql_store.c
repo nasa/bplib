@@ -28,7 +28,7 @@
 
 /* Insert Bundle Metadata */
 static const char* InsertMetadataSQL = 
-    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service) VALUES (?, ?, ?);";
+    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service) VALUES (?, ?, ?, ?);";
 static sqlite3_stmt* InsertMetadataStmt;
 
 /* Insert Bundle Blob */
@@ -50,33 +50,42 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
                                                           (int64_t)Bundle->blocks.PrimaryBlock.Lifetime);
 
     if (SQLStatus == SQLITE_OK)
-    { /* The value of the timestamp used as an indicator for some action was successfully bound */
+    {
         /* Add the destination node into the InsertMetadataStmt variable */
         SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Node);
         if (SQLStatus == SQLITE_OK)
-        { /* Destination node was successfully bound */
+        {
             /* Add the destination service number to the InsertMetadataStmt variable */
             SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Service);
             if (SQLStatus == SQLITE_OK)
-            { /* Destination service number was successfully bound */
-                SQLStatus = sqlite3_step(InsertMetadataStmt);
-                if (SQLStatus != SQLITE_DONE)
-                { /* SQL command failed */
-                    fprintf(stderr, "Insert meta failed\n");
+            {
+                /* Add the bundle size in bytes to the InsertMetadataStmt variable */
+                SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 4, (int64_t)Bundle->TotalBytes);
+                if (SQLStatus == SQLITE_OK)
+                {
+                    SQLStatus = sqlite3_step(InsertMetadataStmt);
+                    if (SQLStatus != SQLITE_DONE)
+                    { /* SQL command failed */
+                        fprintf(stderr, "Insert meta failed\n");
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Failed to bind bundle_size in store_meta\n");
                 }
             }
             else
-            { /* Destination service number was not bound to InsertMetadataStmt */
+            {
                 fprintf(stderr, "Failed to bind dest_service in store_meta\n");
             }
         }
         else
-        { /* Destination node EID was not bound to InsertMetadataStmt */
+        {
             fprintf(stderr, "Failed to bind dest_node in store_meta\n");
         }
     }
     else
-    { /* Action timestamp was not bound to InsertMetadataStmt */
+    {
         fprintf(stderr, "Failed to bind action_timestamp in store_meta\n");
     }
 
