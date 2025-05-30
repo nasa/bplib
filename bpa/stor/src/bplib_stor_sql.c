@@ -136,6 +136,43 @@ static int BPLib_SQL_GetNumStoredBundles(sqlite3 *db, uint32_t *BundleCnt)
     return SQLITE_OK;
 }
 
+static int BPLib_SQL_GetTotalBundleBytes(sqlite3* db, uint64_t* TotalBytes)
+{
+    sqlite3_stmt* stmt;
+    int SQLStatus;
+    const char* TotalBytesSQL = "SELECT SUM(bundle_bytes)"
+                                "AS TotalBytes"
+                                "FROM bundle_data;";
+
+    /* Load up the SQL command */
+    SQLStatus = sqlite3_prepare_v2(db, TotalBytesSQL, -1, &stmt, NULL);
+    if (SQLStatus == SQLITE_OK)
+    {
+        /* Evaluate the command */
+        SQLStatus = sqlite3_step(stmt);
+        if (SQLStatus == SQLITE_ROW)
+        {
+            /* Assign the result of the query to TotalBytes */
+            *TotalBytes = sqlite3_column_int64(stmt, 0);
+            sqlite3_finalize(stmt);
+        }
+        else
+        {
+            fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
+                    sqlite3_errmsg(db),
+                    TotalBytesSQL);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Error code %s, received while preparing SQL statement: %s\n",
+                sqlite3_errmsg(db),
+                TotalBytesSQL);
+    }
+
+    return SQLStatus;
+}
+
 static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 {
     int SQLStatus;
