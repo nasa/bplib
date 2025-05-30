@@ -179,7 +179,11 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     sqlite3* ActiveDB;
     int ForeignKeysEnabled;
     sqlite3_stmt* ForeignKeyCheckStmt;
-    uint32_t NumStoredBundles = 0;
+    uint32_t NumStoredBundles;
+    uint64_t TotalBundleBytes;
+    
+    NumStoredBundles = 0;
+    TotalBundleBytes = 0;
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
@@ -238,6 +242,13 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
         return SQLStatus;
     }
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumStoredBundles);
+
+    /* Find the total number of bytes of bundles stored */
+    SQLStatus = BPLib_SQL_GetTotalBundleBytes(ActiveDB, &TotalBundleBytes);
+    if (SQLStatus == SQLITE_OK)
+    {
+        BPLib_STOR_StoragePayload.MemInUse = TotalBundleBytes;
+    }
 
     /* Expecting SQLITE_OK */
     return SQLStatus;
