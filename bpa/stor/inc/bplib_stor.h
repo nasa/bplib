@@ -62,14 +62,14 @@ typedef struct BPLib_StorageHkTlm_Payload BPLib_StorageHkTlm_Payload_t;
 
 struct BPLib_StorageHkTlm_Payload
 {
-    float    StoragePercentFull; /** \brief Percentage of storage which triggers discarding deleted bundles from storage */
-    float    MemInUse;           /** \brief Bytes in memory that are in use */
-    float    MemFree;            /** \brief Number of bytes free */
-    uint32_t MemHighWater;       /** \brief Memory high water mark in bytes */
+    size_t   BytesMemInUse;     /** \brief Bytes in memory that are in use */
+    size_t   BytesMemFree;      /** \brief Number of bytes free */
+    uint32_t BytesMemHighWater; /** \brief Memory high water mark in bytes */
+    size_t   KbStorageInUse;    /** \brief Kilobytes of storage currently occupied by bundles */
 
-    uint32_t Spare;              /** \brief Spare for alignment */
-    int64_t  MonotonicTime;      /** \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;  /** \brief Time Correlation Factor */
+    uint32_t Spare;             /** \brief Spare for alignment */
+    int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 };
 
 /*
