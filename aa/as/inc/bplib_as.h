@@ -130,7 +130,7 @@ typedef enum
     BUNDLE_COUNT_IN_CUSTODY                = 73, /** \brief  */
     BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED     = 74, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
     BUNDLE_COUNT_RECEIVED_CRS              = 75, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
-    BUNDLE_COUNT_STORAGE_AVAILABLE         = 76, /** \brief  */
+    BUNDLE_COUNT_STORAGE_IN_USE            = 76, /** \brief  */
     BUNDLE_COUNT_STORED                    = 77, /** \brief  */
     NODE_STARTUP_COUNTER                   = 78, /** \brief Number of times a node is started up. */
 } BPLib_AS_Counter_t;
