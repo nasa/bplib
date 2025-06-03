@@ -401,6 +401,11 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 /* Send Node MIB Reports housekeeping telemetry */
 BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(BPLib_Instance_t *Inst)
 {
+    if (Inst == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    
     BPLib_AS_UpdateReportsHkTlm(Inst);
 
     return BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibReportsPkt(&BPLib_AS_NodeReportsPayload);

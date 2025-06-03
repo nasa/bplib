@@ -464,7 +464,7 @@ void BPLib_NC_SendChannelContactStatHk(void);
   * \brief     Send node MIB reports telemetry packet
   * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
   * \note      This command is just a call to BPLib_AS_SendNodeMibReportsHk
-  * \param[in] void No arguments accepted
+  * \param[in] Inst Pointer to bplib instance data
   * \return    void
   */
 void BPLib_NC_SendNodeMibReportsHk(BPLib_Instance_t *Inst);

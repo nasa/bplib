@@ -145,7 +145,6 @@ typedef struct
       */
     uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
 
-    uint32_t Spare;
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
@@ -390,7 +389,7 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
   * \brief     Send Per Node MIB Reports telemetry packet
   * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendNodeMibReportsPkt()
-  * \param[in] void No arguments accepted
+ * \param[in]  Inst Pointer to bplib instance data
   * \return    Execution status
   */
 BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(BPLib_Instance_t *Inst);
