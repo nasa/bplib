@@ -28,7 +28,7 @@
 
 /* Insert Bundle Metadata */
 static const char* InsertMetadataSQL = 
-    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service) VALUES (?, ?, ?, ?);";
+    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service, bundle_bytes) VALUES (?, ?, ?, ?);";
 static sqlite3_stmt* InsertMetadataStmt;
 
 /* Insert Bundle Blob */
