@@ -247,7 +247,7 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     SQLStatus = BPLib_SQL_GetTotalBundleBytes(ActiveDB, &TotalBundleBytes);
     if (SQLStatus == SQLITE_OK)
     {
-        BPLib_STOR_StoragePayload.MemInUse = TotalBundleBytes;
+        BPLib_STOR_StoragePayload.KbStorageInUse = (TotalBundleBytes / 1000);
     }
 
     /* Expecting SQLITE_OK */
