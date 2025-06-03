@@ -531,8 +531,9 @@ void Test_BPLib_AS_SendSourceMibCountersHk_Nominal(void)
 void Test_BPLib_AS_SendNodeMibReportsHk_Nominal(void)
 {
     BPLib_Status_t Status;
+    BPLib_Instance_t Inst;
 
-    Status = BPLib_AS_SendNodeMibReportsHk();
+    Status = BPLib_AS_SendNodeMibReportsHk(&Inst);
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 }

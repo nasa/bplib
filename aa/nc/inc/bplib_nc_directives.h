@@ -467,6 +467,6 @@ void BPLib_NC_SendChannelContactStatHk(void);
   * \param[in] void No arguments accepted
   * \return    void
   */
-void BPLib_NC_SendNodeMibReportsHk(void);
+void BPLib_NC_SendNodeMibReportsHk(BPLib_Instance_t *Inst);
 
 #endif /* BPLIB_NC_DIRECTIVES_H */

@@ -119,4 +119,6 @@ void BPLib_AS_UnlockCounters(void);
  */
 void BPLib_AS_InitializeReportsHkTlm(void);
 
+void BPLib_AS_UpdateReportsHkTlm(BPLib_Instance_t *Inst);
+
 #endif // BPLIB_AS_INTERNAL_H
