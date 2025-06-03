@@ -1137,10 +1137,11 @@ void BPLib_NC_SendSourceMibCountersHk(void)
     }
 }
 
-void BPLib_NC_SendStorageHk(void)
+void BPLib_NC_SendStorageHk(BPLib_MEM_PoolImpl_t* Pool)
 {
     BPLib_Status_t Status;
 
+    BPLib_STOR_UpdateHkPkt(Pool);
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(&BPLib_STOR_StoragePayload);
 
     if (Status != BPLIB_SUCCESS)

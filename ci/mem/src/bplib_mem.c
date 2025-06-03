@@ -38,7 +38,6 @@ BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t
     pthread_mutex_init(&pool->lock, NULL);
     return BPLib_MEM_PoolImplInit(&pool->impl, init_mem, init_size,
         sizeof(BPLib_MEM_Block_t));
-
 }
 
 void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)

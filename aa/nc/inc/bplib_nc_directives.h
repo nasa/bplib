@@ -446,10 +446,11 @@ void BPLib_NC_SendSourceMibCountersHk(void);
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendStoragePkt()
-  * \param[in] void No arguments accepted
+  * \param[in] Pool (BPLib_MEM_PoolImpl_t*) Memory pool implementation that
+  *                 contains information needed for the STOR housekeeping packet
   * \return    void
   */
-void BPLib_NC_SendStorageHk(void);
+void BPLib_NC_SendStorageHk(BPLib_MEM_PoolImpl_t* Pool);
 
 /**
   * \brief     Send channel/contact status telemetry packet

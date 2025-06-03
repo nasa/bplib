@@ -141,5 +141,13 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
 
 BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
 
+/**
+ * \brief Update values in the STOR housekeeping packet with values of the
+ *        BPLib_MEM_PoolImpl_t struct made visible in ???.h
+ * \param[in] Pool (BPLib_MEM_PoolImpl_t*) Memory pool struct that contains memory
+ *                 information needed for the STOR housekeeping packet
+ * \return void
+ */
+void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool);
 
 #endif /* BPLIB_STOR_H */
