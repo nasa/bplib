@@ -381,5 +381,8 @@ void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool)
     /* Update the free memory */
     BPLib_STOR_StoragePayload.BytesMemFree = (Pool->num_free * Pool->block_size);
 
+    /* Update Kilobytes of data in use */
+    BPLib_STOR_StoragePayload.KbStorageInUse = (BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE) / 1000);
+
     return;
 }

@@ -259,8 +259,48 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
     int SQLStatus;
     //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
     uint64_t DtnNowMs;
+    size_t ExpiredBytes;
+    sqlite3_stmt* ExpiredBytesStmt;
+    const char* ExpiredBytesSQL =
+    "WITH expired_bytes AS (\n"
+    "   SELECT id, bundle_bytes FROM bundle_data\n"
+    "   WHERE action_timestamp < ?\n"
+    "   LIMIT ?)\n"
+    "SELECT SUM(bundle_bytes)\n"
+    "AS bytes_deleted\n"
+    "FROM bundle_data\n"
+    "WHERE id IN (SELECT id FROM expired_bytes)\n";
 
     *NumDiscarded = 0;
+
+    /* Collect the size of the bundles to be discarded */
+    /* Load up the SQL command */
+    SQLStatus = sqlite3_prepare_v2(db, ExpiredBytesSQL, -1, &ExpiredBytesStmt, NULL);
+    if (SQLStatus == SQLITE_OK)
+    {
+        /* Evaluate the command */
+        SQLStatus = sqlite3_step(ExpiredBytesStmt);
+        if (SQLStatus == SQLITE_ROW)
+        {
+            /* Assign the result of the query to EgressedBytes */
+            ExpiredBytes = sqlite3_column_int64(ExpiredBytesStmt, 0);
+            sqlite3_finalize(ExpiredBytesStmt);
+
+            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) ExpiredBytes);
+        }
+        else
+        {
+            fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
+                    sqlite3_errmsg(db),
+                    ExpiredBytesSQL);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Error code %s, received while preparing SQL statement: %s\n",
+                sqlite3_errmsg(db),
+                ExpiredBytesSQL);
+    }
 
     /* Get DTN Time */
     // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
@@ -328,7 +368,48 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
 static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
+    size_t EgressedBytes;
+    sqlite3_stmt* EgressedBytesStmt;
+    const char* EgressedBytesSQL =
+    "WITH egressed_bytes AS (\n"
+    "   SELECT id, bundle_bytes FROM bundle_data\n"
+    "   WHERE egress_attempted = 1\n"
+    "   LIMIT ?)\n"
+    "SELECT SUM(bundle_bytes)\n"
+    "AS bytes_deleted\n"
+    "FROM bundle_data\n"
+    "WHERE id IN (SELECT id FROM egressed_bytes)\n";
+
     *NumDiscarded = 0;
+
+    /* Collect the size of the bundles to be discarded */
+    /* Load up the SQL command */
+    SQLStatus = sqlite3_prepare_v2(db, EgressedBytesSQL, -1, &EgressedBytesStmt, NULL);
+    if (SQLStatus == SQLITE_OK)
+    {
+        /* Evaluate the command */
+        SQLStatus = sqlite3_step(EgressedBytesStmt);
+        if (SQLStatus == SQLITE_ROW)
+        {
+            /* Assign the result of the query to EgressedBytes */
+            EgressedBytes = sqlite3_column_int64(EgressedBytesStmt, 0);
+            sqlite3_finalize(EgressedBytesStmt);
+
+            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) EgressedBytes);
+        }
+        else
+        {
+            fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
+                    sqlite3_errmsg(db),
+                    EgressedBytesSQL);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Error code %s, received while preparing SQL statement: %s\n",
+                sqlite3_errmsg(db),
+                EgressedBytesSQL);
+    }
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
