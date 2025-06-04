@@ -19,6 +19,7 @@
  */
 #include "bplib_stor_sql.h"
 #include "bplib_qm.h"
+#include "bplib_as.h"
 
 #include <stdio.h>
 
@@ -67,6 +68,10 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
                     if (SQLStatus != SQLITE_DONE)
                     { /* SQL command failed */
                         fprintf(stderr, "Insert meta failed\n");
+                    }
+                    else
+                    {
+                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) Bundle->TotalBytes);
                     }
                 }
                 else
