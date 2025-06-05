@@ -71,6 +71,7 @@ typedef enum
     BPLIB_CLA_STARTED  = 2,
     BPLIB_CLA_STOPPED  = 3,
     BPLIB_CLA_EXITED   = 4,
+    BPLIB_CLA_PAUSED   = 5
 } BPLib_CLA_ContactRunState_t;
 
 /* =========== */
@@ -252,5 +253,9 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
   * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not match a contact ID in the Contacts Configuration
   */
 BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
+
+BPLib_Status_t BPLib_CLA_SetAutoEgress(uint32_t ContactId, bool AutoEgressEnabled);
+
+bool BPLib_CLA_GetAutoEgress(uint32_t ContactId);
 
 #endif /* BPLIB_CLA_H */

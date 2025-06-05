@@ -134,7 +134,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             /* Contact ID is valid here, so we can ignore the error status of the function */
             (void) BPLib_CLA_GetContactRunState(i, &ContactState);
-            if (ContactState == BPLIB_CLA_STARTED)
+            if (ContactState == BPLIB_CLA_STARTED && BPLib_CLA_GetAutoEgress(i))
             {
                 for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                 {
