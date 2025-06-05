@@ -42,6 +42,7 @@
 */
 
 uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
+bool     BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Internal Function Definitions
@@ -548,4 +549,25 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *Ad
     }
 
     return Status;
+}
+
+BPLib_Status_t BPLib_PI_SetAutoEgress(uint32_t ChanId, bool AutoEgressEnabled)
+{
+    if (ChanId < BPLIB_MAX_NUM_CHANNELS)
+    {
+        BPLib_PI_AutoEgressEnabled[ChanId] = AutoEgressEnabled;
+        return BPLIB_SUCCESS;
+    }
+    
+    return BPLIB_INVALID_CHAN_ID_ERR;
+}
+
+bool BPLib_PI_GetAutoEgress(uint32_t ChanId)
+{
+    if (ChanId < BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLib_PI_AutoEgressEnabled[ChanId];
+    }
+
+    return false;
 }

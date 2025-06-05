@@ -70,6 +70,8 @@ typedef struct
     uint8_t                 HopLimit;
     BPLib_CRC_Type_t        CrcType;
     uint8_t                 Spare;
+    size_t                  IngressBitsPerCycle;
+    size_t                  EgressBitsPerCycle;
     uint64_t                LocalServiceNumber;
     uint64_t                MaxBundlePayloadSize;    
     uint64_t                BundleProcFlags;
@@ -224,4 +226,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint32_t ChanId,
 BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout);
 
+BPLib_Status_t BPLib_PI_SetAutoEgress(uint32_t ChanId, bool AutoEgressEnabled);
+
+bool BPLib_PI_GetAutoEgress(uint32_t ChanId);
+                                    
 #endif /* BPLIB_PI_H */

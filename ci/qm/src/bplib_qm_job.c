@@ -116,7 +116,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             if (BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber == DestEID->Service)
             {
-                if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
+                if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED && BPLib_PI_GetAutoEgress(i))
                 {
                     /* We have a channel we can deliver to: forward without storing */
                     Bundle->Meta.EgressID = i;
