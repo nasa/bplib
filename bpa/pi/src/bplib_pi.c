@@ -564,7 +564,7 @@ BPLib_Status_t BPLib_PI_SetAutoEgress(uint32_t ChanId, bool AutoEgressEnabled)
 
 bool BPLib_PI_GetAutoEgress(uint32_t ChanId)
 {
-    if (ChanId < BPLIB_MAX_NUM_CONTACTS)
+    if (ChanId < BPLIB_MAX_NUM_CHANNELS)
     {
         return BPLib_PI_AutoEgressEnabled[ChanId];
     }

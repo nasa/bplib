@@ -226,8 +226,27 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint32_t ChanId,
 BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout);
 
+/**
+  * \brief     Set the auto egress state of the provided channel
+  * \note      The auto egress state determines whether a bundle with an available channel
+  *            for egress will be automatically put on a queue for egress or stored, due
+  *            to rate limits.
+  * \param[in] ChanId (uint32_t) Channel ID
+  * \param[in] AutoEgressEnabled Whether or not to set auto egress to enabled
+  * \return    Status
+  * \retval    BPLIB_SUCCESS: Success
+  * \retval    BPLIB_INVALID_CHAN_ID_ERR: Provided channel ID does not exist
+  */
 BPLib_Status_t BPLib_PI_SetAutoEgress(uint32_t ChanId, bool AutoEgressEnabled);
 
+/**
+  * \brief     Get the auto egress state of the provided channel
+  * \note      The auto egress state determines whether a bundle with an available channel
+  *            for egress will be automatically put on a queue for egress or stored, due
+  *            to rate limits. Note that an invalid channel ID will return false by default.
+  * \param[in] ChanId (uint32_t) Channel ID
+  * \return    Auto Egress State (true/false)
+  */
 bool BPLib_PI_GetAutoEgress(uint32_t ChanId);
                                     
 #endif /* BPLIB_PI_H */

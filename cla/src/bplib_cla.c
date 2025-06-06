@@ -224,7 +224,6 @@ BPLib_Status_t BPLib_CLA_ContactStart(uint32_t ContactId)
             Status = BPLib_FWP_ProxyCallbacks.BPA_CLAP_ContactStart(ContactId);
             if (Status == BPLIB_SUCCESS)
             {
-                BPLib_CLA_AutoEgressEnabled[ContactId] = true;
                 (void) BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_STARTED); /* Ignore return since pre-call run state is valid */
             }
         }

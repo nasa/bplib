@@ -30,6 +30,8 @@
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
 
+extern bool BPLib_CLA_AutoEgressEnabled[BPLIB_MAX_NUM_CONTACTS];
+
 void Test_BPLib_CLA_Ingress_NullInstPtrError(void)
 {
     BPLib_Status_t ReturnStatus;
@@ -765,6 +767,38 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
                                 "Contact with ID #%d needs to be stopped or set up first");
 }
 
+void Test_BPLib_CLA_SetAutoEgress_Nominal(void)
+{
+    uint32_t ContId = 0;
+    BPLib_CLA_AutoEgressEnabled[ContId] = false;
+
+    UtAssert_EQ(BPLib_Status_t, BPLib_CLA_SetAutoEgress(ContId, true), BPLIB_SUCCESS);
+    UtAssert_EQ(bool, BPLib_CLA_AutoEgressEnabled[ContId], true);
+}
+
+void Test_BPLib_CLA_SetAutoEgress_ContIdErr(void)
+{
+    uint32_t ContId = BPLIB_MAX_NUM_CONTACTS;
+
+    UtAssert_EQ(BPLib_Status_t, BPLib_CLA_SetAutoEgress(ContId, true), BPLIB_INVALID_CONT_ID_ERR);
+}
+
+void Test_BPLib_CLA_GetAutoEgress_Nominal(void)
+{
+    uint32_t ContId = 0;
+    BPLib_CLA_AutoEgressEnabled[ContId] = true;
+
+    UtAssert_EQ(bool, BPLib_CLA_GetAutoEgress(ContId), true);
+}
+
+
+void Test_BPLib_CLA_GetAutoEgress_ContIdErr(void)
+{
+    uint32_t ContId = BPLIB_MAX_NUM_CONTACTS;
+
+    UtAssert_EQ(bool, BPLib_CLA_GetAutoEgress(ContId), false);
+}
+
 void TestBplibCla_Register(void)
 {
     ADD_TEST(Test_BPLib_CLA_Egress_Nominal);
@@ -794,4 +828,10 @@ void TestBplibCla_Register(void)
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidContactId);
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidRunState);
     ADD_TEST(Test_BPLib_CLA_ContactTeardown_StorErr);
+
+    ADD_TEST(Test_BPLib_CLA_SetAutoEgress_Nominal);
+    ADD_TEST(Test_BPLib_CLA_SetAutoEgress_ContIdErr);
+
+    ADD_TEST(Test_BPLib_CLA_GetAutoEgress_Nominal);
+    ADD_TEST(Test_BPLib_CLA_GetAutoEgress_ContIdErr);
 }
