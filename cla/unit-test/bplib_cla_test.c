@@ -526,9 +526,6 @@ void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
 
-    /* Initialize the contact run state */
-    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_SETUP;
-
     /* Run the function under test */
     Status = BPLib_CLA_ContactStart(ContactId);
 
@@ -597,9 +594,6 @@ void Test_BPLib_CLA_ContactStop_InvalidContactId(void)
 
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
-
-    /* Initialize the contact run state */
-    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_SETUP;
 
     /* Run the function under test */
     Status = BPLib_CLA_ContactStop(ContactId);
@@ -722,9 +716,6 @@ void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
 
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
-
-    /* Initialize the contact run state */
-    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
 
     /* Run the function under test */
     Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
