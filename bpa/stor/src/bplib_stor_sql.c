@@ -272,6 +272,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
     "WHERE id IN (SELECT id FROM expired_bytes)\n";
 
     *NumDiscarded = 0;
+    ExpiredBytes  = 0;
 
     /* Collect the size of the bundles to be discarded */
     /* Load up the SQL command */
@@ -286,7 +287,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
             ExpiredBytes = sqlite3_column_int64(ExpiredBytesStmt, 0);
             sqlite3_finalize(ExpiredBytesStmt);
 
-            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) ExpiredBytes);
+            /* Amount is decremented when the command to discard is successful */
         }
         else
         {
@@ -345,6 +346,11 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         {
             fprintf(stderr, "Failed to commit transaction\n");
         }
+        else
+        {
+            /* Decrement that counter that tracks bytes of storage used */
+            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) ExpiredBytes);
+        }
     }
 
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
@@ -381,6 +387,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
     "WHERE id IN (SELECT id FROM egressed_bytes)\n";
 
     *NumDiscarded = 0;
+    EgressedBytes = 0;
 
     /* Collect the size of the bundles to be discarded */
     /* Load up the SQL command */
@@ -395,7 +402,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
             EgressedBytes = sqlite3_column_int64(EgressedBytesStmt, 0);
             sqlite3_finalize(EgressedBytesStmt);
 
-            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) EgressedBytes);
+            /* Amount is decremented when the command to discard is successful */
         }
         else
         {
@@ -442,6 +449,11 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
         if (SQLStatus != SQLITE_OK)
         {
             fprintf(stderr, "Failed to commit transaction\n");
+        }
+        else
+        {
+            /* Decrement that counter that tracks bytes of storage used */
+            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) EgressedBytes);
         }
     }
 
