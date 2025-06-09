@@ -365,7 +365,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
 /* Validate Storage table data */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 {
-    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_Status_t ReturnCode = BPLIB_SUCCESS;
 
     return ReturnCode;
 }
