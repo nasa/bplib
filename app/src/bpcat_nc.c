@@ -40,9 +40,6 @@ static BPLib_CLA_ContactsTable_t ContactsTbl =
             .ClaOutAddr             = "127.0.0.1", /* CL ip address */
             .ClaInPort              = 4501, /* Port Number, int32 */
             .ClaOutPort             = 4551,
-            .DestLTPEngineID        = 1, /*Destination LTP engine ID*/
-            .SendBytePerCycle       = 101, /*Maximum bytes to send per wakeup, uint32*/
-            .ReceiveBytePerCycle    = 200, /*Maximum bytes to receive per wakeup, uint32*/
             .RetransmitTimeout      = 102, /*bundle reforwarding timeout in seconds, uint32*/
             .CSTimeTrigger          = 103, /*Custody Signal time trigger in seconds, uint32*/
             .CSSizeTrigger          = 10 /*Custody signal size trigger in bytes, size_t*/
@@ -53,7 +50,23 @@ static BPLib_ARP_CRSTable_t        CrsTbl;
 static BPLib_PDB_CustodianTable_t  CustodianTbl;
 static BPLib_PDB_CustodyTable_t    CustodyTbl;
 static BPLib_NC_MibPerNodeConfig_t MibPnTbl = {
-    .ParamSetMaxBundleLength = 8192
+    .InstanceEID = {
+        .Scheme       = BPLIB_LOCAL_EID_SCHEME,
+        .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
+        .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
+        .Node         = BPLIB_LOCAL_EID_NODE_NUM,
+        .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
+    },
+
+    .Configs = {
+        /* PARAM_BUNDLE_SIZE_NO_FRAGMENT      */ BPLIB_MAX_BUNDLE_LEN,
+        /* PARAM_SET_MAX_SEQUENCE NUM         */ 100000,   
+        /* PARAM_SET_MAX_PAYLOAD_LENGTH       */ BPLIB_MAX_PAYLOAD_SIZE,
+        /* PARAM_SET_MAX_BUNDLE_LENGTH        */ BPLIB_MAX_BUNDLE_LEN,
+        /* PARAM_SET_NODE_DTN_TIME            */ 0,
+        /* PARAM_SET_BEHAVIOR_EVENT_REPORTING */ 10,
+        /* PARAM_SET_MAX_LIFETIME             */ BPLIB_MAX_LIFETIME_ALLOWED
+    }
 };
 
 static BPLib_NC_MIBConfigPSTable_t MibPsTbl;
