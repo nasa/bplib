@@ -121,22 +121,22 @@ static BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* Stor
     return BPLIB_SUCCESS;
 }
 
-static BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
+static BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId)
 {
     return BPLIB_SUCCESS;
 }
 
-static BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
+static BPLib_Status_t BPA_ADUP_StartApplication(uint32_t ChanId)
 {
     return BPLIB_SUCCESS;
 }
 
-static BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
+static BPLib_Status_t BPA_ADUP_StopApplication(uint32_t ChanId)
 {
     return BPLIB_SUCCESS;
 }
 
-static BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
+static BPLib_Status_t BPA_ADUP_RemoveApplication(uint32_t ChanId)
 {
     return BPLIB_SUCCESS;
 }

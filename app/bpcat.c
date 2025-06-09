@@ -261,7 +261,7 @@ void BPCat_Main()
     assert(BPLib_CLA_ContactSetup(0) == BPLIB_SUCCESS);
     assert(BPLib_CLA_ContactStart(0) == BPLIB_SUCCESS);
 
-    /* Run until a SIGINT (CTRL-C) sets AppRun to 0 */
+    /* Run until a SIGINT (CTRL-C) sets AppData.Running to 0 */
     while (AppData.Running)
     {
         sleep(1);
