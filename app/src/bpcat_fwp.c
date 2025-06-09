@@ -68,12 +68,12 @@ static BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void)
 
 static void BPA_PERFLOGP_Entry(uint32_t PerfLogID)
 {
-
+    return;
 }
 
 static void BPA_PERFLOGP_Exit(uint32_t PerfLogID)
 {
-
+    return;
 }
 
 static BPLib_Status_t BPA_TABLEP_TableUpdate(uint8_t TableType, void** TblPtr)

@@ -100,7 +100,8 @@ BPCat_Status_t BPCat_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     if (NCStatus != BPLIB_SUCCESS)
     {
         fprintf(stderr, "Failed to Initialize Node Config, RC=%d\n", NCStatus);
-        //return BPCAT_NC_INIT_ERR;
+        
+        return BPCAT_NC_INIT_ERR;
     }
 
     return BPCAT_SUCCESS;

@@ -26,7 +26,6 @@
 #include "bpcat_task.h"
 #include "bpcat_cla.h"
 #include "bpcat_nc.h"
-#include <assert.h>
 #include "bplib.h"
 
 #include "osapi.h"
