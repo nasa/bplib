@@ -35,6 +35,7 @@
 #include "bplib_nc.h"
 #include "bplib_qm_handlers.h"
 #include "bplib_em_handlers.h"
+#include "bpa_fwp_stubs.h"     /* For ADUP stubs */
 
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_PI_Test_Setup, BPLib_PI_Test_Teardown, #test)
@@ -45,7 +46,7 @@
 */
 
 extern BPLib_Instance_t BplibInst;
-
+extern uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Function Definitions

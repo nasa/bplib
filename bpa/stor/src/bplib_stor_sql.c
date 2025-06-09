@@ -31,6 +31,30 @@
 */
 
 /* Create Table */
+/*
+ * Table and Index Creation for bundle_data and bundle_blobs
+ *
+ * This schema is designed to support efficient queries and operations on bundle metadata and associated blob data.
+ * The following indexes are created:
+ *
+ * 1. idx_bundle_blobs_bundle_id:
+ *    - Index on the 'bundle_id' column in the 'bundle_blobs' table. This index supports quick lookup of blob data
+ *      by its associated bundleID in the 'bundle_data' table.
+ *
+ * 2. idx_action_timestamp:
+ *    - Index on 'action_timestamp' in the 'bundle_data' table. This helps with queries that need to sort or filter
+ *      based on the timestamp of the bundle: This is used for expiring bundles
+ *
+ * 3. idx_find_bundle (Composite Index):
+ *    - Composite index on the columns 'dest_node', 'dest_service', 'egress_attempted', 'action_timestamp', and 'id'.
+ *    - This index optimizes queries that filter by node and service ranges, filter by egress_attempted (0),
+ *      and sort by action_timestamp. It can also enable an index-only scan to quickly retrieve 'id'.
+ *    - This composite index is designed for loading egress bundles by batch for a particular EgressID (A channel or contact)
+ *
+ * 4. idx_egress_attempted:
+ *    - Index on the 'egress_attempted' column in the 'bundle_data' table. This index is designed to speed up
+ *      DELETE queries and other queries filtering by 'egress_attempted'.
+ */
 static const char* CreateTableSQL = 
 "CREATE TABLE IF NOT EXISTS bundle_data (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
@@ -39,30 +63,85 @@ static const char* CreateTableSQL =
 "    dest_node INTEGER,\n"
 "    dest_service INTEGER\n"
 ");\n"
+"\n"
 "CREATE TABLE IF NOT EXISTS bundle_blobs (\n"
 "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
 "    bundle_id INTEGER,\n"
 "    blob_data BLOB,\n"
 "    FOREIGN KEY (bundle_id) REFERENCES bundle_data(id) ON DELETE CASCADE\n"
 ");\n"
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_bundle_blobs ON bundle_blobs (bundle_id);\n"
 "CREATE INDEX IF NOT EXISTS idx_action_timestamp ON bundle_data (action_timestamp);\n"
-"CREATE INDEX IF NOT EXISTS idx_dest_node ON bundle_data (dest_node);\n";
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_egress_id\n"
+"ON bundle_data (\n"
+"    dest_node,\n"
+"    dest_service,\n"
+"    egress_attempted,\n"
+"    action_timestamp,\n"
+"    id\n"
+");\n"
+"\n"
+"CREATE INDEX IF NOT EXISTS idx_egress_attempted\n"
+"ON bundle_data (egress_attempted);\n";
 
 /* Expire Bundles */
-static const char* ExpireBundlesSQL =
-    "DELETE FROM bundle_data WHERE action_timestamp < ? OR egress_attempted = 1;";
-static sqlite3_stmt* ExpireBundlesStmt;
+static const char* DiscardExpiredSQL =
+    "WITH to_delete AS ("
+    "    SELECT id FROM bundle_data "
+    "    WHERE action_timestamp < ? "
+    "    LIMIT ?"
+    ") "
+    "DELETE FROM bundle_data "
+    "WHERE id IN (SELECT id FROM to_delete);";
+static sqlite3_stmt* DiscardExpiredStmt;
+
+static const char* DiscardEgressedSQL =
+    "WITH to_delete AS ("
+    "    SELECT id FROM bundle_data "
+    "    WHERE egress_attempted = 1 "
+    "    LIMIT ?"
+    ") "
+    "DELETE FROM bundle_data "
+    "WHERE id IN (SELECT id FROM to_delete);";
+static sqlite3_stmt* DiscardEgressedStmt;
 
 
 /*******************************************************************************
 ** Static Functions
 */
+static int BPLib_SQL_GetNumStoredBundles(sqlite3 *db, uint32_t *BundleCnt)
+{
+    const char *sql = "SELECT COUNT(*) FROM bundle_data;";
+    sqlite3_stmt *stmt;
+    int SQLStatus;
+
+    SQLStatus = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+
+    SQLStatus = sqlite3_step(stmt);
+    if (SQLStatus != SQLITE_ROW)
+    {
+        return SQLStatus;
+    }
+    *BundleCnt = sqlite3_column_int(stmt, 0);
+
+    sqlite3_finalize(stmt);
+    return SQLITE_OK;
+}
+
 static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 {
     int SQLStatus;
     sqlite3* ActiveDB;
     int ForeignKeysEnabled;
     sqlite3_stmt* ForeignKeyCheckStmt;
+    uint32_t NumStoredBundles = 0;
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
@@ -115,11 +194,18 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
         return SQLStatus;
     }
 
+    /* Determine how many bundles are presently in storage, and set the stored counter to this value */
+    if (BPLib_SQL_GetNumStoredBundles(ActiveDB, &NumStoredBundles) != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumStoredBundles);
+
     /* Expecting SQLITE_OK */
     return SQLStatus;
 }
 
-static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
+static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
 {
     int SQLStatus;
     //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
@@ -132,27 +218,118 @@ static int BPLib_SQL_GarbageCollectImpl(sqlite3* db, size_t* NumDiscarded)
     // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
     DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
-    sqlite3_reset(ExpireBundlesStmt);
-    SQLStatus = sqlite3_bind_int64(ExpireBundlesStmt, 1, (uint64_t)DtnNowMs);
+    /* Create a batch query */
+    SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to start transaction: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+
+    sqlite3_reset(DiscardExpiredStmt);
+    SQLStatus = sqlite3_bind_int64(DiscardExpiredStmt, 1, (int64_t)DtnNowMs);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
         return SQLStatus;
     }
+    SQLStatus = sqlite3_bind_int64(DiscardExpiredStmt, 2, BPLIB_STOR_DISCARDBATCHSIZE);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
 
     /* Run the query */
-    SQLStatus = sqlite3_step(ExpireBundlesStmt);
+    SQLStatus = sqlite3_step(DiscardExpiredStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        fprintf(stderr, "Failed to discard bundles: %s\n", sqlite3_errmsg(db));  
+        fprintf(stderr, "Failed to discard expired bundles: %s\n", sqlite3_errmsg(db));  
         return SQLStatus;
+    }
+
+    /* If there have been no errors so far commit the delete  */
+    if (SQLStatus == SQLITE_DONE)
+    {
+        SQLStatus = sqlite3_exec(db, "COMMIT;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to commit transaction\n");
+        }
+    }
+
+    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Attempting ROLLBACK\n");
+        SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to rollback transaction\n");
+        }
     }
 
     /* Determine how many changes were made to the database, which is the number
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
+    return SQLITE_OK;
+}
 
+static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
+{
+    int SQLStatus;
+    *NumDiscarded = 0;
+
+    /* Create a batch query */
+    SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to start transaction: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+
+    sqlite3_reset(DiscardEgressedStmt);
+    SQLStatus = sqlite3_bind_int64(DiscardEgressedStmt, 1, BPLIB_STOR_DISCARDBATCHSIZE);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
+        return SQLStatus;
+    }
+
+    /* Run the query */
+    SQLStatus = sqlite3_step(DiscardEgressedStmt);
+    if (SQLStatus != SQLITE_DONE)
+    {
+        fprintf(stderr, "Failed to discard egressed bundles: %s\n", sqlite3_errmsg(db));  
+        return SQLStatus;
+    }
+
+    /* If there have been no errors so far commit the delete  */
+    if (SQLStatus == SQLITE_DONE)
+    {
+        SQLStatus = sqlite3_exec(db, "COMMIT;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to commit transaction\n");
+        }
+    }
+
+    /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Attempting ROLLBACK\n");
+        SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
+        if (SQLStatus != SQLITE_OK)
+        {
+            fprintf(stderr, "Failed to rollback transaction\n");
+        }
+    }
+
+    /* Determine how many changes were made to the database, which is the number
+    ** of discarded bundles.
+    */
+    *NumDiscarded = sqlite3_changes(db);
     return SQLITE_OK;
 }
 
@@ -174,14 +351,13 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     return Status;
 }
 
-BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+BPLib_Status_t BPLib_SQL_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded)
 {
     int SQLStatus;
     sqlite3* db = Inst->BundleStorage.db;
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    /* Prepare the ExpireBundlesStmt with the current time */
-    SQLStatus = sqlite3_prepare_v2(db, ExpireBundlesSQL, -1, &ExpireBundlesStmt, 0);
+    SQLStatus = sqlite3_prepare_v2(db, DiscardExpiredSQL, -1, &DiscardExpiredStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
         fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
@@ -190,7 +366,7 @@ BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisca
 
     if (Status == BPLIB_SUCCESS)
     {
-        SQLStatus = BPLib_SQL_GarbageCollectImpl(db, NumDiscarded);
+        SQLStatus = BPLib_SQL_DiscardExpiredImpl(db, NumDiscarded);
         if (SQLStatus != SQLITE_OK)
         {
             Status = BPLIB_STOR_SQL_DISCARD_ERR;
@@ -198,7 +374,35 @@ BPLib_Status_t BPLib_SQL_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDisca
     }
 
     /* Finalize the statement */
-    sqlite3_finalize(ExpireBundlesStmt);
+    sqlite3_finalize(DiscardExpiredStmt);
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDiscarded)
+{
+    int SQLStatus;
+    sqlite3* db = Inst->BundleStorage.db;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    SQLStatus = sqlite3_prepare_v2(db, DiscardEgressedSQL, -1, &DiscardEgressedStmt, 0);
+    if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Failed to prep: %s\n", sqlite3_errmsg(db));
+        Status = BPLIB_STOR_SQL_DISCARD_ERR;
+    }
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        SQLStatus = BPLib_SQL_DiscardEgressedImpl(db, NumDiscarded);
+        if (SQLStatus != SQLITE_OK)
+        {
+            Status = BPLIB_STOR_SQL_DISCARD_ERR;
+        }
+    }
+
+    /* Finalize the statement */
+    sqlite3_finalize(DiscardEgressedStmt);
 
     return Status;
 }

@@ -37,7 +37,7 @@
 
 extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
 extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
+extern BPLib_NodeMibReportsHkTlm_Payload_t     BPLib_AS_NodeReportsPayload;          /** \brief Global node MID reports payload */
 
 /* ====== */
 /* Macros */
@@ -53,6 +53,17 @@ extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 /* =================== */
 /* Function Prototypes */
 /* =================== */
+
+/**
+ * \brief     Returns counter value for the provided EID
+ * \note      Source counters are unimplemented and return 0 by default
+ * \param[in] EID Endpoint identifier
+ * \param[in] Counter Enumeration of counter to return
+ * \return    Counter value
+ * \retval    A counter value of 0 could be the real value or indicate a silent validation 
+ *            error
+ */
+uint32_t BPLib_AS_GetCounterImpl(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Set given counter associated with given EID to given value
@@ -101,5 +112,11 @@ void BPLib_AS_LockCounters(void);
  * \anchor    BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
  */
 void BPLib_AS_UnlockCounters(void);
+
+/**
+ * \brief     Set the initial node MIB reports telemetry
+ * \return    void
+ */
+void BPLib_AS_InitializeReportsHkTlm(void);
 
 #endif // BPLIB_AS_INTERNAL_H

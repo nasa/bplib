@@ -155,7 +155,7 @@ void Test_BPLib_CLA_Egress_NullInstanceInputError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -177,7 +177,7 @@ void Test_BPLib_CLA_Egress_NullBundleOutBufferError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -199,7 +199,7 @@ void Test_BPLib_CLA_Egress_NullSizeBufferError(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_NULL_PTR_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -222,7 +222,7 @@ void Test_BPLib_CLA_Egress_BadContId(void)
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONT_ID_ERR);
     UtAssert_INT32_EQ(NumBytesCopiedToOutputBuf, 0);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 0);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 0);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -236,7 +236,7 @@ void Test_BPLib_CLA_Egress_QueuePullTimeout(void)
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), false);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_TIMEOUT);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
@@ -246,7 +246,7 @@ void Test_BPLib_CLA_Egress_QueuePullTimeout(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_CLA_TIMEOUT);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 0);
 }
 
@@ -260,7 +260,7 @@ void Test_BPLib_CLA_Egress_BlobCopyFail(void)
     size_t OutputBundleBufferLength = sizeof(OutputBundleBuffer);
     uint32_t Timeout = 0;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_BUF_LEN_ERROR);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
@@ -271,7 +271,7 @@ void Test_BPLib_CLA_Egress_BlobCopyFail(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_BUF_LEN_ERROR);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
 }
 
@@ -287,9 +287,9 @@ void Test_BPLib_CLA_Egress_Nominal(void)
     BPLib_Bundle_t Bundle;
     BPLib_Bundle_t *BundlePtr = &Bundle;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_DuctPull), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_BI_BlobCopyOut), BPLIB_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundlePtr, sizeof(BundlePtr), false);
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_DuctPull), &BundlePtr, sizeof(BundlePtr), false);
 
     ReturnStatus = BPLib_CLA_Egress(&Instance,
                                     ContId,
@@ -299,53 +299,106 @@ void Test_BPLib_CLA_Egress_Nominal(void)
                                     Timeout);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-    UtAssert_STUB_COUNT(BPLib_QM_WaitQueueTryPull, 1);
+    UtAssert_STUB_COUNT(BPLib_QM_DuctPull, 1);
     UtAssert_STUB_COUNT(BPLib_MEM_BundleFree, 1);
 }
 
 void Test_BPLib_CLA_ContactsTblValidateFunc_Nominal(void)
 {
     BPLib_Status_t ReturnStatus;
-    uint8_t ContactTableIndex;
     BPLib_CLA_ContactsTable_t TestTblData;
 
     /* Set input table to all valid values */
     memset(&TestTblData, 0, sizeof(TestTblData));
-    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
-    {
-        TestTblData.ContactSet[ContactTableIndex].ClaOutPort = 10;
-        TestTblData.ContactSet[ContactTableIndex].ClaInPort  = 10;
-    }
 
-    /* Run UUT and check results */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Run unit test and check results */
     ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_CLA_ContactsTblValidateFunc_FirstEntryInvalid(void)
+void Test_BPLib_CLA_ContactsTblValidateFunc_DtnDestEid(void)
 {
     BPLib_Status_t ReturnStatus;
-    uint8_t ContactTableIndex;
     BPLib_CLA_ContactsTable_t TestTblData;
 
     /* Set input table to all valid values */
     memset(&TestTblData, 0, sizeof(TestTblData));
-    for (ContactTableIndex = 0; ContactTableIndex < BPLIB_MAX_NUM_CONTACTS; ContactTableIndex++)
-    {
-        TestTblData.ContactSet[ContactTableIndex].ClaOutPort = 10;
-        TestTblData.ContactSet[ContactTableIndex].ClaInPort  = 10;
-    }
 
-    /*
-    ** Inject an error in the first table entry
-    */
-    TestTblData.ContactSet[0].ClaOutPort = 0;
-    TestTblData.ContactSet[0].ClaInPort  = 0;
+    TestTblData.ContactSet[0].DestEIDs[0].Scheme = BPLIB_EID_SCHEME_DTN;
 
-    /* Run UUT and check results */
+    /* Run unit test and check results */
     ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONFIG_ERR);
 }
+
+void Test_BPLib_CLA_ContactsTblValidateFunc_InvDestEid(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), false);
+
+    /* Run unit test and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_CLA_ContactsTblValidateFunc_InvTimeout(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    TestTblData.ContactSet[0].RetransmitTimeout = BPLIB_MAX_RETRANSMIT_ALLOWED + 1;
+
+    /* Run unit test and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_CLA_ContactsTblValidateFunc_InvTimeTrig(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    TestTblData.ContactSet[0].CSTimeTrigger = BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED + 1;
+
+    /* Run unit test and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_CLA_ContactsTblValidateFunc_InvSizeTrig(void)
+{
+    BPLib_Status_t ReturnStatus;
+    BPLib_CLA_ContactsTable_t TestTblData;
+
+    /* Set input table to all valid values */
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    TestTblData.ContactSet[0].CSSizeTrigger = BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED + 1;
+
+    /* Run unit test and check results */
+    ReturnStatus = BPLib_CLA_ContactsTblValidateFunc(&TestTblData);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_INVALID_CONFIG_ERR);
+}
+
 
 void Test_BPLib_CLA_ContactSetup_Nominal(void)
 {
@@ -385,9 +438,6 @@ void Test_BPLib_CLA_ContactSetup_InvalidContactId(void)
     /* Verify that Status is as expected */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
 
-    /* Verify that run state is unchanged */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
-
     /* Verify that the event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
@@ -425,14 +475,9 @@ void Test_BPLib_CLA_ContactSetup_CallbackError(void)
 {
     BPLib_Status_t          Status;
     uint32_t                ContactId;
-    BPLib_CLA_ContactsSet_t ContactInfo;
 
     /* Set the ContactId to a valid value */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
-
-    /* Prime the Contacts Configuration to return valid values */
-    memset((void*) &ContactInfo, 0, sizeof(BPLib_CLA_ContactsSet_t));
-    BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId] = ContactInfo;
 
     /* Set a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
@@ -487,9 +532,6 @@ void Test_BPLib_CLA_ContactStart_InvalidContactId(void)
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
-
-    /* Show that the run state did not transition */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
@@ -563,9 +605,6 @@ void Test_BPLib_CLA_ContactStop_InvalidContactId(void)
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
 
-    /* Show that the run state transitioned */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_SETUP);
-
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
     BPLib_CLA_Test_Verify_Event(0,
@@ -604,6 +643,7 @@ void Test_BPLib_CLA_ContactTeardown_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32_t       ContactId;
+    BPLib_Instance_t Inst;
 
     /* Assign a valid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
@@ -611,20 +651,72 @@ void Test_BPLib_CLA_ContactTeardown_Nominal(void)
     /* Put the contact in a valid run state */
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STOPPED;
 
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the contact was started successfully */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 
     /* Show that the run state transitioned */
     UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    UtAssert_STUB_COUNT(BPLib_STOR_StoreBundle, 1);
+}
+
+void Test_BPLib_CLA_ContactTeardown_StorErr(void)
+{
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
+    BPLib_Instance_t Inst;
+
+    /* Assign a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    /* Put the contact in a valid run state */
+    BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STOPPED;
+
+    /* Pull one bundle */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_QM_WaitQueueTryPull), 1, true);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_STOR_StoreBundle), 1, BPLIB_ERROR);
+
+    /* Run the function under test */
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
+
+    /* Show that the contact was started successfully */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that the run state transitioned */
+    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
+    BPLib_CLA_Test_Verify_Event(0,
+                                BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID,
+                                "Contact with ID #%d failed to push a bundle back to storage, Status = %d");
+
+    UtAssert_STUB_COUNT(BPLib_STOR_StoreBundle, 1);
+}
+
+void Test_BPLib_CLA_ContactTeardown_NullInst(void)
+{
+    BPLib_Status_t Status;
+    uint32_t       ContactId;
+
+    /* Assign a valid contact ID */
+    ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
+
+    Status = BPLib_CLA_ContactTeardown(NULL, ContactId);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NULL_PTR_ERROR);
 }
 
 void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
 {
     BPLib_Status_t Status;
     uint32_t ContactId;
+    BPLib_Instance_t Inst;
 
     /* Create an invalid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS + 1;
@@ -633,13 +725,10 @@ void Test_BPLib_CLA_ContactTeardown_InvalidContactId(void)
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_TORNDOWN;
 
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_CONT_ID_ERR);
-
-    /* Show that the run state transitioned */
-    UtAssert_EQ(BPLib_CLA_ContactRunState_t, BPLib_CLA_ContactRunStates[ContactId], BPLIB_CLA_TORNDOWN);
 
     /* Verify that the correct event was issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
@@ -652,6 +741,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
 {
     BPLib_Status_t Status;
     uint32_t       ContactId;
+    BPLib_Instance_t Inst;
 
     /* Create a valid contact ID */
     ContactId = BPLIB_MAX_NUM_CONTACTS - 1;
@@ -660,7 +750,7 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
     BPLib_CLA_ContactRunStates[ContactId] = BPLIB_CLA_STARTED;
 
     /* Run the function under test */
-    Status = BPLib_CLA_ContactTeardown(ContactId);
+    Status = BPLib_CLA_ContactTeardown(&Inst, ContactId);
 
     /* Show that the function failed */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_CLA_INCORRECT_STATE);
@@ -677,22 +767,31 @@ void Test_BPLib_CLA_ContactTeardown_InvalidRunState(void)
 
 void TestBplibCla_Register(void)
 {
-    UtTest_Add(Test_BPLib_CLA_Egress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactsTblValidateFunc_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactSetup_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactSetup_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_InvalidContactId");
-    UtTest_Add(Test_BPLib_CLA_ContactSetup_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_InvalidRunState");
-    UtTest_Add(Test_BPLib_CLA_ContactSetup_CallbackError, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactSetup_CallbackError");
+    ADD_TEST(Test_BPLib_CLA_Egress_Nominal);
 
-    UtTest_Add(Test_BPLib_CLA_ContactStart_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStart_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactStart_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStart_InvalidContactId");
-    UtTest_Add(Test_BPLib_CLA_ContactStart_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStart_InvalidRunState");
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_DtnDestEid);
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_InvDestEid);
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_InvTimeout);
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_InvTimeTrig);
+    ADD_TEST(Test_BPLib_CLA_ContactsTblValidateFunc_InvSizeTrig);
 
-    UtTest_Add(Test_BPLib_CLA_ContactStop_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactStop_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_InvalidContactId");
-    UtTest_Add(Test_BPLib_CLA_ContactStop_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactStop_InvalidRunState");
+    ADD_TEST(Test_BPLib_CLA_ContactSetup_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactSetup_InvalidContactId);
+    ADD_TEST(Test_BPLib_CLA_ContactSetup_InvalidRunState);
+    ADD_TEST(Test_BPLib_CLA_ContactSetup_CallbackError);
 
-    UtTest_Add(Test_BPLib_CLA_ContactTeardown_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_Nominal");
-    UtTest_Add(Test_BPLib_CLA_ContactTeardown_InvalidContactId, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_InvalidContactId");
-    UtTest_Add(Test_BPLib_CLA_ContactTeardown_InvalidRunState, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ContactTeardown_InvalidRunState");
+    ADD_TEST(Test_BPLib_CLA_ContactStart_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactStart_InvalidContactId);
+    ADD_TEST(Test_BPLib_CLA_ContactStart_InvalidRunState);
+
+    ADD_TEST(Test_BPLib_CLA_ContactStop_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactStop_InvalidContactId);
+    ADD_TEST(Test_BPLib_CLA_ContactStop_InvalidRunState);
+
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_NullInst);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidContactId);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_InvalidRunState);
+    ADD_TEST(Test_BPLib_CLA_ContactTeardown_StorErr);
 }

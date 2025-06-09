@@ -31,18 +31,18 @@ extern "C" {
 */
 
 /** 
- * \brief Maximum length of EID strings and other strings
+ * \brief Maximum length of strings
  */
 
-#define BPLIB_MAX_EID_LENGTH                256 /* Maximum EID string length */
-#define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
+#define BPLIB_MAX_IP_LENGTH                 16  /* Maximum length of an IP address string */
+#define BPLIB_MAX_STR_LENGTH                32  /* Maximum length for a generic string */
 
 /**
  * \brief Configuration array constraints
  */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES             16  /* Maximum number of queues */
-#define BPLIB_MAX_NUM_MIB_SETS                  16  /* Maximum number of MIB sets of counters associated with EID patterns in the source counters HK telemetry */
-#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB counter index */
+#define BPLIB_MAX_NUM_MIB_SETS                  10  /* Maximum number of MIB sets of source configs and counters */
+#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB set index */
 #define BPLIB_MAX_NUM_LATENCY_POLICY_SETS       10  /* Maximum number of latency policy sets */
 #define BPLIB_MAX_NUM_STORE_SET                 10  /* Maximum number of storage policy sets. */
 #define BPLIB_MAX_NUM_CRS                       10  /* Maximum number of Compressed Reporting CRS Entries */
@@ -50,8 +50,6 @@ extern "C" {
 #define BPLIB_MAX_AUTH_CUSTODIAN_EIDS           10  /* Maximum number of authorized custodian EID patterns */
 #define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS      10  /* Maximum number of authorized custody source EID patterns */
 #define BPLIB_MAX_AUTH_REPORT_TO_EIDS           10  /* Maximum number of report-to EID patterns */
-#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES        10  /* Maximum number of entries in MIB PS Cfg table */
-#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS       10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
 #define BPLIB_MAX_NUM_STORE_EIDS                10  /* Maximum number of EID patterns per storage policy set */
 
 /** 
@@ -59,51 +57,51 @@ extern "C" {
  *          This drives the number of entries in the CLA configuration
  *          tables, as well as the number of CLA In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CONTACTS              1
+#define BPLIB_MAX_NUM_CONTACTS 2
 
 /**
  * \brief Maximum number of destination EID patterns per contact
  */
-#define BPLIB_MAX_CONTACT_DEST_EIDS  3
+#define BPLIB_MAX_CONTACT_DEST_EIDS             3
 
 /** 
  * \brief Maximum number of channels that can be running at once
  *          This drives the number of entries in the channel and ADU proxy configuration
  *          tables, as well as the number of ADU In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CHANNELS              2
+#define BPLIB_MAX_NUM_CHANNELS                  2
 
 /** 
  * \brief Maximum number of extension blocks per bundle.
  */
-#define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
+#define BPLIB_MAX_NUM_EXTENSION_BLOCKS          4
 
 /**
  * \brief Maximum number of canonical blocks per bundle
  *        this is one more than BPLIB_MAX_NUM_EXTENSION_BLOCKS
  *        because it includes all extension blocks plus the payload block
  */
-#define BPLIB_MAX_NUM_CANONICAL_BLOCKS       (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
+#define BPLIB_MAX_NUM_CANONICAL_BLOCKS          (BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1)
 
 /**
  * \brief This is the EID scheme for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_SCHEME          BPLIB_EID_SCHEME_IPN
+#define BPLIB_LOCAL_EID_SCHEME                  BPLIB_EID_SCHEME_IPN
 
 /**
  * \brief This is the EID IPN/SSP format for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT  BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
+#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT          BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
 
 /**
  * \brief This is the EID allocator for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_ALLOCATOR       0
+#define BPLIB_LOCAL_EID_ALLOCATOR               0
 
 /**
  * \brief This is the EID node number for this instance of a DTN node
  */
-#define BPLIB_LOCAL_EID_NODE_NUM        100
+#define BPLIB_LOCAL_EID_NODE_NUM                100
 
 /**
  * \brief This is the EID service number for this instance of a DTN node. This is not
@@ -111,13 +109,78 @@ extern "C" {
  *        this node, but is included just in case a BPNode implementation does end up
  *        needing it.
  */
-#define BPLIB_LOCAL_EID_SERVICE_NUM     0
+#define BPLIB_LOCAL_EID_SERVICE_NUM             0
 
 /**
  * \brief This reflects whether the system bplib is running on is big endian. Note that
  *        regardless of this, CBOR encoded bundles are big-endian
  */
-#define BPLIB_SYS_BIG_ENDIAN            false
+#define BPLIB_SYS_BIG_ENDIAN                    false
+
+/**
+ *  \brief This is the absolute maximum size a bundle is allowed to be.
+ */
+#define BPLIB_MAX_BUNDLE_LEN                    8192
+
+/**
+ * \brief This is the absolute maximum size a bundle payload is allowed to be. The real
+ *        max that channels will use is defined in the channel configurations but if
+ *        those configurations have MaxBundlePayloadSize values that are larger than this
+ *        value, the configurations will be rejected. This value must be smaller than
+ *        \ref BPLIB_MAX_BUNDLE_LEN
+ */
+#define BPLIB_MAX_PAYLOAD_SIZE                  4096
+
+/**
+ * \brief This is the absolute maximum lifetime a bundle can have. Channel configurations
+ *        that specify a lifetime greater than this value will be rejected and bundles
+ *        received by Storage that have a lifetime greater than this value will have their
+ *        functional lifetime truncated to this value.
+ */
+#define BPLIB_MAX_LIFETIME_ALLOWED              0xfffffffe
+
+/**
+ *  \brief This is the maximum retransmit timeout allowed in the contacts configuration
+ */
+#define BPLIB_MAX_RETRANSMIT_ALLOWED            86000
+
+/**
+ *  \brief This is the maximum CS time trigger allowed in the contacts configuration. 
+ *         TODO revisit value in 7.1
+ */
+#define BPLIB_MAX_CS_TIME_TRIGGER_ALLOWED       86000
+
+/**
+ *  \brief This is the maximum CS size trigger allowed in the contacts configuration. 
+ *         TODO revisit value in 7.1 
+ */
+#define BPLIB_MAX_CS_SIZE_TRIGGER_ALLOWED       86000
+
+/**
+ *  \brief Name of this entity. This should  unambiguously identify the node within 
+ *         the network
+ */
+#define BPLIB_SYSTEM_NODE_NAME                  "BPNode Development"
+
+/**
+ *  \brief Name of the primary manager of this node
+ */
+#define BPLIB_SYSTEM_NODE_OWNER                 "NASA GSFC"
+
+/**
+ *  \brief Name of the underlying OS or executive controlling the resources of this node
+ */
+#define BPLIB_SYSTEM_SOFWARE_EXEC               "cFS"
+
+/**
+ *  \brief Version of the software executive
+ */
+#define BPLIB_SYSTEM_SOFTWARE_EXEC_VERSION      "cfe equuleus-rc1+dev235"
+
+/**
+ *  \brief List of all CLAs currently supported by this node
+ */
+#define BPLIB_SUPPORTED_CLAS                    "UDP"
 
 #ifdef __cplusplus
 } // extern "C"

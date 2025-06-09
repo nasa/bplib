@@ -50,6 +50,7 @@ target_include_directories(coverage-bplib_pi-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_pi,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_cbor,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
@@ -64,6 +65,9 @@ target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
     bplib_nc_stubs
     bplib_em_stubs
     bplib_ebp_stubs
+    bplib_stor_stubs
+    bpa_fwp_stubs
+    bplib_cbor_stubs
 )
 
 add_test(coverage-bplib_pi-testrunner coverage-bplib_pi-testrunner)

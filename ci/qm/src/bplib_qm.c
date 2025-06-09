@@ -22,6 +22,8 @@
 #include "bplib_qm_job.h"
 #include "bplib_pl.h"
 #include "bplib_stor.h"
+#include "bplib_cla.h"
+#include "bplib_nc.h"
 
 #include <stdio.h>
 
@@ -60,24 +62,21 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
     }
 
     QueueInit = true;
+
     /* Initialize the job queue */
     if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), sizeof(BPLib_QM_Job_t), MaxJobs))
     {
         QueueInit = false;
     }
 
-    /* TODO: This is a BundleQueue, but is kept as WaitQueueInit in expectation this code is
-    ** soon to be removed. I feel it's best to just leave this alone for now.
-    */
     if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), sizeof(BPLib_Bundle_t*), MaxJobs))
     {
         QueueInit = false;
     }
 
-    /* TODO: Use Bundle Queue */
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
+        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), sizeof(BPLib_Bundle_t*), BPLIB_QM_TX_QUEUE_DEPTH))
         {
             QueueInit = false;
         }
@@ -85,7 +84,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t MaxJobs)
 
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
-        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), sizeof(BPLib_Bundle_t*), MaxJobs))
+        if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs[i]), sizeof(BPLib_Bundle_t*), BPLIB_QM_TX_QUEUE_DEPTH))
         {
             QueueInit = false;
         }
@@ -217,4 +216,117 @@ BPLib_Status_t BPLib_QM_WorkerRunJob(BPLib_Instance_t* inst, int32_t WorkerID, i
     }
 
     return Status;
+}
+
+bool BPLib_QM_IsIngressIdle(BPLib_Instance_t* Inst)
+{
+    if (Inst == NULL)
+    {
+        return true;
+    }
+
+    return BPLib_QM_WaitQueueIsEmpty(&(Inst->GenericWorkerJobs));
+}
+
+bool BPLib_QM_IsDuctEmpty(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery)
+{
+    BPLib_QM_WaitQueue_t* DuctQueue;
+
+    if (Inst == NULL)
+    {
+        /* NULL PTR ERROR will be caught in DuctPull */
+        return true;
+    }
+    if (LocalDelivery && EgressID >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+    if (!LocalDelivery && EgressID >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+
+    /* Determine which queue to pull from */
+    if (LocalDelivery == true)
+    {
+        DuctQueue = &(Inst->ChannelEgressJobs[EgressID]);
+    }
+    else
+    {
+        DuctQueue = &(Inst->ContactEgressJobs[EgressID]);
+    }
+
+    return BPLib_QM_WaitQueueIsEmpty(DuctQueue);
+}
+
+BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
+    int TimeoutMs, BPLib_Bundle_t** RetBundle)
+{
+    BPLib_Bundle_t* Bundle;
+    BPLib_QM_JobState_t CurrState;
+    BPLib_QM_JobFunc_t JobFunc;
+    BPLib_QM_WaitQueue_t* DuctQueue;
+    BPLib_CLA_ContactRunState_t ContactState;
+    bool DuctActive = false;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    size_t NumStoredEgressed = 0;
+
+    if ((Inst == NULL) || (RetBundle == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    *RetBundle = NULL;
+    if (LocalDelivery && EgressID >= BPLIB_MAX_NUM_CHANNELS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+    if (!LocalDelivery && EgressID >= BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLIB_STOR_PARAM_ERR;
+    }
+
+    /* Determine which queue to pull from */
+    if (LocalDelivery == true)
+    {
+        CurrState = CHANNEL_OUT_STOR_TO_CT;
+        DuctQueue = &(Inst->ChannelEgressJobs[EgressID]);
+        DuctActive = (BPLib_NC_GetAppState(EgressID) == BPLIB_NC_APP_STATE_STARTED);
+    }
+    else
+    {
+        CurrState = CONTACT_OUT_STOR_TO_CT;
+        DuctQueue = &(Inst->ContactEgressJobs[EgressID]);
+        (void) BPLib_CLA_GetContactRunState(EgressID, &ContactState);
+        DuctActive = (ContactState == BPLIB_CLA_STARTED);
+    }
+
+    /* If the duct is empty, try to load more from storage */
+    if (DuctActive && (BPLib_QM_IsDuctEmpty(Inst, EgressID, LocalDelivery) == true))
+    {
+        Status = BPLib_STOR_EgressForID(Inst, EgressID, LocalDelivery, &NumStoredEgressed);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return Status;
+        }
+    }
+
+    /* Pull the bundle from the queue and push it to the 'edge' of BPA 
+    ** Note: There's no check for DuctActive here to support the case where bundles
+    ** remain in the queue after a Channel or Contact is stopped.
+    */
+    if (BPLib_QM_WaitQueueTryPull(DuctQueue, &Bundle, TimeoutMs))
+    {
+        /* Take this bundle all the way to NO_NEXT_STATE */
+        while (CurrState != NO_NEXT_STATE)
+        {
+            JobFunc = BPLib_QM_JobLookup(CurrState);
+            CurrState = JobFunc(Inst, Bundle);
+        }
+        *RetBundle = Bundle;
+        return BPLIB_SUCCESS;
+    }
+    else
+    {
+        return BPLIB_TIMEOUT;
+    }
 }

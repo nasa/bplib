@@ -148,7 +148,7 @@ typedef struct
       */
     uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
 
-    uint32_t TimeBootEra;       /** \brief Boot Era for Monotonic Time */
+    uint32_t Spare;
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
@@ -186,11 +186,46 @@ typedef struct
 {
     BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_MIB_SETS]; /** \brief Counters for each source */
 
-    uint32_t Spare2;
-    uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
+
+/*
+** Node MIB Reports Payload
+*/
+typedef struct
+{
+    char     SystemNodeName[BPLIB_MAX_STR_LENGTH];              /** \brief Human readable name given to entity */
+    char     SystemNodeOwner[BPLIB_MAX_STR_LENGTH];             /** \brief Identifies primary manager of the node */
+    char     SystemSoftwareExec[BPLIB_MAX_STR_LENGTH];          /** \brief ID of the OS or executive controlling the resources */
+    char     SystemSoftwareExecVersion[BPLIB_MAX_STR_LENGTH];   /** \brief Version of software */
+
+    char     BundleAgentSoftwareVersion[BPLIB_MAX_STR_LENGTH];  /** \brief Version of the Bundle Protocol Agent */
+    char     BundleAgentOperationalState[BPLIB_MAX_STR_LENGTH]; /** \brief Operational state of Bundle Protocol Agent */
+    char     BundleAgentConfiguration[BPLIB_MAX_STR_LENGTH];    /** \brief Indication of the BPA configuration */
+    char     ParamSupportedCLAs[BPLIB_MAX_STR_LENGTH];          /** \brief Supported CLAs */
+    char     NodeActiveEndpoints[BPLIB_MAX_STR_LENGTH];         /** \brief List of active endpoints on the Node */
+
+    uint32_t SystemNodeUpTime;                                  /** \brief The time in seconds since this node has been reinitialized */
+    uint32_t BundleAgentAvailableStorage;                       /** \brief Total amount of memory allocated for bundle storage for the node  */
+    uint32_t KbytesCountStorageAvailable;                       /** \brief Kilobytes free space left to store additional Bundles */
+
+    uint32_t BundleIngressRateBytesPerSec;                      /** \brief Rate of bundles received from CLAs in bytes per second */
+    uint32_t BundleIngressRateBundlesPerSec;                    /** \brief Rate of bundles received from CLAs in bundles per second */
+    uint32_t BundleEgressRateBytesPerSec;                       /** \brief Rate of bundles forwarded from CLAs in bytes per second */
+    uint32_t BundleEgressRateBundlesPerSec;                     /** \brief Rate of bundle forwarded from CLAs in bundles per second */
+    uint32_t BundleIngestedRateBundlesPerSec;                   /** \brief Rate of bundles ingested locally in bundles per second */
+    uint32_t BundleIngestedRateBytesPerSec;                     /** \brief Rate of bundles ingested locally in bytes per second */
+    uint32_t BundleDeliveryRateBundlesPerSec;                   /** \brief Rate of bundles delivered locally in bundles per second */
+    uint32_t BundleDeliveryRateBytesPerSec;                     /** \brief Rate of bundles delivered locally in bytes per second */
+    uint32_t BundleIngressRejectedRateBytesPerSec;              /** \brief Rate of bundles received from CLAs in bytes per second and then rejected */
+    uint32_t BundleIngressRejectedRateBundlesPerSec;            /** \brief Rate of bundles received from CLAs in bundles per second and then rejected */
+
+    uint32_t Spare;
+    int64_t  MonotonicTime;                                     /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;                                 /** \brief Time Correlation Factor */
+
+} BPLib_NodeMibReportsHkTlm_Payload_t;
 
 /* =================== */
 /* Function Prototypes */
@@ -205,6 +240,17 @@ typedef struct
  * \retval    BPLIB_SUCCESS: Initialization was successful
  */
 BPLib_Status_t BPLib_AS_Init(void);
+
+/**
+ * \brief     Returns counter value for the provided EID
+ * \note      Source counters are unimplemented and return 0 by default
+ * \param[in] EID Endpoint identifier
+ * \param[in] Counter Enumeration of counter to return
+ * \return    Counter value
+ * \retval    A counter value of 0 could be the real value or indicate a silent validation 
+ *            error
+ */
+uint32_t BPLib_AS_GetCounter(BPLib_EID_t *EID, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Add an amount to the counter specified by the given EID and counter
@@ -340,6 +386,15 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
+
+/**
+  * \brief     Send Per Node MIB Reports telemetry packet
+  * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibReportsPkt()
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  */
+BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void);
 
 /**
  * \note The terms key(s) and pattern(s) are used interchangeably since the MIB array keys are patterns of EIDs associated with the counters for that entry

@@ -68,14 +68,14 @@ typedef struct
     bool                    AduUnwrapping;
     uint8_t                 RegState;
     uint8_t                 HopLimit;
-    uint64_t                LocalServiceNumber;
-    uint32_t                MaxBundlePayloadSize;
     BPLib_CRC_Type_t        CrcType;
-    uint8_t                 Spare[3];
+    uint8_t                 Spare;
+    uint64_t                LocalServiceNumber;
+    uint64_t                MaxBundlePayloadSize;    
     uint64_t                BundleProcFlags;
+    uint64_t                Lifetime;
     BPLib_EID_t             DestEID;
     BPLib_EID_t             ReportToEID;
-    uint64_t                Lifetime;
     BPLib_PI_CanBlkConfig_t PrevNodeBlkConfig;
     BPLib_PI_CanBlkConfig_t AgeBlkConfig;
     BPLib_PI_CanBlkConfig_t HopCountBlkConfig;
@@ -99,7 +99,8 @@ typedef struct
  * \brief Add Application
  *
  *  \par Description
- *       Add application configurations to Payload Interface
+ *       Run add-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
@@ -109,23 +110,59 @@ typedef struct
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId);
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId);
+
+/**
+ * \brief Start Application
+ *
+ *  \par Description
+ *       Run start-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId);
+
+/**
+ * \brief Stop Application
+ *
+ *  \par Description
+ *       Run stop-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId);
 
 /**
  * \brief Remove Application
  *
  *  \par Description
- *       Remove application configurations from Payload Interface
+ *       Run remove-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
  *  \param[in] ChanId Channel ID
+ *  \param[in] Inst Instance of bplib
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId);
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId);
 
 /**
  * \brief Validate configurations
@@ -162,7 +199,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId, 
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint32_t ChanId, 
                                                         void *AduPtr, size_t AduSize);
 
 /**
@@ -184,7 +221,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId,
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
                                     size_t *AduSize, size_t BufLen, uint32_t Timeout);
 
 #endif /* BPLIB_PI_H */

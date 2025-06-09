@@ -52,13 +52,13 @@ void BPA_PERFLOGP_Entry(uint32_t PerfLogID);
 
 void BPA_PERFLOGP_Exit(uint32_t PerfLogID);
 
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_StartApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_StopApplication(uint32_t ChanId);
 
-BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId);
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint32_t ChanId);
 
 BPLib_Status_t BPA_TLMP_SendNodeMibConfigPkt(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
 
@@ -67,6 +67,8 @@ BPLib_Status_t BPA_TLMP_SendPerSourceMibConfigPkt(BPLib_SourceMibConfigHkTlm_Pay
 BPLib_Status_t BPA_TLMP_SendNodeMibCounterPkt(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload);
 
 BPLib_Status_t BPA_TLMP_SendPerSourceMibCounterPkt(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload);
+
+BPLib_Status_t BPA_TLMP_SendNodeMibReportsPkt(BPLib_NodeMibReportsHkTlm_Payload_t* NodeMibReportsHkTlm_Payload);
 
 BPLib_Status_t BPA_TLMP_SendChannelContactPkt(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
 

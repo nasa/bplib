@@ -76,6 +76,7 @@ target_link_libraries(coverage-bplib_nc-testrunner PUBLIC
     bplib_eid_stubs
     bplib_cla_stubs
     bplib_crc_stubs
+    bplib_pi_stubs
 )
 
 add_test(coverage-bplib_nc-testrunner coverage-bplib_nc-testrunner)

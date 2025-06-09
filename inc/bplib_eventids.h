@@ -118,6 +118,7 @@
 #define BPLIB_NC_SEND_SRC_CNTRS_ERR_EID                 (580u)
 #define BPLIB_NC_SEND_STORAGE_ERR_EID                   (581u)
 #define BPLIB_NC_SEND_CONTACTS_ERR_EID                  (582u)
+#define BPLIB_NC_SEND_REPORTS_ERR_EID                   (583u)
 
 /* ============ */
 /* AS event IDs */
@@ -126,12 +127,12 @@
 /* AS success event IDs */
 
 /* AS error event IDs */
-#define BPLIB_AS_TAKE_MUTEX_ERR_EID                     (580u)
-#define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (581u)
-#define BPLIB_AS_SET_CTR_ERR_EID                        (582u)
+#define BPLIB_AS_TAKE_MUTEX_ERR_EID                     (590u)
+#define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (591u)
+#define BPLIB_AS_SET_CTR_ERR_EID                        (592u)
 
 /* AS debug event IDs */
-#define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (583u)
+#define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (593u)
 
 
 /* ============== */
@@ -155,8 +156,7 @@
 /* ============ */
 /* BI event IDs */
 /* ============ */
-#define BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID            (650u)
-#define BPLIB_BI_INGRESS_DBG_EID                        (651u)
+#define BPLIB_BI_INGRESS_CBOR_DECODE_INF_EID            (650u)
 
 /* ============= */
 /* CLA event IDs */
@@ -164,7 +164,7 @@
 
 #define BPLIB_CLA_CONTACT_NO_STATE_CHG_DBG_EID          (661u)
 #define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
-#define BPLIB_CLA_EGRESS_DBG_EID                        (663u)
+#define BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID            (663u)
 
 /* ============= */
 /* MEM event IDs */
@@ -176,12 +176,23 @@
 /* PI event IDs */
 /* ============ */
 
-#define BPLIB_PI_EGRESS_DBG_EID                         (680u)
-#define BPLIB_PI_EGRESS_ERR_EID                         (681u)
-#define BPLIB_PI_INGRESS_DBG_EID                        (682u)
+#define BPLIB_PI_EGRESS_ERR_EID                         (682u)
 #define BPLIB_PI_INGRESS_ERR_EID                        (683u)
+#define BPLIB_PI_REMOVE_STATE_DBG_EID                   (684u)
+#define BPLIB_PI_REMOVE_ID_DBG_EID                      (685u)
+#define BPLIB_PI_REMOVE_FWP_DBG_EID                     (686u)
+#define BPLIB_PI_ADD_ID_DBG_EID                         (687u)
+#define BPLIB_PI_ADD_STATE_DBG_EID                      (688u)
+#define BPLIB_PI_ADD_FWP_DBG_EID                        (689u)
+#define BPLIB_PI_START_ID_DBG_EID                       (690u)
+#define BPLIB_PI_START_STATE_DBG_EID                    (691u)
+#define BPLIB_PI_START_FWP_DBG_EID                      (692u)
+#define BPLIB_PI_STOP_ID_DBG_EID                        (693u)
+#define BPLIB_PI_STOP_STATE_DBG_EID                     (694u)
+#define BPLIB_PI_STOP_FWP_DBG_EID                       (695u)
+#define BPLIB_PI_REMOVE_QUEUE_FLUSH_DBG_EID             (696u)
 
 /* QM event IDs */
-#define BPLIB_QM_EBP_OUT_ERR_EID                        (690u)
+#define BPLIB_QM_EBP_OUT_ERR_EID                        (700u)
 
 #endif /* BPLIB_EVENTIDS_H */

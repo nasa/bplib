@@ -243,6 +243,12 @@ void Test_BPLib_FWP_Init_ContactTeardownNull(void)
     UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
+void Test_BPLib_FWP_Init_SendReportsNull(void)
+{
+    TestCallbacks.BPA_TLMP_SendNodeMibReportsPkt = NULL;
+    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
 void TestBplibFwp_Register(void)
 {
     UtTest_Add(Test_BPLib_FWP_Init_Nominal, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_Nominal");
@@ -269,4 +275,6 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_ContactStartNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ContactStartNull");
     UtTest_Add(Test_BPLib_FWP_Init_ContactStopNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ContactStopNull");
     UtTest_Add(Test_BPLib_FWP_Init_ContactTeardownNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ContactTeardownNull");
+    UtTest_Add(Test_BPLib_FWP_Init_SendReportsNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendReportsNull");
+
 }

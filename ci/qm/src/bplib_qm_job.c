@@ -68,7 +68,6 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
     return NO_NEXT_STATE;
 }
 
@@ -94,7 +93,6 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* Inst, BPLib_Bundle_t
 
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle)
 {
-    BPLib_QM_WaitQueueTryPush(&(Inst->ChannelEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
     return NO_NEXT_STATE;
 }
 
@@ -102,14 +100,14 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
 {
     int i, j;
     BPLib_EID_t* DestEID;
-
-    BPLib_NC_ReaderLock();
+    BPLib_CLA_ContactRunState_t ContactState;
 
     /* For build 7.0 our ingress route strategy is as follows:
     ** - If the bundle is local, forward to the channel immediatley
     ** - If the bundle is for an available contact, deliver without storing
     ** - If the bundle if for an un-available contact or channel, store
     */
+    BPLib_NC_ReaderLock();
     DestEID = &Bundle->blocks.PrimaryBlock.DestEID;
     if (BPLib_EID_NodeIsMatch(DestEID, &BPLIB_EID_INSTANCE))
     {
@@ -123,7 +121,8 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
                     /* We have a channel we can deliver to: forward without storing */
                     Bundle->Meta.EgressID = i;
                     BPLib_NC_ReaderUnlock();
-                    return CHANNEL_OUT_STOR_TO_CT;
+                    BPLib_QM_WaitQueueTryPush(&(Inst->ChannelEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
+                    return NO_NEXT_STATE;
                 }
             }
         }
@@ -133,23 +132,28 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         /* Iterate through the contacts: this is very slow. */
         for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
         {
-            for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+            /* Contact ID is valid here, so we can ignore the error status of the function */
+            (void) BPLib_CLA_GetContactRunState(i, &ContactState);
+            if (ContactState == BPLIB_CLA_STARTED)
             {
-                /* Code not available: BPLib_NC_GetContactState(i) to check if contact active */
-                if (BPLib_EID_PatternIsMatch(DestEID, &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                 {
-                    Bundle->Meta.EgressID = i;
-                    BPLib_NC_ReaderUnlock();
-                    return CONTACT_OUT_STOR_TO_CT;
+                    if (BPLib_EID_PatternIsMatch(DestEID, &BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[i].DestEIDs[j]))
+                    {
+                        /* We have a contact we can deliver to: forward without storing */
+                        Bundle->Meta.EgressID = i;
+                        BPLib_NC_ReaderUnlock();
+                        BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Bundle->Meta.EgressID]), &Bundle, QM_WAIT_FOREVER);
+                        return NO_NEXT_STATE;
+                    }
                 }
             }
         }
     }
+    BPLib_NC_ReaderUnlock();
 
     /* We never found an active channel or contact: store this bundle */
     BPLib_STOR_StoreBundle(Inst, Bundle);
-
-    BPLib_NC_ReaderUnlock();
     return NO_NEXT_STATE;
 }
 

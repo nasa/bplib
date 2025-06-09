@@ -58,7 +58,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
 
     /* Verify bundle is not longer than maximum allowed length */
     BPLib_NC_ReaderLock();
-    if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->ParamSetMaxBundleLength)
+    if (CandBundleLen > BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH])
     {
         BPLib_NC_ReaderUnlock();
         return BPLIB_CBOR_DEC_BUNDLE_TOO_LONG_DEC_ERR;
@@ -119,18 +119,21 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         }
     }
 
-    /* Sanity check that we didn't have extra data left after decoding the canonical blocks */
-    NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
-    if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
+    if (Status == BPLIB_SUCCESS)
     {
-        return BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR;
-    }
+        /* Sanity check that we didn't have extra data left after decoding the canonical blocks */
+        NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
+        if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
+        {
+            return BPLIB_CBOR_DEC_BUNDLE_MAX_BLOCKS_ERR;
+        }
 
-    QCBORDecode_ExitArray(&ctx);
-    QStatus = QCBORDecode_GetError(&ctx);
-    if (QStatus != QCBOR_SUCCESS)
-    {
-        return BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR;
+        QCBORDecode_ExitArray(&ctx);
+        QStatus = QCBORDecode_GetError(&ctx);
+        if (QStatus != QCBOR_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_BUNDLE_EXIT_ARRAY_ERR;
+        }
     }
 
     return Status;

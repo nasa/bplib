@@ -63,14 +63,15 @@ typedef struct
     BPLib_Status_t (*BPA_TLMP_SendPerSourceMibConfigPkt)(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendNodeMibCounterPkt)(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendPerSourceMibCounterPkt)(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload);
+    BPLib_Status_t (*BPA_TLMP_SendNodeMibReportsPkt)(BPLib_NodeMibReportsHkTlm_Payload_t* NodeMibReportsPayload);
     BPLib_Status_t (*BPA_TLMP_SendChannelContactPkt)(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendStoragePkt)(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);
 
     /* ADU Proxy function callbacks */
-    BPLib_Status_t (*BPA_ADUP_AddApplication)(uint8_t ChanId);
-    BPLib_Status_t (*BPA_ADUP_StartApplication)(uint8_t ChanId);
-    BPLib_Status_t (*BPA_ADUP_StopApplication)(uint8_t ChanId);
-    BPLib_Status_t (*BPA_ADUP_RemoveApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_AddApplication)(uint32_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StartApplication)(uint32_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StopApplication)(uint32_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_RemoveApplication)(uint32_t ChanId);
 
     /* CLA Proxy function callbacks */
     BPLib_Status_t (*BPA_CLAP_ContactSetup)(uint32_t ContactId, BPLib_CLA_ContactsSet_t ContactInfo);

@@ -84,6 +84,10 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK, 1);
     }
+    else if (Status == BPLIB_BI_EXPIRED_BUNDLE_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, 1);
+    }
     else if (Status != BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_UNINTELLIGIBLE, 1);
@@ -92,14 +96,6 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     /* If decode and validation were successful, create the job to ingress bundle */
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_DBG_EID, BPLib_EM_EventType_DEBUG,
-            "[CLA In #%d]: Ingressing %lu-byte bundle from CLA, with Dest EID: %lu.%lu, and Src EID: %lu.%lu.",
-            ContId, (unsigned long) Size,
-            CandidateBundle->blocks.PrimaryBlock.DestEID.Node,
-            CandidateBundle->blocks.PrimaryBlock.DestEID.Service,
-            CandidateBundle->blocks.PrimaryBlock.SrcEID.Node,
-            CandidateBundle->blocks.PrimaryBlock.SrcEID.Service);
-
         Status = BPLib_QM_CreateJob(Inst, CandidateBundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
     
@@ -108,11 +104,15 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     {
         BPLib_MEM_BundleFree(&Inst->pool, CandidateBundle);
 
-        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_INF_EID, BPLib_EM_EventType_INFORMATION,
                             "[CLA In #%d]: Error ingressing bundle, RC = %d", ContId, Status);
 
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 1);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 1);
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_RECEIVED, 1);
     }
 
     return Status;
@@ -133,11 +133,13 @@ BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
 /* Validate deserialized bundle after CBOR decoding */
 BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 {
+    uint64_t AgeBlkTime      = 0;
     uint32_t ExtBlkIdx       = 0;
+    uint32_t i;
     bool     PrevNodePresent = false;
     bool     AgeBlockPresent = false;
     bool     HopCountPresent = false;
-    uint32_t i;
+    BPLib_TIME_MonotonicTime_t CurrMonoTime;
 
     if (CandidateBundle == NULL)
     {
@@ -179,6 +181,7 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
             else
             {
                 AgeBlockPresent = true;
+                AgeBlkTime = CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].BlockData.AgeBlockData.Age;
             }
         }
         if (CandidateBundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_PrevNode)
@@ -213,10 +216,34 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
         }
     }
 
-    /* Verify that there is either an age block or a valid DTN timestamp */
-    if (AgeBlockPresent == false && CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
+    /* If an age block is present, make sure the bundle is not expired */
+    if (AgeBlockPresent)
     {
-        return BPLIB_BI_INVALID_BUNDLE_ERR;
+        BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
+
+        if ((CurrMonoTime.Time - CandidateBundle->Meta.MonoTime.Time + AgeBlkTime) >= 
+             CandidateBundle->blocks.PrimaryBlock.Lifetime)
+        {
+            return BPLIB_BI_EXPIRED_BUNDLE_ERR;
+        }
+    }
+    else
+    {
+        /* If there is neither an age block or a valid creation time, return error */
+        if (CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
+        {
+            return BPLIB_BI_INVALID_BUNDLE_ERR; 
+        }
+        /* If there's a valid creation time, make sure bundle is not expired */
+        else
+        {
+            /* If the current DTN time is 0 (implying it's invalid), bundle won't expire */
+            if ((CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime + 
+                 CandidateBundle->blocks.PrimaryBlock.Lifetime) <= BPLib_TIME_GetCurrentDtnTime())
+            {
+                return BPLIB_BI_EXPIRED_BUNDLE_ERR;
+            }
+        }
     }
 
     /* TODO Check against Policy Database for authorized source EID, etc */

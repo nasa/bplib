@@ -29,13 +29,20 @@
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_mem.h"
+#include "bplib_stor_loadbatch.h"
 
 #include <sqlite3.h>
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
-#define BPLIB_FLAG_DIAGNOSTIC              0x00000000
+#define BPLIB_FLAG_DIAGNOSTIC      0x00000000
+
+#ifndef BPLIB_STOR_INSERTBATCHSIZE
 #define BPLIB_STOR_INSERTBATCHSIZE 100
-#define BPLIB_STOR_LOADBATCHSIZE 100
+#endif
+
+#ifndef BPLIB_STOR_DISCARDBATCHSIZE
+#define BPLIB_STOR_DISCARDBATCHSIZE 25000
+#endif
 
 struct BPLib_BundleCache
 {
@@ -43,8 +50,8 @@ struct BPLib_BundleCache
     sqlite3* db;
     BPLib_Bundle_t* InsertBatch[BPLIB_STOR_INSERTBATCHSIZE];
     size_t InsertBatchSize;
-    BPLib_Bundle_t* LoadBatch[BPLIB_STOR_LOADBATCHSIZE];
-    size_t LoadBatchSize;
+    BPLib_STOR_LoadBatch_t ChannelLoadBatches[BPLIB_MAX_NUM_CHANNELS];
+    BPLib_STOR_LoadBatch_t ContactLoadBatches[BPLIB_MAX_NUM_CONTACTS];
 };
 
 /**
@@ -64,7 +71,7 @@ struct BPLib_StorageHkTlm_Payload
     uint32_t    NumFailedFlashBlocks;                           /**< \brief Failed Flash memory statistics counter */
     uint32_t    FlashErrorCount;                                /**< \brief Flash memory statistics counter */
     
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    uint32_t Spare; 
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
 };
@@ -129,27 +136,14 @@ void BPLib_STOR_Destroy(BPLib_Instance_t* Inst);
  */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
 
-/**
- * @brief Check the bundle cache fifo for available bundles
- *
- * This function pulls from Bundle Cache and pushes them to the unsorted job queue
- *
- * @param[in] Inst The instance containing the jobs to be sorted.
- * @param[in] MaxBundlesToScan The number of bundles to pull from storage
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Scanning cache was successful
- *  \retval BPLIB_NULL_PTR_ERROR Provided instance pointer was null/invalid
- */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan);
-
 BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
-BPLib_Status_t BPLib_STOR_EgressForDestEID(BPLib_Instance_t* Inst, uint16_t EgressID, bool LocalDelivery,
-    BPLib_EID_Pattern_t* DestEID, size_t MaxBundles, size_t* NumEgressed);
-
-BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst, size_t* NumDiscarded);
-
 BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
+
+BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery, 
+    size_t* NumEgressed);
+
+BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
+
 
 #endif /* BPLIB_STOR_H */

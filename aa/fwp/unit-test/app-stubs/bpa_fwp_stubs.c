@@ -25,7 +25,6 @@
  */
 
 #include "bpa_fwp_stubs.h"
-#include "bplib_cla.h"
 #include "utgenstub.h"
 
 /*
@@ -33,7 +32,7 @@
  * Generated stub function for BPA_ADUP_AddApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_AddApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_AddApplication, BPLib_Status_t);
 
@@ -49,7 +48,7 @@ BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_RemoveApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_RemoveApplication, BPLib_Status_t);
 
@@ -65,7 +64,7 @@ BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_StartApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_StartApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_StartApplication, BPLib_Status_t);
 
@@ -81,7 +80,7 @@ BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId)
  * Generated stub function for BPA_ADUP_StopApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
+BPLib_Status_t BPA_ADUP_StopApplication(uint32_t ChanId)
 {
     UT_GenStub_SetupReturnBuffer(BPA_ADUP_StopApplication, BPLib_Status_t);
 
@@ -97,11 +96,11 @@ BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId)
  * Generated stub function for BPA_CLAP_ContactSetup()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_CLAP_ContactSetup(uint32 ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
+BPLib_Status_t BPA_CLAP_ContactSetup(uint32_t ContactId, BPLib_CLA_ContactsSet_t ContactInfo)
 {
     UT_GenStub_SetupReturnBuffer(BPA_CLAP_ContactSetup, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, uint32, ContactId);
+    UT_GenStub_AddParam(BPA_CLAP_ContactSetup, uint32_t, ContactId);
     UT_GenStub_AddParam(BPA_CLAP_ContactSetup, BPLib_CLA_ContactsSet_t, ContactInfo);
 
     UT_GenStub_Execute(BPA_CLAP_ContactSetup, Basic, NULL);
@@ -328,6 +327,23 @@ BPLib_Status_t BPA_TLMP_SendNodeMibCounterPkt(BPLib_NodeMibCountersHkTlm_Payload
     UT_GenStub_Execute(BPA_TLMP_SendNodeMibCounterPkt, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPA_TLMP_SendNodeMibCounterPkt, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPA_TLMP_SendNodeMibReportsPkt()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_TLMP_SendNodeMibReportsPkt(BPLib_NodeMibReportsHkTlm_Payload_t *NodeMibReportsHkTlm_Payload)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_TLMP_SendNodeMibReportsPkt, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_TLMP_SendNodeMibReportsPkt, BPLib_NodeMibReportsHkTlm_Payload_t *,
+                        NodeMibReportsHkTlm_Payload);
+
+    UT_GenStub_Execute(BPA_TLMP_SendNodeMibReportsPkt, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_TLMP_SendNodeMibReportsPkt, BPLib_Status_t);
 }
 
 /*
