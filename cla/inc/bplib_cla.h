@@ -98,13 +98,13 @@ typedef struct
     uint16_t            ClaInPort;
     uint16_t            ClaOutPort;
 
-    size_t              IngressBitsPerCycle;
-    size_t              EgressBitsPerCycle;
-
     uint32_t            RetransmitTimeout;
     uint32_t            CSTimeTrigger;
     uint32_t            CSSizeTrigger;
-} BPLib_CLA_ContactsSet_t;
+
+    size_t              IngressBitsPerCycle;
+    size_t              EgressBitsPerCycle;
+  } BPLib_CLA_ContactsSet_t;
 
 typedef struct
 {
