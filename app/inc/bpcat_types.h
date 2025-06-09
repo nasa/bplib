@@ -27,6 +27,8 @@
 #include <stdbool.h>
 #include <signal.h>
 
+#define BPCAT_CYCLE_TIME_SECS (1)
+
 /* Error Codes */
 #define BPCAT_SUCCESS         (0L)
 #define BPCAT_NULL_PTR_ERR    (-1L)

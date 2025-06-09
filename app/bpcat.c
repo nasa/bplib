@@ -27,6 +27,7 @@
 #include "bpcat_cla.h"
 #include "bpcat_nc.h"
 #include <assert.h>
+#include "bplib.h"
 
 #include "osapi.h"
 #include <unistd.h>
@@ -258,14 +259,31 @@ void BPCat_Main()
     }
 
     /* Enable Contacts */
-    assert(BPLib_CLA_ContactSetup(0) == BPLIB_SUCCESS);
-    assert(BPLib_CLA_ContactStart(0) == BPLIB_SUCCESS);
+    if (BPLib_CLA_ContactSetup(0) != BPLIB_SUCCESS || 
+        BPLib_CLA_ContactStart(0) != BPLIB_SUCCESS)
+    {
+        fprintf(stderr, "Failed to setup and start contact 0\n");
+    }
 
     /* Run until a SIGINT (CTRL-C) sets AppData.Running to 0 */
     while (AppData.Running)
     {
-        sleep(1);
-    }
+        sleep(BPCAT_CYCLE_TIME_SECS);
+
+        BPLibStatus = BPLib_STOR_FlushPending(&AppData.BPLibInst);
+
+        if (BPLibStatus != BPLIB_SUCCESS)
+        {
+            fprintf(stderr, "Error flushing storage\n");
+        }
+        
+        BPLibStatus = BPLib_STOR_GarbageCollect(&AppData.BPLibInst);
+        
+        if (BPLibStatus != BPLIB_SUCCESS)
+        {
+            fprintf(stderr, "Error garbage collecting\n");
+        }
+    }   
 
     /* Exit Signal Received */
 

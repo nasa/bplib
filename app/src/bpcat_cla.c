@@ -110,6 +110,10 @@ void* BPCat_CLAOutTaskFunc(BPCat_AppData_t* AppData)
                 return NULL;
             }
         }
+        else if (EgressStatus != BPLIB_CLA_TIMEOUT)
+        {
+            fprintf(stderr, "Error egressing, RC=%d\n", EgressStatus);
+        }
     }
     return NULL;
 }

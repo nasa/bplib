@@ -88,6 +88,7 @@ static BPLib_Status_t BPA_EVP_Init()
 
 static BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec)
 {
+    printf("Event Type: %d, Event ID: %d, Event Text: %s\n", EventID, EventType, Spec);
     return BPLIB_SUCCESS;
 }
 
