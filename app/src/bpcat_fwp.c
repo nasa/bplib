@@ -101,6 +101,11 @@ static BPLib_Status_t BPA_TLMP_SendPerSourceMibConfigPkt(BPLib_SourceMibConfigHk
     return BPLIB_SUCCESS;
 }
 
+static BPLib_Status_t BPA_TLMP_SendNodeMibReportsPkt(BPLib_NodeMibReportsHkTlm_Payload_t* NodeMIBReportsTlmPayload)
+{
+    return BPLIB_SUCCESS;
+}
+
 static BPLib_Status_t BPA_TLMP_SendNodeMibCounterPkt(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload)
 {
     return BPLIB_SUCCESS;
@@ -188,6 +193,7 @@ static BPLib_FWP_ProxyCallbacks_t Callbacks = {
     /* Telemetry Proxy */
     .BPA_TLMP_SendNodeMibConfigPkt = BPA_TLMP_SendNodeMibConfigPkt,
     .BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt,
+    .BPA_TLMP_SendNodeMibReportsPkt = BPA_TLMP_SendNodeMibReportsPkt,
     .BPA_TLMP_SendNodeMibCounterPkt = BPA_TLMP_SendNodeMibCounterPkt,
     .BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt,
     .BPA_TLMP_SendChannelContactPkt = BPA_TLMP_SendChannelContactPkt,

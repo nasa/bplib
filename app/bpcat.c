@@ -26,6 +26,7 @@
 #include "bpcat_task.h"
 #include "bpcat_cla.h"
 #include "bpcat_nc.h"
+#include <assert.h>
 
 #include "osapi.h"
 #include <unistd.h>
@@ -257,7 +258,6 @@ void BPCat_Main()
     }
 
     /* Enable Contacts */
-    #include <assert.h>
     assert(BPLib_CLA_ContactSetup(0) == BPLIB_SUCCESS);
     assert(BPLib_CLA_ContactStart(0) == BPLIB_SUCCESS);
 
