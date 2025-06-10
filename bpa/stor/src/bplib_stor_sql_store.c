@@ -123,7 +123,7 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
     BPLib_MEM_Block_t* CurrMemBlock;
 
     /* Store the indexable metadata */
-    SQLStatus = BPLib_SQL_StoreMetadata(&Bundle->blocks);
+    SQLStatus = BPLib_SQL_StoreMetadata(Bundle);
     if (SQLStatus != SQLITE_DONE)
     {
         return SQLStatus;
