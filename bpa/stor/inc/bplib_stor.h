@@ -67,7 +67,6 @@ struct BPLib_StorageHkTlm_Payload
     uint32_t BytesMemHighWater; /** \brief Memory high water mark in bytes */
     size_t   KbStorageInUse;    /** \brief Kilobytes of storage currently occupied by bundles */
 
-    uint32_t Spare;             /** \brief Spare for alignment */
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 };
