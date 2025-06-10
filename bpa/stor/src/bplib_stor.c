@@ -70,7 +70,7 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     }
     else 
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, CacheInst->InsertBatchSize);
+        CacheInst->BundleCountStored += CacheInst->InsertBatchSize;
     }
 
     /* Free the bundles, as they're now persistent
@@ -338,7 +338,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
+        CacheInst->BundleCountStored -= NumDiscarded;
     }
 
     Status = BPLib_SQL_DiscardEgressed(Inst, &NumDiscarded);
@@ -351,7 +351,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
+        CacheInst->BundleCountStored -= NumDiscarded;
     }
 
     pthread_mutex_unlock(&CacheInst->lock);

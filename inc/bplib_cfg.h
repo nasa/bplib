@@ -180,7 +180,7 @@ extern "C" {
 /**
  *  \brief List of all CLAs currently supported by this node
  */
-#define BPLIB_SUPPORTED_CLAS                    "UDP"
+#define BPLIB_SUPPORTED_CLAS                    "UDP,SB"
 
 #ifdef __cplusplus
 } // extern "C"
