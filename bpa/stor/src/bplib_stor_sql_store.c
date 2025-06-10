@@ -86,7 +86,6 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     SQLStatus = sqlite3_step(InsertBlobStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-//        fprintf(stderr, "Insert chunk failed\n");
         return SQLStatus;
     }
 

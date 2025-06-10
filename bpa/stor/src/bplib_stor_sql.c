@@ -362,7 +362,6 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     SQLStatus = BPLib_SQL_InitImpl(db, DbName);
     if (SQLStatus != SQLITE_OK)
     {
-        printf("status=%d\n", SQLStatus);
         Status = BPLIB_STOR_SQL_INIT_ERR;
     }
 
