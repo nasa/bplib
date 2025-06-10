@@ -33,8 +33,8 @@
 /* Global Data */
 /* =========== */
 
-BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
-bool                        BPLib_CLA_AutoEgressEnabled[BPLIB_MAX_NUM_CONTACTS];
+volatile BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+volatile bool                        BPLib_CLA_AutoEgressEnabled[BPLIB_MAX_NUM_CONTACTS];
 
 /* ==================== */
 /* Function Definitions */
