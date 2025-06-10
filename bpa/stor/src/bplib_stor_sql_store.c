@@ -86,7 +86,7 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     SQLStatus = sqlite3_step(InsertBlobStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        fprintf(stderr, "Insert chunk failed\n");
+//        fprintf(stderr, "Insert chunk failed\n");
         return SQLStatus;
     }
 
@@ -167,13 +167,21 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
     }
 
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
-    if (SQLStatus != SQLITE_OK)
+    if (SQLStatus == SQLITE_FULL)
     {
-        fprintf(stderr, "Attempting ROLLBACK\n");
+        /* 
+        ** Transaction should have been rolled back automatically (in which case this
+        ** should fail silently) but rolling back explicitly just in case
+        */
+        (void) sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
+    }
+    else if (SQLStatus != SQLITE_OK)
+    {
+        fprintf(stderr, "Batch commit failed, RC=%d\n", SQLStatus);
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 
@@ -206,7 +214,12 @@ BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst)
     {
         /* Run the batch storage logic */
         SQLStatus = BPLib_SQL_StoreImpl(Inst);
-        if (SQLStatus != SQLITE_OK)
+        
+        if (SQLStatus == SQLITE_FULL)
+        {
+            Status = BPLIB_STOR_DB_FULL_ERR;
+        }
+        else if (SQLStatus != SQLITE_OK)
         {
             Status = BPLIB_STOR_SQL_STORAGE_ERR;
         }

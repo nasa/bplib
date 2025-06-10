@@ -142,6 +142,7 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     int ForeignKeysEnabled;
     sqlite3_stmt* ForeignKeyCheckStmt;
     uint32_t NumStoredBundles = 0;
+    char PageNumStr[256];
 
     SQLStatus = sqlite3_open(DbName, db);
     if (SQLStatus != SQLITE_OK)
@@ -162,6 +163,22 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
         return SQLStatus;
     }
     SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA synchronous=OFF;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+
+    /* Page size should already be 4096 by default, this just enforces it */
+    SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA page_size=4096;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+
+    (void) snprintf(PageNumStr, 256, "PRAGMA max_page_count=%ld;", 
+                        (uint64_t)(BPLIB_MAX_STORAGE_SIZE / 4096));
+
+    SQLStatus = sqlite3_exec(ActiveDB, PageNumStr, 0, 0, NULL);
     if (SQLStatus != SQLITE_OK)
     {
         return SQLStatus;
@@ -265,7 +282,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 
@@ -322,7 +339,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 
@@ -345,6 +362,7 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     SQLStatus = BPLib_SQL_InitImpl(db, DbName);
     if (SQLStatus != SQLITE_OK)
     {
+        printf("status=%d\n", SQLStatus);
         Status = BPLIB_STOR_SQL_INIT_ERR;
     }
 

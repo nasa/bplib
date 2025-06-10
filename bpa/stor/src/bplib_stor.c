@@ -63,16 +63,26 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     CacheInst = &Inst->BundleStorage;
 
     Status = BPLib_SQL_Store(Inst);
-    if (Status != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
-    }
-    else 
+
+    if (Status == BPLIB_SUCCESS) 
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, CacheInst->InsertBatchSize);
     }
-
+    else if (Status == BPLIB_STOR_DB_FULL_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_NO_STORAGE, CacheInst->InsertBatchSize);
+        BPLib_EM_SendEvent(BPLIB_STOR_DB_FULL_INF_EID, BPLib_EM_EventType_INFORMATION,
+            "SQLite database is full, dropping %d bundles", CacheInst->InsertBatchSize);        
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, CacheInst->InsertBatchSize);
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+    }
     /* Free the bundles, as they're now persistent
     ** Note: even if the storage fails, we free everything to avoid a leak.
     */

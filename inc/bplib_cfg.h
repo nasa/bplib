@@ -182,6 +182,17 @@ extern "C" {
  */
 #define BPLIB_SUPPORTED_CLAS                    "UDP"
 
+/**
+ *  \brief Storage dabase size limit in bytes. Note that since sqlite uses pages of
+ *         4096 bytes, this number should be divisible by 4096, otherwise it will get
+ *         automatically rounded down to the nearest number divisible by 4096. 
+ * 
+ *         If this value is too small, bplib will fail to initialize. The smallest known 
+ *         database size is 32768 (or 8 sqlite pages). The upper limit is bounded only by 
+ *         the total disk space available on your processor.
+ */
+#define BPLIB_MAX_STORAGE_SIZE              16000000000     /* 16 gigabytes */
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

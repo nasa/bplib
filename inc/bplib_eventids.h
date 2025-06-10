@@ -151,7 +151,7 @@
 #define BPLIB_STOR_SQL_LOAD_ERR_EID                     (608u)
 #define BPLIB_STOR_SQL_STORE_ERR_EID                    (609u)
 #define BPLIB_STOR_SQL_GC_ERR_EID                       (610u)
-
+#define BPLIB_STOR_DB_FULL_INF_EID                      (611u)
 
 /* ============ */
 /* BI event IDs */

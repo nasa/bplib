@@ -315,6 +315,7 @@ typedef enum
 #define BPLIB_STOR_BATCH_EMPTY                         ((BPLib_Status_t) -235)
 #define BPLIB_STOR_BATCH_FULL                          ((BPLib_Status_t) -236)
 #define BPLIB_STOR_BATCH_CONSUMED                      ((BPLib_Status_t) -237)
+#define BPLIB_STOR_DB_FULL_ERR                         ((BPLib_Status_t) -238)
 
 /* Bundle Interface Errors */
 #define BPLIB_BI_INVALID_BUNDLE_ERR                    ((BPLib_Status_t) -240)
