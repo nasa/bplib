@@ -140,8 +140,8 @@ static int BPLib_SQL_GetTotalBundleBytes(sqlite3* db, uint64_t* TotalBytes)
 {
     sqlite3_stmt* stmt;
     int SQLStatus;
-    const char* TotalBytesSQL = "SELECT SUM(bundle_bytes)"
-                                "AS TotalBytes"
+    const char* TotalBytesSQL = "SELECT SUM(bundle_bytes) "
+                                "AS TotalBytes "
                                 "FROM bundle_data;";
 
     /* Load up the SQL command */
@@ -155,6 +155,9 @@ static int BPLib_SQL_GetTotalBundleBytes(sqlite3* db, uint64_t* TotalBytes)
             /* Assign the result of the query to TotalBytes */
             *TotalBytes = sqlite3_column_int64(stmt, 0);
             sqlite3_finalize(stmt);
+
+            /* Set the status to a success value */
+            SQLStatus = SQLITE_OK;
         }
         else
         {
@@ -232,7 +235,8 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
 
     /* Create the table if it doesn't already exist */
     SQLStatus = sqlite3_exec(ActiveDB, CreateTableSQL, 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK) {
+    if (SQLStatus != SQLITE_OK)
+    {
         return SQLStatus;
     }
 
@@ -269,31 +273,52 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
     "SELECT SUM(bundle_bytes)\n"
     "AS bytes_deleted\n"
     "FROM bundle_data\n"
-    "WHERE id IN (SELECT id FROM expired_bytes)\n";
+    "WHERE id IN (SELECT id FROM expired_bytes);\n";
 
     *NumDiscarded = 0;
     ExpiredBytes  = 0;
+
+    /* Get DTN Time */
+    // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
+    // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
+    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
     /* Collect the size of the bundles to be discarded */
     /* Load up the SQL command */
     SQLStatus = sqlite3_prepare_v2(db, ExpiredBytesSQL, -1, &ExpiredBytesStmt, NULL);
     if (SQLStatus == SQLITE_OK)
     {
-        /* Evaluate the command */
-        SQLStatus = sqlite3_step(ExpiredBytesStmt);
-        if (SQLStatus == SQLITE_ROW)
+        SQLStatus = sqlite3_bind_int64(ExpiredBytesStmt, 1, (int64_t) DtnNowMs);
+        if (SQLStatus == SQLITE_OK)
         {
-            /* Assign the result of the query to EgressedBytes */
-            ExpiredBytes = sqlite3_column_int64(ExpiredBytesStmt, 0);
-            sqlite3_finalize(ExpiredBytesStmt);
+            SQLStatus = sqlite3_bind_int64(ExpiredBytesStmt, 2, BPLIB_STOR_DISCARDBATCHSIZE);
+            if (SQLStatus == SQLITE_OK)
+            {
+                /* Evaluate the command */
+                SQLStatus = sqlite3_step(ExpiredBytesStmt);
+                if (SQLStatus == SQLITE_ROW)
+                {
+                    /* Assign the result of the query to EgressedBytes */
+                    ExpiredBytes = sqlite3_column_int64(ExpiredBytesStmt, 0);
+                    sqlite3_finalize(ExpiredBytesStmt);
 
-            /* Amount is decremented when the command to discard is successful */
+                    /* Amount is decremented when the command to discard is successful */
+                }
+                else
+                {
+                    fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
+                            sqlite3_errmsg(db),
+                            ExpiredBytesSQL);
+                }
+            }
+            else
+            {
+                fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
+            }
         }
         else
         {
-            fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
-                    sqlite3_errmsg(db),
-                    ExpiredBytesSQL);
+            fprintf(stderr, "Failed to bind action_timestamp: %s\n", sqlite3_errmsg(db));
         }
     }
     else
@@ -302,11 +327,6 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
                 sqlite3_errmsg(db),
                 ExpiredBytesSQL);
     }
-
-    /* Get DTN Time */
-    // BPLib_TIME_GetMonotonicTime(&DtnMonotonicTime);
-    // DtnNowMs = BPLib_TIME_GetDtnTime(DtnMonotonicTime);
-    DtnNowMs = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - BPLIB_STOR_EPOCHOFFSET;
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
@@ -384,7 +404,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
     "SELECT SUM(bundle_bytes)\n"
     "AS bytes_deleted\n"
     "FROM bundle_data\n"
-    "WHERE id IN (SELECT id FROM egressed_bytes)\n";
+    "WHERE id IN (SELECT id FROM egressed_bytes);\n";
 
     *NumDiscarded = 0;
     EgressedBytes = 0;
@@ -394,21 +414,29 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
     SQLStatus = sqlite3_prepare_v2(db, EgressedBytesSQL, -1, &EgressedBytesStmt, NULL);
     if (SQLStatus == SQLITE_OK)
     {
-        /* Evaluate the command */
-        SQLStatus = sqlite3_step(EgressedBytesStmt);
-        if (SQLStatus == SQLITE_ROW)
+        SQLStatus = sqlite3_bind_int64(EgressedBytesStmt, 1, BPLIB_STOR_DISCARDBATCHSIZE);
+        if (SQLStatus == SQLITE_OK)
         {
-            /* Assign the result of the query to EgressedBytes */
-            EgressedBytes = sqlite3_column_int64(EgressedBytesStmt, 0);
-            sqlite3_finalize(EgressedBytesStmt);
+            /* Evaluate the command */
+            SQLStatus = sqlite3_step(EgressedBytesStmt);
+            if (SQLStatus == SQLITE_ROW)
+            {
+                /* Assign the result of the query to EgressedBytes */
+                EgressedBytes = sqlite3_column_int64(EgressedBytesStmt, 0);
+                sqlite3_finalize(EgressedBytesStmt);
 
-            /* Amount is decremented when the command to discard is successful */
+                /* Amount is decremented when the command to discard is successful */
+            }
+            else
+            {
+                fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
+                        sqlite3_errmsg(db),
+                        EgressedBytesSQL);
+            }
         }
         else
         {
-            fprintf(stderr, "Error code %s received while evaluating the SQL statement: %s\n",
-                    sqlite3_errmsg(db),
-                    EgressedBytesSQL);
+            fprintf(stderr, "Failed to bind LIMIT: %s\n", sqlite3_errmsg(db));
         }
     }
     else
