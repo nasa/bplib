@@ -1144,7 +1144,7 @@ void BPLib_NC_SendStorageHk(BPLib_Instance_t* Instance)
 {
     BPLib_Status_t Status;
 
-    BPLib_STOR_UpdateHkPkt(&(Instance->pool.impl));
+    BPLib_STOR_UpdateHkPkt(Instance);
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(&BPLib_STOR_StoragePayload);
 
     if (Status != BPLIB_SUCCESS)
