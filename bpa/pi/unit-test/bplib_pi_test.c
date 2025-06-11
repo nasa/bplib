@@ -24,7 +24,7 @@
 
 #include "bplib_pi_test_utils.h"
 
-extern bool BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
+extern volatile bool BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
 
 /* Test nominal add application function */
 void Test_BPLib_PI_AddApplication_Nominal(void)

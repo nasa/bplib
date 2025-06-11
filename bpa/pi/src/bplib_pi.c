@@ -41,8 +41,8 @@
 ** Global Data 
 */
 
-uint64_t BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
-bool     BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
+uint64_t      BPLib_PI_SequenceNums[BPLIB_MAX_NUM_CHANNELS];
+volatile bool BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
 
 /*
 ** Internal Function Definitions

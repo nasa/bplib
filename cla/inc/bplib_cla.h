@@ -70,8 +70,7 @@ typedef enum
     BPLIB_CLA_SETUP    = 1,
     BPLIB_CLA_STARTED  = 2,
     BPLIB_CLA_STOPPED  = 3,
-    BPLIB_CLA_EXITED   = 4,
-    BPLIB_CLA_PAUSED   = 5
+    BPLIB_CLA_EXITED   = 4
 } BPLib_CLA_ContactRunState_t;
 
 /**
