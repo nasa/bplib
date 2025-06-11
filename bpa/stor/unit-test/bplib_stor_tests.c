@@ -126,6 +126,32 @@ void Test_BPLib_STOR_GarbageCollect_SQLFail(void)
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[1].EventID, BPLIB_STOR_SQL_GC_ERR_EID);
 }
 
+void Test_BPLib_STOR_UpdateHkPkt_Nominal(void)
+{
+    size_t ExpectedBytesMemInUse;
+    size_t ExpectedBytesMemHighWater;
+    size_t ExpectedBytesMemFree;
+    size_t ExpectedKbStorageInUse;
+
+    memset((void*) &BPLib_STOR_StoragePayload, 0, sizeof(BPLib_StorageHkTlm_Payload_t));
+
+    BplibInst.pool.impl.num_blocks = 10;
+    BplibInst.pool.impl.num_free   = 20;
+    BplibInst.pool.impl.block_size = 30;
+
+    ExpectedBytesMemInUse     = ((BplibInst.pool.impl.num_blocks - BplibInst.pool.impl.num_free) * BplibInst.pool.impl.block_size);
+    ExpectedBytesMemHighWater = ExpectedBytesMemInUse;
+    ExpectedBytesMemFree      = (BplibInst.pool.impl.num_free * BplibInst.pool.impl.block_size);
+    ExpectedKbStorageInUse    = (BplibInst.BundleStorage.BytesStorageInUse / 1000);
+
+    BPLib_STOR_UpdateHkPkt(&BplibInst);
+
+    UtAssert_EQ(size_t, BPLib_STOR_StoragePayload.BytesMemInUse,     ExpectedBytesMemInUse);
+    UtAssert_EQ(size_t, BPLib_STOR_StoragePayload.BytesMemHighWater, ExpectedBytesMemHighWater);
+    UtAssert_EQ(size_t, BPLib_STOR_StoragePayload.BytesMemFree,      ExpectedBytesMemFree);
+    UtAssert_EQ(size_t, BPLib_STOR_StoragePayload.KbStorageInUse,    ExpectedKbStorageInUse);
+}
+
 
 void TestBplib_STOR_Register(void)
 {

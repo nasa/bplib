@@ -141,3 +141,15 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bu
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_StoreBundle, BPLib_Status_t);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_UpdateHkPkt()
+ * ----------------------------------------------------
+ */
+void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t *Inst)
+{
+    UT_GenStub_AddParam(BPLib_STOR_UpdateHkPkt, BPLib_Instance_t *, Inst);
+
+    UT_GenStub_Execute(BPLib_STOR_UpdateHkPkt, Basic, NULL);
+}
