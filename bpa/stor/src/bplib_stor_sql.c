@@ -252,14 +252,14 @@ static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* 
     SQLStatus = BPLib_SQL_GetTotalBundleBytes(ActiveDB, &TotalBundleBytes);
     if (SQLStatus == SQLITE_OK)
     {
-        BPLib_STOR_StoragePayload.KbStorageInUse = (TotalBundleBytes / 1000);
+        Inst->BundleStorage.BytesStorageInUse = TotalBundleBytes;
     }
 
     /* Expecting SQLITE_OK */
     return SQLStatus;
 }
 
-static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
+static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
     //BPLib_TIME_MonotonicTime_t DtnMonotonicTime;
@@ -370,7 +370,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
         else
         {
             /* Decrement that counter that tracks bytes of storage used */
-            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) ExpiredBytes);
+            BundleCache->BytesStorageInUse -= ExpiredBytes;
         }
     }
 
@@ -392,7 +392,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded)
     return SQLITE_OK;
 }
 
-static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
+static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
     size_t EgressedBytes;
@@ -482,7 +482,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded)
         else
         {
             /* Decrement that counter that tracks bytes of storage used */
-            BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) EgressedBytes);
+            BundleCache->BytesStorageInUse -= EgressedBytes;
         }
     }
 
@@ -537,7 +537,7 @@ BPLib_Status_t BPLib_SQL_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDisca
 
     if (Status == BPLIB_SUCCESS)
     {
-        SQLStatus = BPLib_SQL_DiscardExpiredImpl(db, NumDiscarded);
+        SQLStatus = BPLib_SQL_DiscardExpiredImpl(db, NumDiscarded, &(Inst->BundleStorage));
         if (SQLStatus != SQLITE_OK)
         {
             Status = BPLIB_STOR_SQL_DISCARD_ERR;
@@ -565,7 +565,7 @@ BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDisc
 
     if (Status == BPLIB_SUCCESS)
     {
-        SQLStatus = BPLib_SQL_DiscardEgressedImpl(db, NumDiscarded);
+        SQLStatus = BPLib_SQL_DiscardEgressedImpl(db, NumDiscarded, &(Inst->BundleStorage));
         if (SQLStatus != SQLITE_OK)
         {
             Status = BPLIB_STOR_SQL_DISCARD_ERR;

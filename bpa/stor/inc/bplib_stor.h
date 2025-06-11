@@ -54,7 +54,8 @@ struct BPLib_BundleCache
     BPLib_STOR_LoadBatch_t ContactLoadBatches[BPLIB_MAX_NUM_CONTACTS];
 
     /* Storage-related MIB reports */
-    uint32_t               BundleCountStored;
+    uint32_t BundleCountStored;
+    size_t   BytesStorageInUse;
 };
 
 /**
@@ -145,11 +146,10 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
 
 /**
  * \brief Update values in the STOR housekeeping packet with values of the
- *        BPLib_MEM_PoolImpl_t struct made visible by BPLibInst.pool.impl
- * \param[in] Pool (BPLib_MEM_PoolImpl_t*) Memory pool struct that contains memory
- *                 information needed for the STOR housekeeping packet
+ *        BPLib_Instance_t representing the current iteration of FSW
+ * \param[in] Inst Instance variable that represents the current system
  * \return void
  */
-void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool);
+void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst);
 
 #endif /* BPLIB_STOR_H */

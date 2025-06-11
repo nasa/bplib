@@ -370,10 +370,10 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
     return ReturnCode;
 }
 
-void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool)
+void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
 {
     /* Update the memory in use*/
-    BPLib_STOR_StoragePayload.BytesMemInUse = ((Pool->num_blocks - Pool->num_free) * Pool->block_size);
+    BPLib_STOR_StoragePayload.BytesMemInUse = ((Inst->pool.impl.num_blocks - Inst->pool.impl.num_free) * Inst->pool.impl.block_size);
 
     /* Update the highwater mark if needed */
     if (BPLib_STOR_StoragePayload.BytesMemInUse > BPLib_STOR_StoragePayload.BytesMemHighWater)
@@ -382,10 +382,10 @@ void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool)
     }
 
     /* Update the free memory */
-    BPLib_STOR_StoragePayload.BytesMemFree = (Pool->num_free * Pool->block_size);
+    BPLib_STOR_StoragePayload.BytesMemFree = (Inst->pool.impl.num_free * Inst->pool.impl.block_size);
 
     /* Update kilobytes of data in use */
-    BPLib_STOR_StoragePayload.KbStorageInUse = (BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE) / 1000);
+    BPLib_STOR_StoragePayload.KbStorageInUse = (Inst->BundleStorage.BytesStorageInUse / 1000);
 
     return;
 }

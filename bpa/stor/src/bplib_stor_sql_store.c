@@ -40,7 +40,7 @@ static sqlite3_stmt* InsertBlobStmt;
 /*******************************************************************************
 ** Static Functions
 */
-static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
+static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
 
@@ -71,7 +71,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
                     }
                     else
                     {
-                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) Bundle->Meta.TotalBytes);
+                        BundleCache->BytesStorageInUse += Bundle->Meta.TotalBytes;
                     }
                 }
                 else
@@ -116,14 +116,14 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     return SQLStatus;
 }
 
-static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
+static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
     int BundleRowID;
     BPLib_MEM_Block_t* CurrMemBlock;
 
     /* Store the indexable metadata */
-    SQLStatus = BPLib_SQL_StoreMetadata(Bundle);
+    SQLStatus = BPLib_SQL_StoreMetadata(Bundle, BundleCache);
     if (SQLStatus != SQLITE_DONE)
     {
         return SQLStatus;
@@ -171,7 +171,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
     /* Perform an insert for every bundle */
     for (i = 0; i < Inst->BundleStorage.InsertBatchSize; i++)
     {
-        SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i]);
+        SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i], &(Inst->BundleStorage));
         if (SQLStatus != SQLITE_DONE)
         {
             /* If there was an error, don't keep trying to construsct the SQL INSERT */
