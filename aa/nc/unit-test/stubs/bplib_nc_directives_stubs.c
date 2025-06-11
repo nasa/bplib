@@ -476,8 +476,9 @@ void BPLib_NC_SendSourceMibCountersHk(void)
  * Generated stub function for BPLib_NC_SendStorageHk()
  * ----------------------------------------------------
  */
-void BPLib_NC_SendStorageHk(void)
+void BPLib_NC_SendStorageHk(BPLib_Instance_t *Instance)
 {
+    UT_GenStub_AddParam(BPLib_NC_SendStorageHk, BPLib_Instance_t *, Instance);
 
     UT_GenStub_Execute(BPLib_NC_SendStorageHk, Basic, NULL);
 }
