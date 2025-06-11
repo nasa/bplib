@@ -531,10 +531,20 @@ void Test_BPLib_AS_SendSourceMibCountersHk_Nominal(void)
 void Test_BPLib_AS_SendNodeMibReportsHk_Nominal(void)
 {
     BPLib_Status_t Status;
+    BPLib_Instance_t Inst;
 
-    Status = BPLib_AS_SendNodeMibReportsHk();
+    Status = BPLib_AS_SendNodeMibReportsHk(&Inst);
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_SendNodeMibReportsHk_Null(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendNodeMibReportsHk(NULL);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_NULL_PTR_ERROR, Status);
 }
 
 void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
@@ -1176,7 +1186,8 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
 
     ADD_TEST(Test_BPLib_AS_SendNodeMibReportsHk_Nominal);
-
+    ADD_TEST(Test_BPLib_AS_SendNodeMibReportsHk_Null);
+    
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_Nominal);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error);
