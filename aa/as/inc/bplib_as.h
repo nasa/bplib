@@ -37,7 +37,7 @@
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS      (79u)                    /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_NODE_CNTRS      (76u)                    /** \brief Number of node counters (also total number of counters) */
 #define BPLIB_AS_NUM_SOURCE_CNTRS    (56u)                    /** \brief Number of source counters */
 #define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_MIB_SETS) /** \brief Indicates that only the node counter passed in should be modified, not the source counter */
 
@@ -113,7 +113,7 @@ typedef enum
     BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT  = 56, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
     BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT  = 57, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
     BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED   = 58, /** \brief Number of Custody Signal Bundles received */
-    BUNDLE_COUNT_GENERATED_ANONYMOUS       = 59, /** \brief Number of Anonomous Bundles Created */
+    BUNDLE_COUNT_GENERATED_ANONYMOUS       = 59, /** \brief Number of Anonymous Bundles Created */
     BUNDLE_COUNT_GENERATED_BSR_ACCEPTED    = 60, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
     BUNDLE_COUNT_GENERATED_BSR_DELETED     = 61, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
     BUNDLE_COUNT_GENERATED_BSR_DELIVERED   = 62, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
@@ -130,9 +130,7 @@ typedef enum
     BUNDLE_COUNT_IN_CUSTODY                = 73, /** \brief  */
     BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED     = 74, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
     BUNDLE_COUNT_RECEIVED_CRS              = 75, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
-    BUNDLE_COUNT_STORAGE_IN_USE            = 76, /** \brief  */
-    BUNDLE_COUNT_STORED                    = 77, /** \brief  */
-    NODE_STARTUP_COUNTER                   = 78, /** \brief Number of times a node is started up. */
+    BUNDLE_COUNT_STORAGE_IN_USE            = 76, /** \brief Bytes of storage occupied by bundles */
 } BPLib_AS_Counter_t;
 
 /**
@@ -148,7 +146,6 @@ typedef struct
       */
     uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
 
-    uint32_t Spare;
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
@@ -209,6 +206,7 @@ typedef struct
     uint32_t SystemNodeUpTime;                                  /** \brief The time in seconds since this node has been reinitialized */
     uint32_t BundleAgentAvailableStorage;                       /** \brief Total amount of memory allocated for bundle storage for the node  */
     uint32_t KbytesCountStorageAvailable;                       /** \brief Kilobytes free space left to store additional Bundles */
+    uint32_t BundleCountStored;                                 /** \brief Number of bundles currently in storage */
 
     uint32_t BundleIngressRateBytesPerSec;                      /** \brief Rate of bundles received from CLAs in bytes per second */
     uint32_t BundleIngressRateBundlesPerSec;                    /** \brief Rate of bundles received from CLAs in bundles per second */
@@ -222,6 +220,7 @@ typedef struct
     uint32_t BundleIngressRejectedRateBundlesPerSec;            /** \brief Rate of bundles received from CLAs in bundles per second and then rejected */
 
     uint32_t Spare;
+    uint32_t NodeStartupCounter;                                /** \brief Node startup counter */
     int64_t  MonotonicTime;                                     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;                                 /** \brief Time Correlation Factor */
 
@@ -391,10 +390,10 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
   * \brief     Send Per Node MIB Reports telemetry packet
   * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendNodeMibReportsPkt()
-  * \param[in] void No arguments accepted
+ * \param[in]  Inst Pointer to bplib instance data
   * \return    Execution status
   */
-BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(void);
+BPLib_Status_t BPLib_AS_SendNodeMibReportsHk(BPLib_Instance_t *Inst);
 
 /**
  * \note The terms key(s) and pattern(s) are used interchangeably since the MIB array keys are patterns of EIDs associated with the counters for that entry

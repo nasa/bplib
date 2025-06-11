@@ -176,7 +176,7 @@ static int BPLib_SQL_GetTotalBundleBytes(sqlite3* db, uint64_t* TotalBytes)
     return SQLStatus;
 }
 
-static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
+static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* DbName)
 {
     int SQLStatus;
     sqlite3* ActiveDB;
@@ -245,7 +245,8 @@ static int BPLib_SQL_InitImpl(sqlite3** db, const char* DbName)
     {
         return SQLStatus;
     }
-    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumStoredBundles);
+    
+    Inst->BundleStorage.BundleCountStored = NumStoredBundles;
 
     /* Find the total number of bytes of bundles stored */
     SQLStatus = BPLib_SQL_GetTotalBundleBytes(ActiveDB, &TotalBundleBytes);
@@ -512,7 +513,7 @@ BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName)
     BPLib_Status_t Status = BPLIB_SUCCESS;
     sqlite3** db = &Inst->BundleStorage.db;
 
-    SQLStatus = BPLib_SQL_InitImpl(db, DbName);
+    SQLStatus = BPLib_SQL_InitImpl(Inst, db, DbName);
     if (SQLStatus != SQLITE_OK)
     {
         Status = BPLIB_STOR_SQL_INIT_ERR;

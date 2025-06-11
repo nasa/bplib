@@ -32,6 +32,10 @@
 
 void BPLib_NC_Noop(void)
 {
+    BPLib_TIME_MonotonicTime_t CurrTime;
+
+    BPLib_TIME_GetMonotonicTime(&CurrTime);
+
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
     BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID,
                         BPLib_EM_EventType_INFORMATION,
@@ -39,8 +43,7 @@ void BPLib_NC_Noop(void)
                         BPLIB_MAJOR_VERSION,
                         BPLIB_MINOR_VERSION,
                         BPLIB_REVISION,
-                        BPLIB_BUILD_NUMBER,
-                        BPLib_AS_GetCounter(&BPLIB_EID_INSTANCE, NODE_STARTUP_COUNTER));
+                        BPLIB_BUILD_NUMBER, CurrTime.BootEra);
 }
 
 void BPLib_NC_AddAllApplications(void)
@@ -1185,11 +1188,11 @@ void BPLib_NC_SendChannelContactStatHk(void)
     }
 }
 
-void BPLib_NC_SendNodeMibReportsHk(void)
+void BPLib_NC_SendNodeMibReportsHk(BPLib_Instance_t *Inst)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    Status = BPLib_AS_SendNodeMibReportsHk();
+    Status = BPLib_AS_SendNodeMibReportsHk(Inst);
 
     if (Status != BPLIB_SUCCESS)
     {

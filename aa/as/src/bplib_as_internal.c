@@ -38,6 +38,7 @@ BPLib_NodeMibReportsHkTlm_Payload_t    BPLib_AS_NodeReportsPayload;    /** \brie
 /* Mutex Variables */
 /* =============== */
 osal_id_t MutexId;
+BPLib_TIME_MonotonicTime_t InitTime;    /** \brief Time the node was initialized */
 
 /* ==================== */
 /* Function Definitions */
@@ -151,7 +152,11 @@ void BPLib_AS_UnlockCounters(void)
 /* Initialize the static MIB reports telemetry values */
 void BPLib_AS_InitializeReportsHkTlm(void)
 {
+    BPLib_TIME_GetMonotonicTime(&InitTime);
+
     memset(&BPLib_AS_NodeReportsPayload, 0, sizeof(BPLib_AS_NodeReportsPayload));
+
+    BPLib_AS_NodeReportsPayload.NodeStartupCounter = InitTime.BootEra;
 
     strncpy(BPLib_AS_NodeReportsPayload.SystemNodeName, 
                                 BPLIB_SYSTEM_NODE_NAME, BPLIB_MAX_STR_LENGTH);
@@ -168,4 +173,14 @@ void BPLib_AS_InitializeReportsHkTlm(void)
                                 BPLIB_MAX_STR_LENGTH, "v%u.%u.%u-sprint-%u",
                                 BPLIB_MAJOR_VERSION, BPLIB_MINOR_VERSION, 
                                 BPLIB_REVISION, BPLIB_BUILD_NUMBER);
+}
+
+void BPLib_AS_UpdateReportsHkTlm(BPLib_Instance_t *Inst)
+{
+    BPLib_TIME_MonotonicTime_t CurrTime;
+
+    BPLib_TIME_GetMonotonicTime(&CurrTime);
+
+    BPLib_AS_NodeReportsPayload.SystemNodeUpTime = CurrTime.Time - InitTime.Time;
+    BPLib_AS_NodeReportsPayload.BundleCountStored = Inst->BundleStorage.BundleCountStored;
 }

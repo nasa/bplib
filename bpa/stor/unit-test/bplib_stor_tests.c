@@ -47,9 +47,7 @@ void Test_BPLib_STOR_InitStoredCount(void)
     /* The fixture for this function pre-stores one bundle. therefore the check is simply that the
     ** stored count is already 1.
     */
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_STORED, 
-                                                Context_BPLib_AS_Increment[1].Counter);
-    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[1].Amount);
+    UtAssert_EQ(uint32_t, BplibInst.BundleStorage.BundleCountStored, 1);
 }
 
 /* Test Destroy runs without segfault */
@@ -81,41 +79,38 @@ void Test_BPLib_STOR_GarbageCollect_NullParams(void)
 /* Test STOR_GarbageCollect discards a bundle. */
 void Test_BPLib_STOR_GarbageCollect_NominalExpired(void)
 {
+    UtAssert_EQ(uint32_t, BplibInst.BundleStorage.BundleCountStored, 1);
+
     /* Nothing should be discarded if current time is before bundle expiration time */
     UT_SetDeferredRetcode(UT_KEY(BPA_TIMEP_GetHostTime), 1, BPLIB_STOR_EPOCHOFFSET + 1);
     UtAssert_INT32_EQ(BPLib_STOR_GarbageCollect(&BplibInst), BPLIB_SUCCESS);
 
-    /* Expired Counters start at 2 */
     UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED_EXPIRED, 
+                                                Context_BPLib_AS_Increment[0].Counter);
+    UtAssert_INT32_EQ(0, Context_BPLib_AS_Increment[0].Amount);
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED, 
+                                                Context_BPLib_AS_Increment[1].Counter);
+    UtAssert_INT32_EQ(0, Context_BPLib_AS_Increment[1].Amount);
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DISCARDED, 
                                                 Context_BPLib_AS_Increment[2].Counter);
     UtAssert_INT32_EQ(0, Context_BPLib_AS_Increment[2].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED, 
-                                                Context_BPLib_AS_Increment[3].Counter);
-    UtAssert_INT32_EQ(0, Context_BPLib_AS_Increment[3].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DISCARDED, 
-                                                Context_BPLib_AS_Increment[4].Counter);
-    UtAssert_INT32_EQ(0, Context_BPLib_AS_Increment[4].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_STORED, 
-                                                Context_BPLib_AS_Decrement[0].Counter);
-    UtAssert_INT32_EQ(0, Context_BPLib_AS_Decrement[0].Amount);
+    UtAssert_EQ(uint32_t, BplibInst.BundleStorage.BundleCountStored, 1);
 
-    /* Skip counters 5, 6 which are for DiscardEgressed */
+    /* Skip counters 3,4 which are for DiscardEgressed */
 
     /* Storage should be discarded because bundle timestamp is expired */
     UT_SetDeferredRetcode(UT_KEY(BPA_TIMEP_GetHostTime), 1, INT64_MAX);
     UtAssert_INT32_EQ(BPLib_STOR_GarbageCollect(&BplibInst), BPLIB_SUCCESS);
     UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED_EXPIRED, 
+                                                Context_BPLib_AS_Increment[5].Counter);
+    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[5].Amount);
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED, 
+                                                Context_BPLib_AS_Increment[6].Counter);
+    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[6].Amount);
+    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DISCARDED, 
                                                 Context_BPLib_AS_Increment[7].Counter);
     UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[7].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DELETED, 
-                                                Context_BPLib_AS_Increment[8].Counter);
-    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[8].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_DISCARDED, 
-                                                Context_BPLib_AS_Increment[9].Counter);
-    UtAssert_INT32_EQ(1, Context_BPLib_AS_Increment[9].Amount);
-    UtAssert_EQ(BPLib_AS_Counter_t, BUNDLE_COUNT_STORED, 
-                                                Context_BPLib_AS_Decrement[2].Counter);
-    UtAssert_INT32_EQ(1, Context_BPLib_AS_Decrement[2].Amount);
+    UtAssert_EQ(uint32_t, BplibInst.BundleStorage.BundleCountStored, 0);
 }
 
 /* Test STOR_GarbageCollect handles a SQL Failure */
