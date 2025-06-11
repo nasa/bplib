@@ -42,7 +42,6 @@ typedef struct BPLib_Bundle
     BPLib_BundleMetaData_t  Meta;
     BPLib_BBlocks_t         blocks;
     struct BPLib_MEM_Block* blob;
-    size_t                  TotalBytes; /* Size of the bundle in bytes */
 } BPLib_Bundle_t;
 
 /**

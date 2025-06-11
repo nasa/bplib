@@ -61,7 +61,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
             if (SQLStatus == SQLITE_OK)
             {
                 /* Add the bundle size in bytes to the InsertMetadataStmt variable */
-                SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 4, (int64_t)Bundle->TotalBytes);
+                SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 4, (int64_t)Bundle->Meta.TotalBytes);
                 if (SQLStatus == SQLITE_OK)
                 {
                     SQLStatus = sqlite3_step(InsertMetadataStmt);
@@ -71,7 +71,7 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle)
                     }
                     else
                     {
-                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) Bundle->TotalBytes);
+                        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORAGE_IN_USE, (uint32_t) Bundle->Meta.TotalBytes);
                     }
                 }
                 else

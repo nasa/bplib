@@ -202,7 +202,7 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
     }
 
     /* Save the total size of the bundle in bytes */
-    bundle->TotalBytes = bytes_copied;
+    bundle->Meta.TotalBytes = bytes_copied;
 
     return bundle;
 }
