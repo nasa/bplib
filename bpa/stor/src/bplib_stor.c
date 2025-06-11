@@ -372,14 +372,14 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 
 void BPLib_STOR_UpdateHkPkt(BPLib_MEM_PoolImpl_t* Pool)
 {
-    /* Update the highwater mark if needed */
-    if (Pool->num_init > BPLib_STOR_StoragePayload.BytesMemHighWater)
-    {
-        BPLib_STOR_StoragePayload.BytesMemHighWater = Pool->num_init;
-    }
-
     /* Update the memory in use*/
-    BPLib_STOR_StoragePayload.BytesMemInUse = (Pool->num_init * Pool->block_size);
+    BPLib_STOR_StoragePayload.BytesMemInUse = ((Pool->num_blocks - Pool->num_free) * Pool->block_size);
+
+    /* Update the highwater mark if needed */
+    if (BPLib_STOR_StoragePayload.BytesMemInUse > BPLib_STOR_StoragePayload.BytesMemHighWater)
+    {
+        BPLib_STOR_StoragePayload.BytesMemHighWater = BPLib_STOR_StoragePayload.BytesMemInUse;
+    }
 
     /* Update the free memory */
     BPLib_STOR_StoragePayload.BytesMemFree = (Pool->num_free * Pool->block_size);
