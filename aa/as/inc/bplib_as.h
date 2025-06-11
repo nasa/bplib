@@ -37,7 +37,7 @@
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS      (76u)                    /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_NODE_CNTRS      (77u)                    /** \brief Number of node counters (also total number of counters) */
 #define BPLIB_AS_NUM_SOURCE_CNTRS    (56u)                    /** \brief Number of source counters */
 #define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_MIB_SETS) /** \brief Indicates that only the node counter passed in should be modified, not the source counter */
 
@@ -145,6 +145,8 @@ typedef struct
       * \ref   BPLib_AS_Counter_t
       */
     uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
+
+    uint32_t Spare;
 
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
