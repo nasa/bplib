@@ -70,22 +70,11 @@ typedef enum
     BPLIB_CLA_SETUP    = 1,
     BPLIB_CLA_STARTED  = 2,
     BPLIB_CLA_STOPPED  = 3,
-    BPLIB_CLA_EXITED   = 4,
+    BPLIB_CLA_EXITED   = 4
 } BPLib_CLA_ContactRunState_t;
 
-/* =========== */
-/* Global Data */
-/* =========== */
-
 /**
-  * \brief Array use to track the run states of all active contacts. The run states
-  *        are associated with the contact ID via the index into the array.
-  *        Ex: BPLib_CLA_ContactRunStates[0] is the contact run state for contact ID 0
-  */
- extern BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[];
-
-/**
- * \brief Global Contacts Configuration
+ * \brief Contacts Configuration
  */
 typedef struct
 {
@@ -100,7 +89,10 @@ typedef struct
     uint32_t            RetransmitTimeout;
     uint32_t            CSTimeTrigger;
     uint32_t            CSSizeTrigger;
-} BPLib_CLA_ContactsSet_t;
+
+    size_t              IngressBitsPerCycle;
+    size_t              EgressBitsPerCycle;
+  } BPLib_CLA_ContactsSet_t;
 
 typedef struct
 {
@@ -249,5 +241,29 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
   * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not match a contact ID in the Contacts Configuration
   */
 BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
+
+
+/**
+  * \brief     Set the auto egress state of the provided contact
+  * \note      The auto egress state determines whether a bundle with an available contact
+  *            for egress will be automatically put on a queue for egress or stored, due
+  *            to rate limits.
+  * \param[in] ContactId (uint32_t) Contact ID
+  * \param[in] AutoEgressEnabled Whether or not to set auto egress to enabled
+  * \return    Status
+  * \retval    BPLIB_SUCCESS: Success
+  * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not exist
+  */
+BPLib_Status_t BPLib_CLA_SetAutoEgress(uint32_t ContactId, bool AutoEgressEnabled);
+
+/**
+  * \brief     Get the auto egress state of the provided contact
+  * \note      The auto egress state determines whether a bundle with an available contact
+  *            for egress will be automatically put on a queue for egress or stored, due
+  *            to rate limits. Note that an invalid contact ID will return false by default.
+  * \param[in] ContactId (uint32_t) Contact ID
+  * \return    Auto Egress State (true/false)
+  */
+bool BPLib_CLA_GetAutoEgress(uint32_t ContactId);
 
 #endif /* BPLIB_CLA_H */

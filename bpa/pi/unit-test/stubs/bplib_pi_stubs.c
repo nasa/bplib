@@ -67,6 +67,22 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *Ad
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_GetAutoEgress()
+ * ----------------------------------------------------
+ */
+bool BPLib_PI_GetAutoEgress(uint32_t ChanId)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_GetAutoEgress, bool);
+
+    UT_GenStub_AddParam(BPLib_PI_GetAutoEgress, uint32_t, ChanId);
+
+    UT_GenStub_Execute(BPLib_PI_GetAutoEgress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_GetAutoEgress, bool);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_PI_Ingress()
  * ----------------------------------------------------
  */
@@ -99,6 +115,23 @@ BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanI
     UT_GenStub_Execute(BPLib_PI_RemoveApplication, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_PI_RemoveApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_SetAutoEgress()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_SetAutoEgress(uint32_t ChanId, bool AutoEgressEnabled)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_SetAutoEgress, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_SetAutoEgress, uint32_t, ChanId);
+    UT_GenStub_AddParam(BPLib_PI_SetAutoEgress, bool, AutoEgressEnabled);
+
+    UT_GenStub_Execute(BPLib_PI_SetAutoEgress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_SetAutoEgress, BPLib_Status_t);
 }
 
 /*
