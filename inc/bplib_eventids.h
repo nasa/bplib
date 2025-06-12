@@ -166,12 +166,6 @@
 #define BPLIB_CLA_INVALID_CONTACT_ID_DBG_EID            (662u)
 #define BPLIB_CLA_REMOVE_QUEUE_FLUSH_DGB_EID            (663u)
 
-/* ============= */
-/* MEM event IDs */
-/* ============= */
-
-#define BPLIB_MEM_NO_BLKS_ERR_EID                       (670u)
-
 /* ============ */
 /* PI event IDs */
 /* ============ */

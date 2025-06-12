@@ -119,4 +119,11 @@ void BPLib_AS_UnlockCounters(void);
  */
 void BPLib_AS_InitializeReportsHkTlm(void);
 
+/**
+ * \brief     Update the MIB reports telemetry with the latest data
+ * \param[in] Inst Pointer to bplib instance data
+ * \return    void
+ */
+void BPLib_AS_UpdateReportsHkTlm(BPLib_Instance_t *Inst);
+
 #endif // BPLIB_AS_INTERNAL_H

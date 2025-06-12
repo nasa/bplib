@@ -52,6 +52,10 @@ struct BPLib_BundleCache
     size_t InsertBatchSize;
     BPLib_STOR_LoadBatch_t ChannelLoadBatches[BPLIB_MAX_NUM_CHANNELS];
     BPLib_STOR_LoadBatch_t ContactLoadBatches[BPLIB_MAX_NUM_CONTACTS];
+
+    /* Storage-related MIB reports */
+    uint32_t BundleCountStored;
+    size_t   BytesStorageInUse;
 };
 
 /**
@@ -62,18 +66,13 @@ typedef struct BPLib_StorageHkTlm_Payload BPLib_StorageHkTlm_Payload_t;
 
 struct BPLib_StorageHkTlm_Payload
 {
-    uint32_t    NumBundlesQueued[BPLIB_MAX_NUM_BUNDLE_QUEUES];  /**< \brief Number of bundles queued per queue */
-    float       StoragePercentFull;                             /**< \brief Percentage of storage which triggers discarding deleted bundles from storage */
-    float       MemInUse;                                       /**< \brief Memory in use */
-    uint32_t    MemHighWater;                                   /**< \brief Memory high water mark */
-    uint32_t    NumFreeFlashBlocks;                             /**< \brief Free Flash memory statistics counter */
-    uint32_t    NumUsedFlashBlocks;                             /**< \brief Used Flash memory statistics counter */
-    uint32_t    NumFailedFlashBlocks;                           /**< \brief Failed Flash memory statistics counter */
-    uint32_t    FlashErrorCount;                                /**< \brief Flash memory statistics counter */
-    
-    uint32_t Spare; 
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
+    size_t BytesMemInUse;     /** \brief Bytes in memory that are in use */
+    size_t BytesMemFree;      /** \brief Number of bytes free */
+    size_t BytesMemHighWater; /** \brief Memory high water mark in bytes */
+    size_t KbStorageInUse;    /** \brief Kilobytes of storage currently occupied by bundles */
+
+    int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 };
 
 /*
@@ -108,8 +107,8 @@ extern BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
  *
  *  \par Assumptions, External Events, and Notes:
  *
- *  \param[in] Inst Pointer to BPLib Instance, which contains cache instance within 
- * 
+ *  \param[in] Inst Pointer to BPLib Instance, which contains cache instance within
+ *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
@@ -125,7 +124,7 @@ void BPLib_STOR_Destroy(BPLib_Instance_t* Inst);
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
+ *       - This function is called by whatever external task handles table management.
  *         Every time a new Storage table is loaded, this function should be called to
  *         validate its parameters.
  *
@@ -140,10 +139,17 @@ BPLib_Status_t BPLib_STOR_StoreBundle(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bu
 
 BPLib_Status_t BPLib_STOR_FlushPending(BPLib_Instance_t* Inst);
 
-BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery, 
+BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID, bool LocalDelivery,
     size_t* NumEgressed);
 
 BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
 
+/**
+ * \brief Update values in the STOR housekeeping packet with values of the
+ *        BPLib_Instance_t representing the current iteration of FSW
+ * \param[in] Inst Instance variable that represents the current system
+ * \return void
+ */
+void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst);
 
 #endif /* BPLIB_STOR_H */

@@ -34,6 +34,8 @@
 
 #include "bplib_cla.h"
 
+extern volatile BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+
 /* ======== */
 /* Typedefs */
 /* ======== */

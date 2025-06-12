@@ -445,11 +445,11 @@ void BPLib_NC_SendSourceMibCountersHk(void);
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendStoragePkt()
-  * \param[in] void No arguments accepted
+  * \param[in] Instance (BPLib_Instance_t*) The FSW instance that contains
+  *                     information needed for the STOR housekeeping packet
   * \return    void
   */
-void BPLib_NC_SendStorageHk(void);
+void BPLib_NC_SendStorageHk(BPLib_Instance_t* Instance);
 
 /**
   * \brief     Send channel/contact status telemetry packet
@@ -464,9 +464,9 @@ void BPLib_NC_SendChannelContactStatHk(void);
   * \brief     Send node MIB reports telemetry packet
   * \details   Node Configuration Send Node MIB Reports Housekeeping Packet command.
   * \note      This command is just a call to BPLib_AS_SendNodeMibReportsHk
-  * \param[in] void No arguments accepted
+  * \param[in] Inst Pointer to bplib instance data
   * \return    void
   */
-void BPLib_NC_SendNodeMibReportsHk(void);
+void BPLib_NC_SendNodeMibReportsHk(BPLib_Instance_t *Inst);
 
 #endif /* BPLIB_NC_DIRECTIVES_H */
