@@ -18,6 +18,10 @@
  *
  */
 
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include "bplib_mem.h"
 
 #include <stdio.h>
@@ -38,7 +42,6 @@ BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t
     pthread_mutex_init(&pool->lock, NULL);
     return BPLib_MEM_PoolImplInit(&pool->impl, init_mem, init_size,
         sizeof(BPLib_MEM_Block_t));
-
 }
 
 void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
@@ -149,7 +152,9 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
 {
     BPLib_Bundle_t    *bundle;
     BPLib_MEM_Block_t *curr_block;
-    size_t copy_len, bytes_copied, bytes_remaining;
+    size_t            copy_len;
+    size_t            bytes_copied;
+    size_t            bytes_remaining;
 
     /* NULL Checks */
     if ((pool == NULL) || (blob_data == NULL))
@@ -163,9 +168,10 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
     {
         return NULL;
     }
+
     memset(&curr_block->user_data.bundle, 0, sizeof(BPLib_Bundle_t));
     curr_block->used_len = sizeof(BPLib_Bundle_t);
-    bundle = (BPLib_Bundle_t *)(&curr_block->user_data.bundle);
+    bundle               = (BPLib_Bundle_t *)(&curr_block->user_data.bundle);
 
     /* Allocate a blob */
     curr_block = BPLib_MEM_BlockListAlloc(pool, data_len);
@@ -174,6 +180,7 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
         BPLib_MEM_BlockFree(pool, (BPLib_MEM_Block_t *) bundle);
         return NULL;
     }
+
     bundle->blob = curr_block;
 
     /* Copy the blob_data in to the bundle's blob MEM_Block_t list */
@@ -181,17 +188,22 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
     while (curr_block != NULL)
     {
         bytes_remaining = data_len - bytes_copied;
-        copy_len = (bytes_remaining < BPLIB_MEM_CHUNKSIZE) ? bytes_remaining : BPLIB_MEM_CHUNKSIZE;
+        copy_len        = (bytes_remaining < BPLIB_MEM_CHUNKSIZE) ? bytes_remaining : BPLIB_MEM_CHUNKSIZE;
 
         memcpy(curr_block->user_data.raw_bytes,
-            (void*)((uintptr_t)(blob_data) + bytes_copied),
-            copy_len);
+                (void*)((uintptr_t)(blob_data) + bytes_copied),
+                copy_len);
+
         curr_block->used_len = copy_len;
 
         /* Go to the next block */
         bytes_copied += copy_len;
         curr_block = curr_block->next;
     }
+
+    /* Save the total size of the bundle in bytes */
+    bundle->Meta.TotalBytes = bytes_copied;
+
     return bundle;
 }
 

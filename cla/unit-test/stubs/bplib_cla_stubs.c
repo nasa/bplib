@@ -132,6 +132,22 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t *Inst, uint32_t ContId, void *B
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_CLA_GetAutoEgress()
+ * ----------------------------------------------------
+ */
+bool BPLib_CLA_GetAutoEgress(uint32_t ContactId)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CLA_GetAutoEgress, bool);
+
+    UT_GenStub_AddParam(BPLib_CLA_GetAutoEgress, uint32_t, ContactId);
+
+    UT_GenStub_Execute(BPLib_CLA_GetAutoEgress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CLA_GetAutoEgress, bool);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_CLA_GetContactRunState()
  * ----------------------------------------------------
  */
@@ -166,6 +182,23 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t *Inst, uint32_t ContId, const 
     UT_GenStub_Execute(BPLib_CLA_Ingress, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_CLA_Ingress, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CLA_SetAutoEgress()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CLA_SetAutoEgress(uint32_t ContactId, bool AutoEgressEnabled)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CLA_SetAutoEgress, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CLA_SetAutoEgress, uint32_t, ContactId);
+    UT_GenStub_AddParam(BPLib_CLA_SetAutoEgress, bool, AutoEgressEnabled);
+
+    UT_GenStub_Execute(BPLib_CLA_SetAutoEgress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CLA_SetAutoEgress, BPLib_Status_t);
 }
 
 /*

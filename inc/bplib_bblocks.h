@@ -150,9 +150,9 @@ typedef struct
  */
 typedef struct 
 {
-    uint16_t EgressID;  /**< For egressing bundles, ID of channel/contact to send to */
-
-    BPLib_TIME_MonotonicTime_t MonoTime; /**< Creation *monotonic* time, will use for DTN timestamp later */
+    uint16_t                   EgressID;   /** \brief For egressing bundles, ID of channel/contact to send to */
+    BPLib_TIME_MonotonicTime_t MonoTime;   /** \brief Creation *monotonic* time, will use for DTN timestamp later */
+    size_t                     TotalBytes; /** \brief Size of this bundle in bytes */
 
     /* Additional metadata will likely get added here */
 
