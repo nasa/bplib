@@ -191,7 +191,7 @@ extern "C" {
  *         database size is 32768 (or 8 sqlite pages). The upper limit is bounded only by 
  *         the total disk space available on your processor.
  */
-#define BPLIB_MAX_STORAGE_SIZE              16000000000     /* 16 gigabytes */
+#define BPLIB_MAX_STORAGE_SIZE              16000000     /* 16 gigabytes */
 
 #ifdef __cplusplus
 } // extern "C"

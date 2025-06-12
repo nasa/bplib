@@ -383,6 +383,20 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 
 void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
 {
+    BPLib_Status_t Status;
+    size_t DbSize;
+
+    Status = BPLib_SQL_GetDbSize(Inst, &DbSize);
+    if (Status == BPLIB_SUCCESS)
+    {
+        Inst->BundleStorage.StorageSize = DbSize;
+        BPLib_STOR_StoragePayload.KbStorageInUse = DbSize / 1000;
+    }
+    else
+    {
+        printf("error\n");
+    }
+
     /* Update the memory in use*/
     BPLib_STOR_StoragePayload.BytesMemInUse = ((Inst->pool.impl.num_blocks - Inst->pool.impl.num_free) * Inst->pool.impl.block_size);
 
@@ -396,7 +410,7 @@ void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
     BPLib_STOR_StoragePayload.BytesMemFree = (Inst->pool.impl.num_free * Inst->pool.impl.block_size);
 
     /* Update kilobytes of data in use */
-    BPLib_STOR_StoragePayload.KbStorageInUse = (Inst->BundleStorage.BytesStorageInUse / 1000);
+    BPLib_STOR_StoragePayload.KbBundlesInStor = (Inst->BundleStorage.BytesStorageInUse / 1000);
 
     return;
 }

@@ -65,14 +65,6 @@ static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle, BPLib_BundleCache_t* 
                 if (SQLStatus == SQLITE_OK)
                 {
                     SQLStatus = sqlite3_step(InsertMetadataStmt);
-                    if (SQLStatus != SQLITE_DONE)
-                    { /* SQL command failed */
-                        fprintf(stderr, "Insert meta failed\n");
-                    }
-                    else
-                    {
-                        BundleCache->BytesStorageInUse += Bundle->Meta.TotalBytes;
-                    }
                 }
                 else
                 {
@@ -109,7 +101,6 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     SQLStatus = sqlite3_step(InsertBlobStmt);
     if (SQLStatus != SQLITE_DONE)
     {
-        fprintf(stderr, "Insert chunk failed\n");
         return SQLStatus;
     }
 
@@ -149,6 +140,8 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle, BPLib_Bund
         }
         CurrMemBlock = CurrMemBlock->next;
     }
+
+    BundleCache->BytesStorageInUse += Bundle->Meta.TotalBytes;
 
     /* Expecting SQLITE_DONE */
     return SQLStatus;
