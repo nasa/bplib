@@ -1558,9 +1558,13 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
 {
+    BPLib_Instance_t Inst;
+
+    memset(&Inst, 0, sizeof(BPLib_Instance_t));
+
     UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_SUCCESS);
 
-    BPLib_NC_SendStorageHk();
+    BPLib_NC_SendStorageHk(&Inst);
 
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
@@ -1568,9 +1572,13 @@ void Test_BPLib_NC_SendStorageHk_Nominal(void)
 
 void Test_BPLib_NC_SendStorageHk_Error(void)
 {
+    BPLib_Instance_t Inst;
+
+    memset(&Inst, 0, sizeof(BPLib_Instance_t));
+
     UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_ERROR);
 
-    BPLib_NC_SendStorageHk();
+    BPLib_NC_SendStorageHk(&Inst);
 
     // Verify error was reported
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
