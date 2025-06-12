@@ -19,6 +19,7 @@
  */
 #include "bplib_stor_sql.h"
 #include "bplib_qm.h"
+#include "bplib_as.h"
 
 #include <stdio.h>
 
@@ -28,7 +29,7 @@
 
 /* Insert Bundle Metadata */
 static const char* InsertMetadataSQL = 
-    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service) VALUES (?, ?, ?);";
+    "INSERT INTO bundle_data (action_timestamp, dest_node, dest_service, bundle_bytes) VALUES (?, ?, ?, ?);";
 static sqlite3_stmt* InsertMetadataStmt;
 
 /* Insert Bundle Blob */
@@ -39,36 +40,58 @@ static sqlite3_stmt* InsertBlobStmt;
 /*******************************************************************************
 ** Static Functions
 */
-static int BPLib_SQL_StoreMetadata(BPLib_BBlocks_t* BBlocks)
+static int BPLib_SQL_StoreMetadata(BPLib_Bundle_t* Bundle, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
 
     sqlite3_reset(InsertMetadataStmt);
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)BBlocks->PrimaryBlock.Timestamp.CreateTime + 
-        (int64_t)BBlocks->PrimaryBlock.Lifetime);
-    if (SQLStatus != SQLITE_OK)
+
+    /* Add the value of the timestamp used as an indicator for some action to the InsertMetadataStmt variable */
+    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 1, (int64_t)Bundle->blocks.PrimaryBlock.Timestamp.CreateTime + 
+                                                          (int64_t)Bundle->blocks.PrimaryBlock.Lifetime);
+
+    if (SQLStatus == SQLITE_OK)
+    {
+        /* Add the destination node into the InsertMetadataStmt variable */
+        SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Node);
+        if (SQLStatus == SQLITE_OK)
+        {
+            /* Add the destination service number to the InsertMetadataStmt variable */
+            SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)Bundle->blocks.PrimaryBlock.DestEID.Service);
+            if (SQLStatus == SQLITE_OK)
+            {
+                /* Add the bundle size in bytes to the InsertMetadataStmt variable */
+                SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 4, (int64_t)Bundle->Meta.TotalBytes);
+                if (SQLStatus == SQLITE_OK)
+                {
+                    SQLStatus = sqlite3_step(InsertMetadataStmt);
+                    if (SQLStatus != SQLITE_DONE)
+                    { /* SQL command failed */
+                        fprintf(stderr, "Insert meta failed\n");
+                    }
+                    else
+                    {
+                        BundleCache->BytesStorageInUse += Bundle->Meta.TotalBytes;
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Failed to bind bundle_size in store_meta\n");
+                }
+            }
+            else
+            {
+                fprintf(stderr, "Failed to bind dest_service in store_meta\n");
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Failed to bind dest_node in store_meta\n");
+        }
+    }
+    else
     {
         fprintf(stderr, "Failed to bind action_timestamp in store_meta\n");
-        return SQLStatus;
-    }
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 2, (int64_t)BBlocks->PrimaryBlock.DestEID.Node);
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to bind dest_node in store_meta\n");
-        return SQLStatus;
-    }
-    SQLStatus = sqlite3_bind_int64(InsertMetadataStmt, 3, (int64_t)BBlocks->PrimaryBlock.DestEID.Service);
-    if (SQLStatus != SQLITE_OK)
-    {
-        fprintf(stderr, "Failed to bind dest_service in store_meta\n");
-        return SQLStatus;
-    }
-
-    SQLStatus = sqlite3_step(InsertMetadataStmt);
-    if (SQLStatus != SQLITE_DONE)
-    {
-        fprintf(stderr, "Insert meta failed\n");
-        return SQLStatus;
     }
 
     /* Expecting SQLITE_DONE */
@@ -93,14 +116,14 @@ static int BPLib_SQL_StoreChunk(int64_t BundleRowID, const void* Chunk, size_t C
     return SQLStatus;
 }
 
-static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle)
+static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
     int BundleRowID;
     BPLib_MEM_Block_t* CurrMemBlock;
 
     /* Store the indexable metadata */
-    SQLStatus = BPLib_SQL_StoreMetadata(&Bundle->blocks);
+    SQLStatus = BPLib_SQL_StoreMetadata(Bundle, BundleCache);
     if (SQLStatus != SQLITE_DONE)
     {
         return SQLStatus;
@@ -148,7 +171,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
     /* Perform an insert for every bundle */
     for (i = 0; i < Inst->BundleStorage.InsertBatchSize; i++)
     {
-        SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i]);
+        SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i], &(Inst->BundleStorage));
         if (SQLStatus != SQLITE_DONE)
         {
             /* If there was an error, don't keep trying to construsct the SQL INSERT */
