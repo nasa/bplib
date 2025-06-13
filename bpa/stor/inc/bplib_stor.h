@@ -150,4 +150,6 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst);
  */
 void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst);
 
+BPLib_Status_t BPLib_STOR_OptimizeStorage(BPLib_Instance_t *Inst);
+
 #endif /* BPLIB_STOR_H */

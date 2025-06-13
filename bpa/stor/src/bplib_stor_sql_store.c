@@ -141,13 +141,13 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle, BPLib_Bund
         CurrMemBlock = CurrMemBlock->next;
     }
 
-    BundleCache->BytesStorageInUse += Bundle->Meta.TotalBytes;
+    
 
     /* Expecting SQLITE_DONE */
     return SQLStatus;
 }
 
-static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
+static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
 {
     int SQLStatus;
     int i;
@@ -165,7 +165,11 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
     for (i = 0; i < Inst->BundleStorage.InsertBatchSize; i++)
     {
         SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i], &(Inst->BundleStorage));
-        if (SQLStatus != SQLITE_DONE)
+        if (SQLStatus == SQLITE_DONE)
+        {
+            *TotalBytesStored += Inst->BundleStorage.InsertBatch[i]->Meta.TotalBytes;
+        }
+        else
         {
             /* If there was an error, don't keep trying to construsct the SQL INSERT */
             break;
@@ -209,7 +213,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst)
 /*******************************************************************************
 ** Exported Functions
 */
-BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst)
+BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     int SQLStatus;
@@ -230,7 +234,7 @@ BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst)
     if (Status == BPLIB_SUCCESS)
     {
         /* Run the batch storage logic */
-        SQLStatus = BPLib_SQL_StoreImpl(Inst);
+        SQLStatus = BPLib_SQL_StoreImpl(Inst, TotalBytesStored);
         if (SQLStatus == SQLITE_FULL)
         {
             Status = BPLIB_STOR_DB_FULL_ERR;

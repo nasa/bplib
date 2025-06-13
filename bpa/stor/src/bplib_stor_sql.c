@@ -615,3 +615,16 @@ BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDisc
 
     return Status;
 }
+
+BPLib_Status_t BPLib_SQL_VacuumDatabase(BPLib_Instance_t* Inst)
+{
+    int SQLStatus;
+    
+    SQLStatus = sqlite3_exec(Inst->BundleStorage.db, "VACUUM;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_ERROR;
+    }
+
+    return BPLIB_SUCCESS;
+}

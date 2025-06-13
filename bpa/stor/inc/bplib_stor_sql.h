@@ -34,7 +34,7 @@
 
 BPLib_Status_t BPLib_SQL_Init(BPLib_Instance_t* Inst, const char* DbName);
 
-BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst);
+BPLib_Status_t BPLib_SQL_Store(BPLib_Instance_t* Inst, size_t *TotalBytesStored);
 
 BPLib_Status_t BPLib_SQL_DiscardExpired(BPLib_Instance_t* Inst, size_t* NumDiscarded);
 
@@ -48,5 +48,7 @@ BPLib_Status_t BPLib_SQL_MarkBatchEgressed(BPLib_Instance_t* Inst, BPLib_STOR_Lo
 BPLib_Status_t BPLib_SQL_LoadBundle(BPLib_Instance_t* Inst, int64_t BundleID, BPLib_Bundle_t** Bundle);
 
 BPLib_Status_t BPLib_SQL_GetDbSize(BPLib_Instance_t *Inst, size_t *DbSize);
+
+BPLib_Status_t BPLib_SQL_VacuumDatabase(BPLib_Instance_t* Inst);
 
 #endif /* BPLIB_STOR_SQL_H */
