@@ -158,7 +158,7 @@ void BPLib_AS_InitializeReportsHkTlm(void)
 
     BPLib_AS_NodeReportsPayload.NodeStartupCounter = InitTime.BootEra;
 
-    BPLib_AS_NodeReportsPayload.BundleAgentAvailableStorage = BPLIB_MAX_STORAGE_SIZE / 1000;
+    BPLib_AS_NodeReportsPayload.BundleAgentAvailableStorage = BPLIB_MAX_STORED_BUNDLE_BYTES / 1000;
 
     strncpy(BPLib_AS_NodeReportsPayload.SystemNodeName, 
                                 BPLIB_SYSTEM_NODE_NAME, BPLIB_MAX_STR_LENGTH);
@@ -185,5 +185,5 @@ void BPLib_AS_UpdateReportsHkTlm(BPLib_Instance_t *Inst)
 
     BPLib_AS_NodeReportsPayload.SystemNodeUpTime = CurrTime.Time - InitTime.Time;
     BPLib_AS_NodeReportsPayload.BundleCountStored = Inst->BundleStorage.BundleCountStored;
-    BPLib_AS_NodeReportsPayload.KbytesCountStorageAvailable = (BPLIB_MAX_STORAGE_SIZE - Inst->BundleStorage.StorageSize) / 1000;
+    BPLib_AS_NodeReportsPayload.KbytesCountStorageAvailable = (BPLIB_MAX_STORED_BUNDLE_BYTES - Inst->BundleStorage.BytesStorageInUse) / 1000;
 }

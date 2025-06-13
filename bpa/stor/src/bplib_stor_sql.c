@@ -184,7 +184,6 @@ static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* 
     sqlite3_stmt* ForeignKeyCheckStmt;
     uint32_t NumStoredBundles;
     uint64_t TotalBundleBytes;
-    char PageNumStr[256];
     
     NumStoredBundles = 0;
     TotalBundleBytes = 0;
@@ -215,15 +214,6 @@ static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* 
 
     /* Page size should already be 4096 by default, this just enforces it */
     SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA page_size=4096;", 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return SQLStatus;
-    }
-
-    (void) snprintf(PageNumStr, 256, "PRAGMA max_page_count=%ld;", 
-                        (uint64_t)(BPLIB_MAX_STORAGE_SIZE / 4096));
-
-    SQLStatus = sqlite3_exec(ActiveDB, PageNumStr, 0, 0, NULL);
     if (SQLStatus != SQLITE_OK)
     {
         return SQLStatus;
@@ -614,17 +604,4 @@ BPLib_Status_t BPLib_SQL_DiscardEgressed(BPLib_Instance_t* Inst, size_t* NumDisc
     sqlite3_finalize(DiscardEgressedStmt);
 
     return Status;
-}
-
-BPLib_Status_t BPLib_SQL_VacuumDatabase(BPLib_Instance_t* Inst)
-{
-    int SQLStatus;
-    
-    SQLStatus = sqlite3_exec(Inst->BundleStorage.db, "VACUUM;", 0, 0, NULL);
-    if (SQLStatus != SQLITE_OK)
-    {
-        return BPLIB_ERROR;
-    }
-
-    return BPLIB_SUCCESS;
 }

@@ -388,11 +388,6 @@ void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
     BPLib_Status_t Status;
     size_t DbSize;
 
-    Status = BPLib_STOR_OptimizeStorage(Inst);
-    if (Status != BPLIB_SUCCESS)
-    {
-        printf("error 1\n");
-    }
     Status = BPLib_SQL_GetDbSize(Inst, &DbSize);
     if (Status == BPLIB_SUCCESS)
     {
@@ -420,9 +415,4 @@ void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
     BPLib_STOR_StoragePayload.KbBundlesInStor = (Inst->BundleStorage.BytesStorageInUse / 1000);
 
     return;
-}
-
-BPLib_Status_t BPLib_STOR_OptimizeStorage(BPLib_Instance_t *Inst)
-{
-    return BPLib_SQL_VacuumDatabase(Inst);
 }

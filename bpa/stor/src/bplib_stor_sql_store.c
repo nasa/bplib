@@ -152,6 +152,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
     int SQLStatus;
     int i;
     sqlite3* db = Inst->BundleStorage.db;
+    size_t NewBundleBytes;
 
     /* Create a batch query */
     SQLStatus = sqlite3_exec(db, "BEGIN;", 0, 0, 0);
@@ -164,10 +165,17 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
     /* Perform an insert for every bundle */
     for (i = 0; i < Inst->BundleStorage.InsertBatchSize; i++)
     {
+        NewBundleBytes = Inst->BundleStorage.InsertBatch[i]->Meta.TotalBytes;
+        if (Inst->BundleStorage.BytesStorageInUse + *TotalBytesStored + NewBundleBytes > BPLIB_MAX_STORED_BUNDLE_BYTES)
+        {
+            SQLStatus = SQLITE_FULL;
+            break;
+        }
+        
         SQLStatus = BPLib_SQL_StoreBundle(db, Inst->BundleStorage.InsertBatch[i], &(Inst->BundleStorage));
         if (SQLStatus == SQLITE_DONE)
         {
-            *TotalBytesStored += Inst->BundleStorage.InsertBatch[i]->Meta.TotalBytes;
+            *TotalBytesStored += NewBundleBytes;
         }
         else
         {
@@ -189,10 +197,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
     if (SQLStatus == SQLITE_FULL)
     {
-        /* 
-        ** Transaction should have been rolled back automatically (in which case this
-        ** should fail silently) but rolling back explicitly just in case
-        */
+        /* Don't want to override this error code, assume rollback works */
         (void) sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
 
     }
