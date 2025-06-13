@@ -408,15 +408,18 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     BPLib_PI_Config_t *CurrCanonConfig;
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
-    {
-        return BPLIB_NULL_PTR_ERROR;
-    }
-
     /* Channel ID must be within array index limits */
     if (ChanId >= BPLIB_MAX_NUM_CHANNELS)
     {
         return BPLIB_INVALID_CHAN_ID_ERR;
+    }
+
+    BPLib_NC_ReaderLock();
+
+    if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
+    {
+        BPLib_NC_ReaderUnlock();
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Indicate ADU reception */
@@ -432,8 +435,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     {
         /* Mark the primary block as "dirty" */
         NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
-
-        BPLib_NC_ReaderLock();
 
         CurrCanonConfig = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId];
 
@@ -474,8 +475,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
         NewBundle->blocks.PayloadHeader.DataOffsetStart = 0;
         NewBundle->blocks.PayloadHeader.DataSize = AduSize;
 
-        BPLib_NC_ReaderUnlock();
-
         /* Initialize the extension block data - parameters have been validated, ignore return code */
         (void) BPLib_EBP_InitializeExtensionBlocks(NewBundle, ChanId);
 
@@ -494,6 +493,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
             "[ADU In #%d]: Failed to ingress an ADU. Error = %d.",
             ChanId, Status);
     }
+
+    BPLib_NC_ReaderUnlock();
 
     return Status;
 }
