@@ -408,8 +408,11 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     BPLib_PI_Config_t *CurrCanonConfig;
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
+    BPLib_NC_ReaderLock();
+
     if ((Inst == NULL) || (AduPtr == NULL) || (BPLib_NC_ConfigPtrs.ChanConfigPtr == NULL))
     {
+        BPLib_NC_ReaderUnlock();
         return BPLIB_NULL_PTR_ERROR;
     }
 
@@ -432,8 +435,6 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
     {
         /* Mark the primary block as "dirty" */
         NewBundle->blocks.PrimaryBlock.RequiresEncode = true;
-
-        BPLib_NC_ReaderLock();
 
         CurrCanonConfig = &BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[ChanId];
 
