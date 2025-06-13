@@ -217,8 +217,8 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     }
 
     /* If an age block is present, make sure the bundle is not expired */
-    if (AgeBlockPresent)
-    {
+    if (AgeBlockPresent && CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
+    { 
         BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
 
         if ((CurrMonoTime.Time - CandidateBundle->Meta.MonoTime.Time + AgeBlkTime) >= 

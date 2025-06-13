@@ -335,10 +335,10 @@ void Test_BPLib_BI_ValidateBundle_DuplPrevNode(void)
     UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(&DeserializedBundle), BPLIB_BI_INVALID_BUNDLE_ERR);        
 }
 
-/* Test that bundle validation succeeds when no age block is present but create time is valid */
+/* Test that bundle validation succeeds when create time is valid, even if an age block is present */
 void Test_BPLib_BI_ValidateBundle_ValidTime(void)
 {
-    DeserializedBundle.blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Reserved;
+    DeserializedBundle.blocks.ExtBlocks[1].BlockData.AgeBlockData.Age = 123456;
     DeserializedBundle.blocks.PrimaryBlock.Timestamp.CreateTime = 10;
 
     UtAssert_INT32_EQ(BPLib_BI_ValidateBundle(&DeserializedBundle), BPLIB_SUCCESS);        
