@@ -284,7 +284,7 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
         SQLStatus = sqlite3_step(MarkEgressedStmt);
         if (SQLStatus != SQLITE_DONE)
         {
-            fprintf(stderr, "Mark Egressed Failed: %s", sqlite3_errstr(SQLStatus));
+            fprintf(stderr, "Mark Egressed Failed: %s\n", sqlite3_errstr(SQLStatus));
             break;
         }
     }
@@ -302,11 +302,10 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
     if (SQLStatus != SQLITE_OK)
     {
-        fprintf(stderr, "Attempting ROLLBACK\n");
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 

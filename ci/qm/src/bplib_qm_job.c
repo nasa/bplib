@@ -116,7 +116,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             if (BPLib_NC_ConfigPtrs.ChanConfigPtr->Configs[i].LocalServiceNumber == DestEID->Service)
             {
-                if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED && BPLib_PI_GetAutoEgress(i))
+                if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
                 {
                     /* We have a channel we can deliver to: forward without storing */
                     Bundle->Meta.EgressID = i;
@@ -134,7 +134,7 @@ static BPLib_QM_JobState_t STOR_Router(BPLib_Instance_t* Inst, BPLib_Bundle_t* B
         {
             /* Contact ID is valid here, so we can ignore the error status of the function */
             (void) BPLib_CLA_GetContactRunState(i, &ContactState);
-            if (ContactState == BPLIB_CLA_STARTED && BPLib_CLA_GetAutoEgress(i))
+            if (ContactState == BPLIB_CLA_STARTED)
             {
                 for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                 {

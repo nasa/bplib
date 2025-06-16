@@ -24,8 +24,6 @@
 
 #include "bplib_pi_test_utils.h"
 
-extern volatile bool BPLib_PI_AutoEgressEnabled[BPLIB_MAX_NUM_CHANNELS];
-
 /* Test nominal add application function */
 void Test_BPLib_PI_AddApplication_Nominal(void)
 {
@@ -838,38 +836,6 @@ void Test_BPLib_PI_Egress_Timeout(void)
     UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_PI_TIMEOUT);
 }
 
-void Test_BPLib_PI_SetAutoEgress_Nominal(void)
-{
-    uint32_t ChanId = 0;
-    BPLib_PI_AutoEgressEnabled[ChanId] = false;
-
-    UtAssert_EQ(BPLib_Status_t, BPLib_PI_SetAutoEgress(ChanId, true), BPLIB_SUCCESS);
-    UtAssert_EQ(bool, BPLib_PI_AutoEgressEnabled[ChanId], true);
-}
-
-void Test_BPLib_PI_SetAutoEgress_ChanIdErr(void)
-{
-    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
-
-    UtAssert_EQ(BPLib_Status_t, BPLib_PI_SetAutoEgress(ChanId, true), BPLIB_INVALID_CHAN_ID_ERR);
-}
-
-void Test_BPLib_PI_GetAutoEgress_Nominal(void)
-{
-    uint32_t ChanId = 0;
-    BPLib_PI_AutoEgressEnabled[ChanId] = true;
-
-    UtAssert_EQ(bool, BPLib_PI_GetAutoEgress(ChanId), true);
-}
-
-
-void Test_BPLib_PI_GetAutoEgress_ChanIdErr(void)
-{
-    uint32_t ChanId = BPLIB_MAX_NUM_CHANNELS;
-
-    UtAssert_EQ(bool, BPLib_PI_GetAutoEgress(ChanId), false);
-}
-
 void TestBplibPi_Register(void)
 {
     ADD_TEST(Test_BPLib_PI_AddApplication_Nominal);
@@ -928,9 +894,4 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_Egress_BadChanId);
     ADD_TEST(Test_BPLib_PI_Egress_BadCopy);  
     
-    ADD_TEST(Test_BPLib_PI_SetAutoEgress_Nominal);
-    ADD_TEST(Test_BPLib_PI_SetAutoEgress_ChanIdErr);
-
-    ADD_TEST(Test_BPLib_PI_GetAutoEgress_Nominal);
-    ADD_TEST(Test_BPLib_PI_GetAutoEgress_ChanIdErr);
 }

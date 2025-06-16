@@ -33,9 +33,6 @@
 
 #include <sqlite3.h>
 
-// TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
-#define BPLIB_FLAG_DIAGNOSTIC      0x00000000
-
 #ifndef BPLIB_STOR_INSERTBATCHSIZE
 #define BPLIB_STOR_INSERTBATCHSIZE 100
 #endif
@@ -56,6 +53,7 @@ struct BPLib_BundleCache
     /* Storage-related MIB reports */
     uint32_t BundleCountStored;
     size_t   BytesStorageInUse;
+    size_t   StorageSize;
 };
 
 /**
@@ -69,8 +67,8 @@ struct BPLib_StorageHkTlm_Payload
     size_t BytesMemInUse;     /** \brief Bytes in memory that are in use */
     size_t BytesMemFree;      /** \brief Number of bytes free */
     size_t BytesMemHighWater; /** \brief Memory high water mark in bytes */
-    size_t KbStorageInUse;    /** \brief Kilobytes of storage currently occupied by bundles */
-
+    size_t KbStorageInUse;    /** \brief Kilobytes of storage currently in use */
+    size_t KbBundlesInStor;   /** \brief Kilobytes of storage currently occupied by bundles */
     int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 };

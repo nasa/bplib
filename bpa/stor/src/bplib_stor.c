@@ -59,20 +59,33 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     BPLib_Status_t Status;
     BPLib_BundleCache_t* CacheInst;
     int i;
+    size_t TotalBytesStored = 0;
 
     CacheInst = &Inst->BundleStorage;
 
-    Status = BPLib_SQL_Store(Inst);
-    if (Status != BPLIB_SUCCESS)
+    Status = BPLib_SQL_Store(Inst, &TotalBytesStored);
+
+    if (Status == BPLIB_SUCCESS) 
     {
-        BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
-            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
-    }
-    else 
-    {
+        CacheInst->BytesStorageInUse += TotalBytesStored;
         CacheInst->BundleCountStored += CacheInst->InsertBatchSize;
     }
-
+    else if (Status == BPLIB_STOR_DB_FULL_ERR)
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_NO_STORAGE, CacheInst->InsertBatchSize);
+        BPLib_EM_SendEvent(BPLIB_STOR_DB_FULL_INF_EID, BPLib_EM_EventType_INFORMATION,
+            "SQLite database is full, dropping %d bundles", CacheInst->InsertBatchSize);        
+    }
+    else
+    {
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, CacheInst->InsertBatchSize);
+        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, CacheInst->InsertBatchSize);
+        BPLib_EM_SendEvent(BPLIB_STOR_SQL_STORE_ERR_EID, BPLib_EM_EventType_ERROR,
+            "BPLib_SQL_Store failed to store bundle. RC=%d", Status);
+        
+    }
     /* Free the bundles, as they're now persistent
     ** Note: even if the storage fails, we free everything to avoid a leak.
     */
@@ -372,6 +385,21 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 
 void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
 {
+    BPLib_Status_t Status;
+    size_t DbSize;
+
+    Status = BPLib_SQL_GetDbSize(Inst, &DbSize);
+    if (Status == BPLIB_SUCCESS)
+    {
+        Inst->BundleStorage.StorageSize = DbSize;
+        BPLib_STOR_StoragePayload.KbStorageInUse = DbSize / 1000;
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_STOR_DB_GET_SIZE_ERR_EID, BPLib_EM_EventType_ERROR,
+            "Error getting database size, RC = %d.", Status);    
+    }
+
     /* Update the memory in use*/
     BPLib_STOR_StoragePayload.BytesMemInUse = ((Inst->pool.impl.num_blocks - Inst->pool.impl.num_free) * Inst->pool.impl.block_size);
 
@@ -385,7 +413,7 @@ void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
     BPLib_STOR_StoragePayload.BytesMemFree = (Inst->pool.impl.num_free * Inst->pool.impl.block_size);
 
     /* Update kilobytes of data in use */
-    BPLib_STOR_StoragePayload.KbStorageInUse = (Inst->BundleStorage.BytesStorageInUse / 1000);
+    BPLib_STOR_StoragePayload.KbBundlesInStor = (Inst->BundleStorage.BytesStorageInUse / 1000);
 
     return;
 }
