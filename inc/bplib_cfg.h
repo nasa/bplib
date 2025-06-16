@@ -182,6 +182,11 @@ extern "C" {
  */
 #define BPLIB_SUPPORTED_CLAS                    "UDP,SB"
 
+/**
+ *  \brief Maximum number of bundle bytes allowed in storage at any given time
+ */
+#define BPLIB_MAX_STORED_BUNDLE_BYTES            16000000000     /* 16 gigabytes */
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

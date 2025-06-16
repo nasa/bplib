@@ -212,6 +212,13 @@ static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* 
         return SQLStatus;
     }
 
+    /* Page size should already be 4096 by default, this just enforces it */
+    SQLStatus = sqlite3_exec(ActiveDB, "PRAGMA page_size=4096;", 0, 0, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return SQLStatus;
+    }
+
     /* Note: Apparently SQLite3 can have foreign_keys=ON fail SILENTLY if
     ** libsqlite3.so wasn't compiled with foreign key support. We have to manually
     ** check if foreign keys were enabled by reading the setting back.
@@ -257,6 +264,29 @@ static int BPLib_SQL_InitImpl(BPLib_Instance_t *Inst, sqlite3** db, const char* 
 
     /* Expecting SQLITE_OK */
     return SQLStatus;
+}
+
+BPLib_Status_t BPLib_SQL_GetDbSize(BPLib_Instance_t *Inst, size_t *DbSize)
+{
+    sqlite3_stmt* PageCntStmt;
+    size_t PageCnt = 0;
+    int SQLStatus;
+    *DbSize = 0;
+
+    SQLStatus = sqlite3_prepare_v2(Inst->BundleStorage.db, "PRAGMA page_count;", -1, &PageCntStmt, NULL);
+    if (SQLStatus != SQLITE_OK)
+    {
+        return BPLIB_ERROR;
+    }
+    if (sqlite3_step(PageCntStmt) == SQLITE_ROW)
+    {
+        PageCnt = sqlite3_column_int(PageCntStmt, 0);
+    }
+    sqlite3_finalize(PageCntStmt);
+
+    *DbSize = PageCnt * 4096;
+
+    return BPLIB_SUCCESS;
 }
 
 static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib_BundleCache_t* BundleCache)
@@ -367,11 +397,6 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib
         {
             fprintf(stderr, "Failed to commit transaction\n");
         }
-        else
-        {
-            /* Decrement that counter that tracks bytes of storage used */
-            BundleCache->BytesStorageInUse -= ExpiredBytes;
-        }
     }
 
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
@@ -381,7 +406,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 
@@ -389,13 +414,17 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
+
+    /* Decrement that counter that tracks bytes of storage used */
+    BundleCache->BytesStorageInUse -= ExpiredBytes;    
+
     return SQLITE_OK;
 }
 
 static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded, BPLib_BundleCache_t* BundleCache)
 {
     int SQLStatus;
-    size_t EgressedBytes;
+    size_t EgressedBytes ;
     sqlite3_stmt* EgressedBytesStmt;
     const char* EgressedBytesSQL =
     "WITH egressed_bytes AS (\n"
@@ -479,11 +508,6 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded, BPLi
         {
             fprintf(stderr, "Failed to commit transaction\n");
         }
-        else
-        {
-            /* Decrement that counter that tracks bytes of storage used */
-            BundleCache->BytesStorageInUse -= EgressedBytes;
-        }
     }
 
     /* The batch commit was not successful, ROLLBACK to prevent DB corruption */
@@ -493,7 +517,7 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded, BPLi
         SQLStatus = sqlite3_exec(db, "ROLLBACK;", 0, 0, 0);
         if (SQLStatus != SQLITE_OK)
         {
-            fprintf(stderr, "Failed to rollback transaction\n");
+            fprintf(stderr, "Failed to rollback transaction, RC=%d\n", SQLStatus);
         }
     }
 
@@ -501,6 +525,10 @@ static int BPLib_SQL_DiscardEgressedImpl(sqlite3* db, size_t* NumDiscarded, BPLi
     ** of discarded bundles.
     */
     *NumDiscarded = sqlite3_changes(db);
+
+    /* Decrement that counter that tracks bytes of storage used */
+    BundleCache->BytesStorageInUse -= EgressedBytes;
+
     return SQLITE_OK;
 }
 

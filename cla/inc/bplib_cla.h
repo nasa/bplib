@@ -242,28 +242,4 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
   */
 BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
 
-
-/**
-  * \brief     Set the auto egress state of the provided contact
-  * \note      The auto egress state determines whether a bundle with an available contact
-  *            for egress will be automatically put on a queue for egress or stored, due
-  *            to rate limits.
-  * \param[in] ContactId (uint32_t) Contact ID
-  * \param[in] AutoEgressEnabled Whether or not to set auto egress to enabled
-  * \return    Status
-  * \retval    BPLIB_SUCCESS: Success
-  * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not exist
-  */
-BPLib_Status_t BPLib_CLA_SetAutoEgress(uint32_t ContactId, bool AutoEgressEnabled);
-
-/**
-  * \brief     Get the auto egress state of the provided contact
-  * \note      The auto egress state determines whether a bundle with an available contact
-  *            for egress will be automatically put on a queue for egress or stored, due
-  *            to rate limits. Note that an invalid contact ID will return false by default.
-  * \param[in] ContactId (uint32_t) Contact ID
-  * \return    Auto Egress State (true/false)
-  */
-bool BPLib_CLA_GetAutoEgress(uint32_t ContactId);
-
 #endif /* BPLIB_CLA_H */

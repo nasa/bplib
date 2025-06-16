@@ -29,14 +29,14 @@
 /*
  * Version Macros, see \ref cfsversions for definitions.
  */
-#define BPLIB_MAJOR_VERSION (0u)  /*!< @brief Major version number */
+#define BPLIB_MAJOR_VERSION (7u)  /*!< @brief Major version number */
 #define BPLIB_MINOR_VERSION (0u)  /*!< @brief Minor version number */
 #define BPLIB_REVISION      (0u)  /*!< @brief Revision version number. Value of 0 indicates a development version.*/
 
 /*
  * Development Build Macro Definitions
  */
-#define BPLIB_BUILD_NUMBER (18u) /*!< Development Build: Number of development builds (not commits) since baseline */
+#define BPLIB_BUILD_NUMBER (0u) /*!< Development Build: Number of development builds (not commits) since baseline */
 
 /**
  * @brief Max Version String length.
