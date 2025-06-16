@@ -77,7 +77,7 @@ endif()
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation -g)
 endif()
 
 # If standalone build and not cross compile, then enable creation of the "make test" target
@@ -175,6 +175,9 @@ else()
     endif()
 
   endif()
+
+  # Build bpcat always
+  add_subdirectory(app)
 
 endif()
 
