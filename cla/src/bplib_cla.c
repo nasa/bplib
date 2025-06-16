@@ -33,7 +33,8 @@
 /* Global Data */
 /* =========== */
 
-BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+volatile BPLib_CLA_ContactRunState_t BPLib_CLA_ContactRunStates[BPLIB_MAX_NUM_CONTACTS];
+volatile bool                        BPLib_CLA_AutoEgressEnabled[BPLIB_MAX_NUM_CONTACTS];
 
 /* ==================== */
 /* Function Definitions */
@@ -390,4 +391,25 @@ BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId)
     Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_EXITED);
 
     return Status;
+}
+
+BPLib_Status_t BPLib_CLA_SetAutoEgress(uint32_t ContactId, bool AutoEgressEnabled)
+{
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    {
+        BPLib_CLA_AutoEgressEnabled[ContactId] = AutoEgressEnabled;
+        return BPLIB_SUCCESS;
+    }
+    
+    return BPLIB_INVALID_CONT_ID_ERR;
+}
+
+bool BPLib_CLA_GetAutoEgress(uint32_t ContactId)
+{
+    if (ContactId < BPLIB_MAX_NUM_CONTACTS)
+    {
+        return BPLib_CLA_AutoEgressEnabled[ContactId];
+    }
+
+    return false;
 }

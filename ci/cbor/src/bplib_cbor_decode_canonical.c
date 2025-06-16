@@ -285,6 +285,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     }
     else
     {
+        /* Override externally assigned block type value with our unknown block flag */
+        CanonicalBlockHdr->BlockType = BPLib_BlockType_UNKNOWN;
+
         /* Block control flag says to delete bundle when block can't be processed */
         if (CanonicalBlockHdr->BlockProcFlags & BPLIB_BLOCK_PROC_DELETE_BUNDLE_FLAG)
         {

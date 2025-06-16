@@ -33,6 +33,7 @@
 BPLib_Status_t BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint32_t ChanId)
 {
     BPLib_PI_Config_t *CurrCanonConfig;
+    uint8_t CurrExtBlkIdx = 0;
 
     if (Bundle == NULL)
     {
@@ -51,36 +52,42 @@ BPLib_Status_t BPLib_EBP_InitializeExtensionBlocks(BPLib_Bundle_t *Bundle, uint3
     /* Initialize previous node block */
     if (CurrCanonConfig->PrevNodeBlkConfig.IncludeBlock)
     {
-        Bundle->blocks.ExtBlocks[0].Header.BlockType = BPLib_BlockType_PrevNode;
-        Bundle->blocks.ExtBlocks[0].Header.CrcType = CurrCanonConfig->PrevNodeBlkConfig.CrcType;
-        Bundle->blocks.ExtBlocks[0].Header.BlockNum = CurrCanonConfig->PrevNodeBlkConfig.BlockNum;
-        Bundle->blocks.ExtBlocks[0].Header.BlockProcFlags = CurrCanonConfig->PrevNodeBlkConfig.BlockProcFlags;        
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockType = BPLib_BlockType_PrevNode;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.CrcType = CurrCanonConfig->PrevNodeBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockNum = CurrCanonConfig->PrevNodeBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockProcFlags = CurrCanonConfig->PrevNodeBlkConfig.BlockProcFlags;        
 
-        Bundle->blocks.ExtBlocks[0].Header.RequiresEncode = true;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.RequiresEncode = true;
+
+        CurrExtBlkIdx++;
     }
 
     /* Initialize age block */
     if (CurrCanonConfig->AgeBlkConfig.IncludeBlock || Bundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
     {
-        Bundle->blocks.ExtBlocks[1].Header.BlockType = BPLib_BlockType_Age;
-        Bundle->blocks.ExtBlocks[1].Header.CrcType = CurrCanonConfig->AgeBlkConfig.CrcType;
-        Bundle->blocks.ExtBlocks[1].Header.BlockNum = CurrCanonConfig->AgeBlkConfig.BlockNum;
-        Bundle->blocks.ExtBlocks[1].Header.BlockProcFlags = CurrCanonConfig->AgeBlkConfig.BlockProcFlags;          
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockType = BPLib_BlockType_Age;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.CrcType = CurrCanonConfig->AgeBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockNum = CurrCanonConfig->AgeBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockProcFlags = CurrCanonConfig->AgeBlkConfig.BlockProcFlags;          
 
-        Bundle->blocks.ExtBlocks[1].Header.RequiresEncode = true;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.RequiresEncode = true;
+
+        CurrExtBlkIdx++;
     }
 
     /* Initialize hop count block */
     if (CurrCanonConfig->HopCountBlkConfig.IncludeBlock)
     {
-        Bundle->blocks.ExtBlocks[2].Header.BlockType = BPLib_BlockType_HopCount;
-        Bundle->blocks.ExtBlocks[2].Header.CrcType = CurrCanonConfig->HopCountBlkConfig.CrcType;
-        Bundle->blocks.ExtBlocks[2].Header.BlockNum = CurrCanonConfig->HopCountBlkConfig.BlockNum;
-        Bundle->blocks.ExtBlocks[2].Header.BlockProcFlags = CurrCanonConfig->HopCountBlkConfig.BlockProcFlags;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockType = BPLib_BlockType_HopCount;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.CrcType = CurrCanonConfig->HopCountBlkConfig.CrcType;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockNum = CurrCanonConfig->HopCountBlkConfig.BlockNum;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.BlockProcFlags = CurrCanonConfig->HopCountBlkConfig.BlockProcFlags;
 
-        Bundle->blocks.ExtBlocks[2].Header.RequiresEncode = true;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].Header.RequiresEncode = true;
 
-        Bundle->blocks.ExtBlocks[2].BlockData.HopCountData.HopLimit = CurrCanonConfig->HopLimit;
+        Bundle->blocks.ExtBlocks[CurrExtBlkIdx].BlockData.HopCountData.HopLimit = CurrCanonConfig->HopLimit;
+
+        CurrExtBlkIdx++;
     }
 
     BPLib_NC_ReaderUnlock();

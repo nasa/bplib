@@ -92,15 +92,15 @@ void Test_BPLib_EBP_InitBlocks_AgeCfg(void)
     Status = BPLib_EBP_InitializeExtensionBlocks(&DeserializedBundle, ChanId);
 
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockType, 
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockType, 
                             BPLib_BlockType_Age);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.CrcType,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.CrcType,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.CrcType);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockNum,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockNum,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.BlockNum);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockProcFlags,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockProcFlags,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.BlockProcFlags);
-    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[1].Header.RequiresEncode);
+    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[0].Header.RequiresEncode);
 }
 
 /* Test that block initialization succeeds for age blocks when no valid time detected */
@@ -121,15 +121,15 @@ void Test_BPLib_EBP_InitBlocks_AgeAuto(void)
     Status = BPLib_EBP_InitializeExtensionBlocks(&DeserializedBundle, ChanId);
 
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockType, 
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockType, 
                             BPLib_BlockType_Age);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.CrcType,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.CrcType,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.CrcType);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockNum,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockNum,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.BlockNum);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[1].Header.BlockProcFlags,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockProcFlags,
                             TestChanConfigPtr.Configs[ChanId].AgeBlkConfig.BlockProcFlags);
-    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[1].Header.RequiresEncode);
+    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[0].Header.RequiresEncode);
 }
 
 /* Test that block initialization succeeds for hop count blocks */
@@ -152,17 +152,17 @@ void Test_BPLib_EBP_InitBlocks_HopCount(void)
     Status = BPLib_EBP_InitializeExtensionBlocks(&DeserializedBundle, ChanId);
 
     UtAssert_INT32_EQ(Status, BPLIB_SUCCESS);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[2].Header.BlockType, 
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockType, 
                             BPLib_BlockType_HopCount);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[2].Header.CrcType,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.CrcType,
                             TestChanConfigPtr.Configs[ChanId].HopCountBlkConfig.CrcType);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[2].Header.BlockNum,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockNum,
                             TestChanConfigPtr.Configs[ChanId].HopCountBlkConfig.BlockNum);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[2].Header.BlockProcFlags,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].Header.BlockProcFlags,
                             TestChanConfigPtr.Configs[ChanId].HopCountBlkConfig.BlockProcFlags);
-    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[2].BlockData.HopCountData.HopLimit,
+    UtAssert_EQ(uint64_t, DeserializedBundle.blocks.ExtBlocks[0].BlockData.HopCountData.HopLimit,
                             TestChanConfigPtr.Configs[ChanId].HopLimit);    
-    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[2].Header.RequiresEncode);
+    UtAssert_BOOL_TRUE(DeserializedBundle.blocks.ExtBlocks[0].Header.RequiresEncode);
 }
 
 /* Test that block updates fail for null bundle */

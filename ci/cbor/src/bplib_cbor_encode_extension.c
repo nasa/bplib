@@ -115,6 +115,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     BPLib_ExtensionBlock_t* CurrExtBlock;
     UsefulBuf CurrentContextPlace;
     size_t SizeOfEncodedBlockSpecificData;
+    size_t TotalBlockSize;
 
     if ((StoredBundle == NULL) ||
         (StoredBundle->blob == NULL) ||
@@ -133,6 +134,24 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_UNPROCESSED_BLOCKS, 1);
 
         ReturnStatus = BPLIB_SUCCESS;
+    }
+    /* Unknown block - copy it all out */
+    else if  (StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.BlockType == BPLib_BlockType_UNKNOWN)
+    {
+        CurrExtBlock = &StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex];
+        TotalBlockSize = CurrExtBlock->Header.BlockOffsetEnd - CurrExtBlock->Header.BlockOffsetStart + 1;
+        
+        ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+                    CurrExtBlock->Header.BlockOffsetStart, TotalBlockSize,
+                    OutputBuffer, OutputBufferSize);
+        if (ReturnStatus == BPLIB_SUCCESS)
+        {
+            *NumBytesCopied += TotalBlockSize;
+        }
+        else
+        {
+            *NumBytesCopied = 0;
+        }
     }
     else
     {

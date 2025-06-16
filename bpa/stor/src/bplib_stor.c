@@ -70,7 +70,7 @@ static BPLib_Status_t BPLib_STOR_FlushPendingUnlocked(BPLib_Instance_t* Inst)
     }
     else 
     {
-        BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, CacheInst->InsertBatchSize);
+        CacheInst->BundleCountStored += CacheInst->InsertBatchSize;
     }
 
     /* Free the bundles, as they're now persistent
@@ -98,6 +98,9 @@ BPLib_Status_t BPLib_STOR_Init(BPLib_Instance_t* Inst)
     {
         return BPLIB_NULL_PTR_ERROR;
     }
+
+    /* Zero-out the storage housekeeping payload */
+    memset((void*) &BPLib_STOR_StoragePayload, 0, sizeof(BPLib_StorageHkTlm_Payload_t));
 
     memset(&Inst->BundleStorage, 0, sizeof(BPLib_BundleCache_t));
     pthread_mutex_init(&Inst->BundleStorage.lock, NULL);
@@ -338,7 +341,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED_EXPIRED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
+        CacheInst->BundleCountStored -= NumDiscarded;
     }
 
     Status = BPLib_SQL_DiscardEgressed(Inst, &NumDiscarded);
@@ -351,7 +354,7 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, NumDiscarded);
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, NumDiscarded);
-        BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_STORED, NumDiscarded);
+        CacheInst->BundleCountStored -= NumDiscarded;
     }
 
     pthread_mutex_unlock(&CacheInst->lock);
@@ -362,7 +365,27 @@ BPLib_Status_t BPLib_STOR_GarbageCollect(BPLib_Instance_t* Inst)
 /* Validate Storage table data */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 {
-    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_Status_t ReturnCode = BPLIB_SUCCESS;
 
     return ReturnCode;
+}
+
+void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
+{
+    /* Update the memory in use*/
+    BPLib_STOR_StoragePayload.BytesMemInUse = ((Inst->pool.impl.num_blocks - Inst->pool.impl.num_free) * Inst->pool.impl.block_size);
+
+    /* Update the highwater mark if needed */
+    if (BPLib_STOR_StoragePayload.BytesMemInUse > BPLib_STOR_StoragePayload.BytesMemHighWater)
+    {
+        BPLib_STOR_StoragePayload.BytesMemHighWater = BPLib_STOR_StoragePayload.BytesMemInUse;
+    }
+
+    /* Update the free memory */
+    BPLib_STOR_StoragePayload.BytesMemFree = (Inst->pool.impl.num_free * Inst->pool.impl.block_size);
+
+    /* Update kilobytes of data in use */
+    BPLib_STOR_StoragePayload.KbStorageInUse = (Inst->BundleStorage.BytesStorageInUse / 1000);
+
+    return;
 }

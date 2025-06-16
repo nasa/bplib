@@ -144,11 +144,6 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
             pool->mem_next = NULL;
         }
     }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_MEM_NO_BLKS_ERR_EID, BPLib_EM_EventType_CRITICAL, 
-                                "Error, no more blocks available in the memory pool!");
-    }
 
     return ret;
 }
