@@ -396,7 +396,8 @@ void BPLib_STOR_UpdateHkPkt(BPLib_Instance_t* Inst)
     }
     else
     {
-        printf("error\n");
+        BPLib_EM_SendEvent(BPLIB_STOR_DB_GET_SIZE_ERR_EID, BPLib_EM_EventType_ERROR,
+            "Error getting database size, RC = %d.", Status);    
     }
 
     /* Update the memory in use*/

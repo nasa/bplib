@@ -141,8 +141,6 @@ static int BPLib_SQL_StoreBundle(sqlite3* db, BPLib_Bundle_t* Bundle, BPLib_Bund
         CurrMemBlock = CurrMemBlock->next;
     }
 
-    
-
     /* Expecting SQLITE_DONE */
     return SQLStatus;
 }
@@ -165,6 +163,7 @@ static int BPLib_SQL_StoreImpl(BPLib_Instance_t* Inst, size_t *TotalBytesStored)
     /* Perform an insert for every bundle */
     for (i = 0; i < Inst->BundleStorage.InsertBatchSize; i++)
     {
+        /* Check that inserting the bundle won't cause the storage limit to be exceeded */
         NewBundleBytes = Inst->BundleStorage.InsertBatch[i]->Meta.TotalBytes;
         if (Inst->BundleStorage.BytesStorageInUse + *TotalBytesStored + NewBundleBytes > BPLIB_MAX_STORED_BUNDLE_BYTES)
         {
