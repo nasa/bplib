@@ -452,8 +452,8 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint32_t ChanId,
         ** will be set to 0 and the MonoTime will be used for age block calculations and 
         ** other time calculations later on
         */
-        BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
-        NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+        BPLib_TIME_GetMonotonicTime(&(NewBundle->blocks.PrimaryBlock.MonoTime));
+        NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->blocks.PrimaryBlock.MonoTime);
         NewBundle->blocks.PrimaryBlock.Timestamp.SequenceNumber = BPLib_PI_SequenceNums[ChanId];
 
         /* Update sequence number */

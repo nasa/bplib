@@ -60,7 +60,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     }
 
     /* Get reception time of bundle */
-    BPLib_TIME_GetMonotonicTime(&(CandidateBundle->Meta.MonoTime));
+    BPLib_TIME_GetMonotonicTime(&(CandidateBundle->blocks.PrimaryBlock.MonoTime));
 
     /* Decode the bundle */
     Status = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
@@ -221,7 +221,7 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     { 
         BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
 
-        if ((CurrMonoTime.Time - CandidateBundle->Meta.MonoTime.Time + AgeBlkTime) >= 
+        if ((CurrMonoTime.Time - CandidateBundle->blocks.PrimaryBlock.MonoTime.Time + AgeBlkTime) >= 
              CandidateBundle->blocks.PrimaryBlock.Lifetime)
         {
             return BPLIB_BI_EXPIRED_BUNDLE_ERR;

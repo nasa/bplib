@@ -135,7 +135,7 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
     {
         ret = (void *)pool->mem_next;
         pool->num_free--;
-        if (pool->num_free != 0)
+        if (pool->num_free != 0 && pool->mem_next != NULL)
         {
             pool->mem_next = (void*) AddrFromIndex(pool, *((MemIndex_t*)pool->mem_next));
         }

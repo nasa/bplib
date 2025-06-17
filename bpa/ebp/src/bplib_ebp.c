@@ -120,7 +120,7 @@ BPLib_Status_t BPLib_EBP_UpdateExtensionBlocks(BPLib_Bundle_t *Bundle)
         if (Bundle->blocks.ExtBlocks[ExtBlkIdx].Header.BlockType == BPLib_BlockType_Age)
         {
             BPLib_TIME_GetMonotonicTime(&CurrTime);
-            Status = BPLib_TIME_GetTimeDelta(CurrTime, Bundle->Meta.MonoTime, &TimeOnNode);
+            Status = BPLib_TIME_GetTimeDelta(CurrTime, Bundle->blocks.PrimaryBlock.MonoTime, &TimeOnNode);
 
             /* Can't do anything about a time error here, just return the status */
 

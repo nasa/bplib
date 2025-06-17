@@ -190,6 +190,7 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
         /* Return error if one or both times cannot be converted */
         if (EstDtnTime1 == 0 || EstDtnTime2 == 0)
         {
+            printf("mono time 1 = %ld, boot era 1 = %d, mono time 2 = %ld, boot era 2 = %d\n", Time1.Time, Time1.BootEra, Time2.Time, Time2.BootEra);
             *Delta = 0;
 
             Status = BPLIB_TIME_UNDEF_DELTA_ERROR;
