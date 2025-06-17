@@ -103,6 +103,8 @@ void BPLib_STOR_Test_Setup(void)
 
     /* Init Storage */
     BPLib_STOR_Init(&BplibInst);
+
+    (void) sqlite3_exec(BplibInst.BundleStorage.db, "VACUUM;", 0, 0, 0);
 }
 
 void BPLib_STOR_Test_Teardown(void)
