@@ -136,6 +136,8 @@ void Test_BPLib_STOR_StoreBundle_SQLFail(void)
 {
     BPLib_Bundle_t Bundle;
 
+    BPLib_STOR_Test_CreateTestBundle(&Bundle);
+    
     /* Store and flush bundle */
     BplibInst.BundleStorage.db = NULL;
     UtAssert_INT32_EQ(BPLib_STOR_StoreBundle(&BplibInst, &Bundle), BPLIB_SUCCESS);
