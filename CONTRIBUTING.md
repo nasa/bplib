@@ -1,36 +1,7 @@
-When submitting a pull request:
+# Contributing Guide
 
-**Describe the contribution**
-A clear and concise description of what the contribution is.
-- Include explicitly what issue it addresses [e.g. Fixes #X]
+Please see our [top-level contributing guide](https://github.com/nasa/cFS/blob/main/CONTRIBUTING.md) for more information on how to contribute to cFS components.
 
-**Testing performed**
-Steps taken to test the contribution:
-1. Build steps '...'
-1. Execution steps '...'
+## Contributor License Agreement (CLA)
 
-**Expected behavior changes**
-A clear and concise description of how this contribution will change behavior and level of impact.
- - API Change: xxx (if applicable)
- - Behavior Change: xxx (if applicable)
- - Or no impact to behavior
-
-**System(s) tested on**
- - Hardware: [e.g. PC, SP0, MCP750]
- - OS: [e.g. Ubuntu 18.04, RTEMS 4.11, VxWorks 6.9]
- - Versions: [e.g. 0.2.2, any related apps or tools]
-
-**Additional context**
-Add any other context about the contribution here.
-
-**Third party code**
-If included, identify any third party code and provide text file of license
-
-**Contributor Info - All information REQUIRED for consideration of pull request**
-Full name and company/organization/center of all contributors ("Personal" if individual work)
-- If NASA Civil Servant Employee or GSFC Contractor on SES II
-  - Address/email/phone and contract/task information (if applicable) must be on file
-- Else if Company
-  - **HAND SIGNED** Company CLA must be on file (once per release): [Company CLA](doc/GSC_18318_Corp_CLA_form_1219.pdf)
-- Else if Individual
-  - **HAND SIGNED** Individual CLA must be on file (once per release): [Individual CLA](doc/GSC_18318_Ind_CLA_form_1219.pdf)
+Before we can accept your code contributions we need a signed Contributor License Agreement (CLA). See the [instructions](https://github.com/nasa/cFS/blob/main/CONTRIBUTING.md#contributor-license-agreement-cla) for more information.
