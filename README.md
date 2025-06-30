@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Bundle Protocol library (BPLib) implements a subset of the RFC9171 Bundle Protocol and targets
+The Bundle Protocol library ([BPLib](https://github.com/nasa/bp)) implements a subset of the RFC9171 Bundle Protocol and targets
 embedded space flight applications. The library uses the concept of a bundle socket to manage the
 process of encapsulating application data in bundles, and extracting application data out of
 bundles. A socket works much like the standard BSD socket paradigm, and controls how the bundles
