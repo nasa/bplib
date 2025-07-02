@@ -37,11 +37,10 @@ BPLib contains no threads and relies entirely on the calling application for its
 and implements a thread-safe blocking I/O model where requested operations will either block according
 to the provided timeout, or return an error code immediately if the operation cannot be performed.
 
-BPLib assumes the availability of a persistent queued storage system for managing the rate buffering
-that must occur between data and bundle processing. This storage system is provided at run-time by
-the application, which can either use its own or can use the included storage service. In addition
-to the storage service, BPLib needs an operating system interface provided at compile-time. The
-source includes a mapping for the NASA OSAL library.
+Bundles move between tasks using thread-safe queues to perform various ingress, processing, and
+egress operations. A sqlite3 database provides persistent storage to bundles that cannot be
+immediately delivered and monitors bundles in storage for potential delivery or lifetime
+expiration
 
 ## 2. Prerequisites
 
