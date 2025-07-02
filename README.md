@@ -51,7 +51,7 @@ document are:
 - cmake version 3.22.1
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
-- libsqlit3-dev
+- libsqlite3-dev
 
 2. Create and store an install directory
 Location and install directory name are customizable. The intent here is to make the various code
