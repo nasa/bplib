@@ -52,15 +52,10 @@ source includes a mapping for the NASA OSAL library.
 
 ## 2. Prerequisites
 
-1. The build requires Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler toolchain (by default __gcc__).
-
-Additionally, the __pkg-config__ tool is used to manage the flags required for dependencies.
-
-These can typically be installed via the built-in package management system on most Linux
-distributions.
-
-The required packages on Ubuntu 22.04 are: cmake, pkg-config, and build-essential.
-
+1. The build requires Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler toolchain
+(by default __gcc__). Additionally, the __pkg-config__ tool is used to manage the flags required
+for dependencies. These can typically be installed via the built-in package management system on most Linux
+distributions. The required packages on Ubuntu 22.04 are: cmake, pkg-config, and build-essential.
 The versions used may change. The versions as of the last update of this document are:
 - cmake version 3.22.1
 - pkg-config 0.29.1
