@@ -161,6 +161,9 @@ make DESTDIR=../osal-staging install
 
 ## 4. Building BPLib with OSAL
 
+If you wish to modify the UDP configurations for the contact, as well as the destination EID
+configurations, you'll should edit `bpcat/app/src/bpcat_nc.c` before moving on
+
 - OSAL with Debug Configurations
 ```
 # Navigate to the cFS directory
@@ -189,48 +192,8 @@ ctest --output-on-failure 2>&1 | tee ctest.log
 ```
 
 ## 5. Building a Standalone
-Create a standalone directory for bpcat to run in
-
-```
-# Navigate to the install directory
-cd $INSTALL_DIR
-
-# Clone the BPLib repository as BPCat
-git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git bpcat
-```
-
-At this point, if you wish to modify the UDP configurations for the contact, as well as the
-destination EID configurations, you'll should edit `bpcat/app/src/bpcat_nc.c` before moving on
-
-Clone the OSAL repository within the BPLib/BPCat directory. The environment variables for OSAL
-should still be defined from the OSAL installation instructions
-
-```
-# Clone OSAL
-cd bpcat
-git clone https://github.com/nasa/osal.git
-
-# Install OSAL
-cd osal
-cmake $CMAKE_OSAL_DEFS -B ../osal-build
-cd ../osal-build
-make DESTDIR=../osal-staging install
-
-# Build OSAL
-cd ..
-cmake $CMAKE_BPLIB_RELEASE_DEFS -B $BPLIB_RELEASE_BUILD
-cd $BPLIB_RELEASE_BUILD
-make all
-
-# Run unit tests
-ctest --output-on-failure 2>&1 | tee ctest.log
-```
-
-Run BPCat to start processing bundles sent over UDP by some separate transmitting node. If the
-destination EIDs are configured correctly, bundles will be forwarded to a receiving node.
-
 ```
 # Run bpcat executable
-cd app
+cd $CFS_HOME/osal/$BPLIB_RELEASE_BUILD/app
 ./bpcat
 ```
