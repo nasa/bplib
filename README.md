@@ -124,8 +124,8 @@ git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
 # Navigate to the cFS applications directory
 cd $CFS_HOME/apps
 
-# Clone the BPNode repository as bp
-git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git bp
+# Clone the BPNode repository
+git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git
 ```
 
 8. OSAL
