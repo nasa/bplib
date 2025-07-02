@@ -193,7 +193,7 @@ cd $BPLIB_RELEASE_BUILD
 make all
 ```
 
-- Run OSAL unit tests
+- Run unit tests
 ```
 ctest --output-on-failure 2>&1 | tee ctest.log
 ```
@@ -232,7 +232,7 @@ cmake $CMAKE_BPLIB_RELEASE_DEFS -B $BPLIB_RELEASE_BUILD
 cd $BPLIB_RELEASE_BUILD
 make all
 
-# Run OSAL unit tests
+# Run unit tests
 ctest --output-on-failure 2>&1 | tee ctest.log
 ```
 
