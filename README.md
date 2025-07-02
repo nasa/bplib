@@ -1,19 +1,10 @@
 # Bundle Protocol Library (BPLib)
 
 [1. Overview](#1-overview)  
-[2. Build with CMake](#2-build-with-cmake)  
-[3. Application Design](#3-application-design)  
-[4. Application Programming Interface](#4-application-programming-interface)  
-[5. Storage Service](#5-storage-service)  
+[2. Prerequisites](#2-prerequisites)  
+[3. Building BPLib](#3-building-bplib)
 
-[Note #1 - Bundle Protocol Version 6](docs/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](docs/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](docs/parm_notes.md)  
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](docs/perf_analysis_ic.md)
-
-----------------------------------------------------------------------
 ## 1. Overview
-----------------------------------------------------------------------
 
 ```
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
