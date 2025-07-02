@@ -26,10 +26,10 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
 
-The Bundle Protocol library (BPLib) implements a subset of the [RFC9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) and targets
-embedded space flight applications via [BPNode](https://github.com/nasa/bp). The build 7.0 library
-uses UDP convergance layer to manage the process of encapsulating application data in bundles, and
-extracting application data out of bundles.
+The Bundle Protocol library (BPLib) implements a subset of the [RFC9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) and
+targets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
+of RFC9171. The build 7.0 library uses UDP convergance layer to manage the process of encapsulating
+application data in bundles, and extracting application data out of bundles.
 
 BPLib contains no threads and relies entirely on the calling application for its execution context
 and implements a thread-safe blocking I/O model where requested operations will either block according
