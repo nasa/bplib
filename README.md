@@ -3,8 +3,9 @@
 [1. Overview](#1-overview)
 [2. Prerequisites](#2-prerequisites)
 [3. Installing cFS](#3-installing-cfs)
-[4. Building BPLib with OSAL](#4-building-bplib-with-osal)
-[5. Building a Standalone](#5-building-a-standalone)
+[4. Running cFS](#4-running-cfs)
+[5. Building BPLib with OSAL](#5-building-bplib-with-osal)
+[6. Building a Standalone](#6-building-a-standalone)
 
 ## 1. Overview
 
@@ -123,9 +124,50 @@ cd $CFS_HOME/apps
 git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git
 ```
 
-4. OSAL
+## 4. Running cFS
+
 ```
-# Define OSAL environment variables
+cd $CFS_HOME
+make distclean
+make SIMULATION=native prep
+make
+make install
+```
+
+## 5. Building BPLib with OSAL
+
+1. Clone cFS
+```
+# Navigate to the install directory
+cd $INSTALL_DIR
+
+# Clone the cFS repository
+git clone https://github.com/nasa/cFS
+
+# Initialize and update the cFS submodules
+cd cFS
+git submodule init
+git submodule update
+
+# Store the location of the cFS install
+export CFS_HOME=$(pwd)
+```
+
+2. Clone BPLib
+```
+# Navigate to the cFS library directory
+cd $CFS_HOME/libs
+
+# Clone the BPLib repository
+git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
+```
+
+If you wish to modify the UDP configurations for the contact, as well as the destination EID
+configurations, you should edit `$CFS_HOME/libs/bplib/app/src/bpcat_nc.c`
+
+3. Define OSAL environment variables
+
+```
 export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
 export BPLIB_OS_LAYER=OSAL
 
@@ -148,7 +190,11 @@ export CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local \
                         -DOSAL_OMIT_DEPRECATED=TRUE \
                         -DENABLE_UNIT_TESTS=TRUE \
                         -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+```
 
+4. Install OSAL
+
+```
 # Navigate to the cFS directory
 cd $CFS_HOME
 
@@ -158,11 +204,6 @@ cmake $CMAKE_OSAL_DEFS -B ../osal-build
 cd ../osal-build
 make DESTDIR=../osal-staging install
 ```
-
-## 4. Building BPLib with OSAL
-
-If you wish to modify the UDP configurations for the contact, as well as the destination EID
-configurations, you'll should edit `bpcat/app/src/bpcat_nc.c` before moving on
 
 - OSAL with Debug Configurations
 ```
@@ -186,12 +227,12 @@ cd $BPLIB_RELEASE_BUILD
 make all
 ```
 
-- Run unit tests
+5. Run unit tests
 ```
 ctest --output-on-failure 2>&1 | tee ctest.log
 ```
 
-## 5. Building a Standalone
+## 6. Building a Standalone
 ```
 # Run bpcat executable
 cd $CFS_HOME/osal/$BPLIB_RELEASE_BUILD/app
