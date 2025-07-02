@@ -2,7 +2,9 @@
 
 [1. Overview](#1-overview)
 [2. Prerequisites](#2-prerequisites)
-[3. Building BPLib](#3-building-bplib)
+[3. Installing cFS](#3-installing-cfs)
+[4. Building BPLib with OSAL](#4-building-bplib-with-osal)
+[5. Building a Standalone](#5-building-a-standalone)
 
 ## 1. Overview
 
@@ -93,7 +95,10 @@ cd $INSTALL_DIR
 sudo apt-get install libsqlite3-dev
 ```
 
-5. cFS
+## 3. Installing cFS
+
+1. cFS
+
 ```
 # Navigate to the install directory
 cd $INSTALL_DIR
@@ -110,7 +115,7 @@ git submodule update
 export CFS_HOME=$(pwd)
 ```
 
-6. BPLib
+2. BPLib
 ```
 # Navigate to the cFS library directory
 cd $CFS_HOME/libs
@@ -119,7 +124,7 @@ cd $CFS_HOME/libs
 git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
 ```
 
-7. BPNode
+3. BPNode
 ```
 # Navigate to the cFS applications directory
 cd $CFS_HOME/apps
@@ -128,7 +133,7 @@ cd $CFS_HOME/apps
 git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git
 ```
 
-8. OSAL
+4. OSAL
 ```
 # Define OSAL environment variables
 export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
@@ -157,9 +162,6 @@ export CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local \
 # Navigate to the cFS directory
 cd $CFS_HOME
 
-# Clone the osal repository
-git clone https://github.com/nasa/osal.git
-
 # Install OSAL
 cd osal/
 cmake $CMAKE_OSAL_DEFS -B ../osal-build
@@ -167,9 +169,7 @@ cd ../osal-build
 make DESTDIR=../osal-staging install
 ```
 
-## 3. Building BPLib
-
-### Build BPLib with OSAL
+## 4. Building BPLib with OSAL
 
 - OSAL with Debug Configurations
 ```
@@ -198,7 +198,7 @@ make all
 ctest --output-on-failure 2>&1 | tee ctest.log
 ```
 
-### Building BPLib with BPCat
+## 5. Building a Standalone
 Create a standalone directory for bpcat to run in
 
 ```
