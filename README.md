@@ -1,25 +1,19 @@
-# bplib
+# Bundle Protocol Library (BPLib)
 
-[1. Overview](#1-overview)  
-[2. Build with CMake](#2-build-with-cmake)  
-[3. Application Design](#3-application-design)  
-[4. Application Programming Interface](#4-application-programming-interface)  
-[5. Storage Service](#5-storage-service)  
+[1. Overview](#1-overview)
+[2. Prerequisites](#2-prerequisites)
+[3. Installing cFS](#3-installing-cfs)
+[4. Running cFS](#4-running-cfs)
+[5. Building BPLib with OSAL](#5-building-bplib-with-osal)
+[6. Building a Standalone](#6-building-a-standalone)
 
-[Note #1 - Bundle Protocol Version 6](docs/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](docs/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](docs/parm_notes.md)  
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](docs/perf_analysis_ic.md)
-
-----------------------------------------------------------------------
 ## 1. Overview
-----------------------------------------------------------------------
 
 ```
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  
-@@...............@@@@@@@@@@@@@@@ @@@@@@@................@@@@@@@@@@ @@@@@@@@@@.......@@@@@@@@.....@@  
-@@................@@@@@@@@@@@@@@  @@@@@@................@@@@@@@@@@  @@@@@@@@.........@@@@@@@.....@@  
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@...............@@@@@@@@@@@@@@@ @@@@@@@................@@@@@@@@@@ @@@@@@@@@@.......@@@@@@@@.....@@
+@@................@@@@@@@@@@@@@@  @@@@@@................@@@@@@@@@@  @@@@@@@@.........@@@@@@@.....@@
 @@.....@@@@@@......@@@@@@@@@@ @@@   @@@@@@@@@@.....@@@@@@@@@@@@ @@@   @@@@@@..........@@@@@@.....@@
 @@.....@@@@@@@......@@@@@@@@@  @@@   @@@@@@@@@.....@@@@@@@@@@@@  @@@   @@@@@......@....@@@@@.....@@
 @@.....@@@@@@@@.....@@@@@  @@@  @@@  @@@@@@@@@.....@@@@@@@@  @@@  @@@  @@@@@......@.....@@@@.....@@
@@ -33,278 +27,214 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
 
-The Bundle Protocol library (bplib) implements a subset of the RFC9171 Bundle Protocol and targets
-embedded space flight applications. The library uses the concept of a bundle socket to manage the
-process of encapsulating application data in bundles, and extracting application data out of
-bundles.  A socket works much like the standard BSD socket paradigm, and controls how the bundles
-are created (e.g. primary header block fields), and how bundles are processed (e.g. payloads
-extracted from payload block).
+The Bundle Protocol library (BPLib) implements a subset of the [RFC9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) and
+targets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
+of RFC9171. The build 7.0 library uses UDP convergance layer to manage the process of encapsulating
+application data in bundles, and extracting application data out of bundles.
 
-Bplib contains no threads and relies entirely on the calling application for its execution context
+BPLib contains no threads and relies entirely on the calling application for its execution context
 and implements a thread-safe blocking I/O model where requested operations will either block according
 to the provided timeout, or return an error code immediately if the operation cannot be performed.
 
-Bplib assumes the availability of a persistent queued storage system for managing the rate buffering
-that must occur between data and bundle processing. This storage system is provided at run-time by
-the application, which can either use its own or can use the included storage service. In addition
-to the storage service, bplib needs an operating system interface provided at compile-time. The
-source includes a mapping for POSIX compliant operating systems as well as for the NASA OSAL
-library.
+Bundles move between tasks using thread-safe queues to perform various ingress, processing, and
+egress operations. A sqlite3 database provides persistent storage to bundles that cannot be
+immediately delivered and monitors bundles in storage for potential delivery or lifetime
+expiration
 
-----------------------------------------------------------------------
-## 2. Build with CMake
-----------------------------------------------------------------------
+## 2. Prerequisites
 
-#### Prerequisites
-
-1. The build requires Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler toolchain (by default __gcc__).
-
-Additionally, the __pkg-config__ tool is used to manage the flags required for dependencies.
-
-These can typically be installed via the built-in package management system on most Linux
-distributions.
-
-The required packages on Ubuntu 22.04 are: cmake, pkg-config, and build-essential.
-
-The versions used may change. The versions as of the last update of this document are:
-
+1. The build has only been tested on Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler
+toolchain (by default __gcc__). Additionally, the __pkg-config__ tool is used to manage the flags
+required for dependencies. These can typically be installed via the built-in package management
+system on most Linux distributions. The required packages on Ubuntu 22.04 are: cmake, pkg-config,
+and build-essential. The versions used may change. The versions as of the last update of this
+document are:
 - cmake version 3.22.1
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+- libsqlite3-dev
 
-2. Install QCBOR 1.5.1 if it is not already installed.
-
-- navigate to a directory you want QCBOR to be cloned to (home directory used for this example)
-   - `cd ~/`
-- clone the QCBOR repo
-   - `git clone https://github.com/laurencelundblade/QCBOR.git`
-- navigate into the QCBOR repo
-   - `cd QCBOR`
-- switch to the correct version of QCBOR
-   - `git checkout v1.5.1`
-- build and install QCBOR
-   - `sudo make uninstall`
-   - `cmake -DBUILD_SHARED_LIBS=ON -S . -B build`
-   - `cmake --build build`
-   - `sudo make install`
-
-#### Build bplib with cFS
-3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
+2. Create and store an install directory
+Location and install directory name are customizable. The intent here is to make the various code
+snippets easy to copy-paste.
 
 ```
-   cd <chosen working directory>
-   export CFS_HOME="$(pwd)" # Use CFS_HOME at your discretion
-   git clone https://github.com/nasa/cFS "${CFS_HOME}"/cfs-bundle
-   cd "${CFS_HOME}"/cfs-bundle
-   git submodule init
-   git submodule update
-   git clone https://github.com/nasa/bp "${CFS_HOME}"/cfs-bundle/apps/bp
-   git clone https://github.com/nasa/bplib "${CFS_HOME}"/cfs-bundle/libs/bplib
+cd ~
+mkdir bp_install
+cd bp_install
+export INSTALL_DIR=$(pwd)
 ```
 
-4. Setup OSAL.
-
-Define the OSAL definitions for CMake.
-Run CMake for OSAL.
-Run Make for OSAL with the destination directory `./osal-staging`.
-
+3. QCBOR 1.5.1
 ```
-   cd "${CFS_HOME}"/cfs-bundle/osal
-   # cmake options from .github/actions/setup-osal/action.yml:
-   CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux "
-   # config-options:
-   CMAKE_OSAL_DEFS+="-DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE "
-   CMAKE_OSAL_DEFS+="-DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON "
-   cmake $CMAKE_OSAL_DEFS -B "${CFS_HOME}"/osal-build
-   cd "${CFS_HOME}"/osal-build
-   make DESTDIR="${CFS_HOME}"/osal-staging install
-```
+# Navigate to the install directory
+cd $INSTALL_DIR
 
-5. Build bplib and the test runners
+# Clone the QCBOR repo
+git clone https://github.com/laurencelundblade/QCBOR.git
 
-Note that the possible build folders are one of <Debug,Release>-<OSAL,POSIX> for the build type and operating system layer respectively.
+# Navigate to the QCBOR repo
+cd QCBOR
 
-Setup the required environment variables for CMake, choosing between Debug or Release, and OSAL or POSIX.
-    
-```
-   # MATRIX_BUILD_TYPE=[Debug|Release]
-   # MATRIX_OS_LAYER=[OSAL|POSIX]
-   # BPLIB_SOURCE="${CFS_HOME}"/cfs-bundle/libs/bplib
-   # BPLIB_BUILD="${CFS_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-${MATRIX_OS_LAYER}"
+# Switch to the correct version of QCBOR
+git checkout v1.5.1
+
+# Build and install QCBOR
+sudo make uninstall
+cmake -DBUILD_SHARED_LIBS=ON -S . -B build
+cmake --build build
+sudo make install
 ```
 
-Run CMake and make all to build bplib and the bplib tests.
+## 3. Installing cFS
+
+1. cFS
 
 ```
-   export NasaOsal_DIR="${CFS_HOME}/osal-staging/usr/local/lib/cmake"
-   cmake \
-          -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
-          -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
-          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake \
-          -S "${BPLIB_SOURCE}" -B "${BPLIB_BUILD}"
+# Navigate to the install directory
+cd $INSTALL_DIR
 
-   # Build bplib
-   cd "${BPLIB_BUILD}"
-   make all
+# Clone the cFS repository
+git clone https://github.com/nasa/cFS
+
+# Initialize and update the cFS submodules
+cd cFS
+git submodule init
+git submodule update
+
+# Store the location of the cFS install
+export CFS_HOME=$(pwd)
 ```
 
-#### Example Test
-6. Test bplib
-
+2. BPLib
 ```
-   cd "${CFS_HOME}"/bplib-build-matrix-Debug-OSAL
-   common/ut-coverage/coverage-bplib_common-testrunner
-```
+# Navigate to the cFS library directory
+cd $CFS_HOME/libs
 
-#### Build bplib Stand Alone
-1. Clone bplib into a working directory. The build uses BPLIB_HOME rather than CFS_HOME for a stand alone build.
-
-```
-   cd <chosen working directory>
-   export BPLIB_HOME="$(pwd)" # Use BPLIB_HOME at your discretion
-
-   git clone https://github.com/nasa/bplib "${BPLIB_HOME}"/bplib
+# Clone the BPLib repository
+git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
 ```
 
-2. Build bplib and the test runners
-
-Note that the possible build folders are one of <Debug,Release>-POSIX for the build type and operating system layer respectively.
-
-Setup the required environment variables for CMake, choosing between Debug or Release. POSIX is the only operating system layer supported by the stand alone build.
-
+3. BPNode
 ```
-   # MATRIX_BUILD_TYPE=[Debug|Release]
-   # MATRIX_OS_LAYER=POSIX
-   # BPLIB_SOURCE="${BPLIB_HOME}"/bplib
-   # BPLIB_BUILD="${BPLIB_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
+# Navigate to the cFS applications directory
+cd $CFS_HOME/apps
+
+# Clone the BPNode repository
+git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git
 ```
 
-Run CMake and make all to build bplib and the bplib tests.
+## 4. Running cFS
 
 ```
-   cmake \
-          -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
-          -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
-          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake \
-          -S "${BPLIB_SOURCE}" -B "${BPLIB_BUILD}"
-
-   # Build bplib
-   cd "${BPLIB_BUILD}"
-   make all
+cd $CFS_HOME
+make distclean
+make SIMULATION=native prep
+make
+make install
 ```
 
-#### Test bplib with bpcat
-3. Test bplib stand alone
+## 5. Building BPLib with OSAL
 
-The example program `bpcat` referenced below is available in the bplib stand alone build.
-
+1. Clone cFS
 ```
-$ ./bplib-build-matrix-Debug-POSIX/app/bpcat --help
-Usage: ./bplib-build-matrix-Debug-POSIX/app/bpcat [options]
-   -l/--local-addr=ipn://<node>.<service> local address to use
-   -r/--remote-addr=ipn://<node>.<service> remote address to use
-   -i/--input-file=<filename> read input from given file instead of stdin
-   -o/--output-file=<filename> write output to given file instead of stdout
-      --local-cla-uri=udp://<ip>:<port> Bind local CLA to given IP:port 
-      --remote-cla-uri=udp://<ip>:<port> Send bundles to remote CLA at given IP:port
-   -d/--delay=<msec> forced inter bundle send delay (20ms default)
-   -s/--adu-size=stream chunk (ADU) size to pass to bplib (default and max=15864 bytes)
+# Navigate to the install directory
+cd $INSTALL_DIR
 
-   Creates a local BP agent with local IPN address as specified.  All data
-   received from standard input is forwarded over BP bundles, and all data
-   received from bundles is forwarded to standard output.
+# Clone the cFS repository
+git clone https://github.com/nasa/cFS
 
-Example:
-   ./bplib-build-matrix-Debug-POSIX/app/bpcat -l ipn://101.1 -r ipn://201.1
+# Initialize and update the cFS submodules
+cd cFS
+git submodule init
+git submodule update
+
+# Store the location of the cFS install
+export CFS_HOME=$(pwd)
 ```
 
-To test with bpcat:
+2. Clone BPLib
+```
+# Navigate to the cFS library directory
+cd $CFS_HOME/libs
 
-1. Open two terminal windows and have them both visible. The test runs `bpcat` as a receiver in one window and a sender in the other.
-2. In both terminals run:
-   `cd <same chosen working directory>/bplib-build-matrix-<Debug or Release>-POSIX/app`
-3. The files `bpcat` and `Makefile` should be in the current directory.
-4. In one terminal, create the `storage` folder required for the test.
- `mkdir storage`
-5. In the same terminal, run the receiver with:
- `./bpcat -l ipn://101.1 -r ipn://201.1 |& tee recv.log`
-6. In the other terminal, run the sender with:
- `./bpcat -l ipn://201.1 -r ipn://101.1 -i Makefile |& tee send.log`
-7. For a successful test the contents of the Makefile appear in the receiver terminal.
-8. Terminate `bpcat` in both terminal windows by pressing `CTRL-C` in each window.
+# Clone the BPLib repository
+git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
+```
 
-----------------------------------------------------------------------
-## 3. Application Design
-----------------------------------------------------------------------
+If you wish to modify the UDP configurations for the contact, as well as the destination EID
+configurations, you should edit `$CFS_HOME/libs/bplib/app/src/bpcat_nc.c`
 
-![Figure 1](doc/bp_api_architecture.png "BP Library API (Architecture)")
+3. Define OSAL environment variables
 
-Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library
-into an application with an API for reading/writing application data and reading/writing bundles.
+```
+export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
+export BPLIB_OS_LAYER=OSAL
 
-Conceptually, the library is meant to exist inside a flight software framework (such as NASA CFE)
-and be presented to the application as a service.  In such a design only the interface for
-reading/writing data would be provided to the application, and the interface for reading/writing
-bundles would be kept inside the service.  This use case would look a lot like a typical socket
-application where a bundle channel (socket) is opened, data is read/written, and then at some
-later time the socket is closed.  Underneath, the library takes care of sending and receiving bundles.
+export BPLIB_DEBUG_BUILD=bplib-build-matrix-Debug-OSAL
+export BPLIB_RELEASE_BUILD=bplib-build-matrix-Release-OSAL
 
-In order to support bplib being used directly by the application, both the data and the bundle
-interfaces are provided in the API. In these cases, the application is also responsible for sending
-and receiving the bundles via a convergence layer adapter (CLA).
+export CMAKE_BPLIB_DEBUG_DEFS="-DCMAKE_VERBOSE_MAKEFILE=ON \
+                               -DCMAKE_BUILD_TYPE=Debug \
+                               -DBPLIB_OS_LAYER=OSAL \
+                               -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
 
-An example application design that manages both the data and bundle interfaces could look as follows:
-1. A __bundle reader__ thread that receives bundles from a convergence layer and calls bplib to _process_ them
-2. A __data writer__ thread that _accepts_ application data from bplib
-3. A __bundle writer__ thread that _loads_ bundles from bplib and sends bundles over a convergence layer
-4. A __data reader__ thread that _stores_ application data to bplib
+export CMAKE_BPLIB_RELEASE_DEFS="-DCMAKE_VERBOSE_MAKEFILE=ON \
+                                 -DCMAKE_BUILD_TYPE=Release \
+                                 -DBPLIB_OS_LAYER=OSAL \
+                                 -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
 
-The stream of bundles received by the application is handled by the bundle reader and data writer threads.
-The __bundle reader__ uses the `bplib_cla_ingress()` function to pass bundles read from the convergence layer into
-the library.  If those bundles contain payload data bound for the application, that data is pulled out of the
-bundles and queued in storage until the __data writer__ thread calls the `bplib_recv()` function to dequeue
-the data out of storage and move it to the application.
+export CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local \
+                        -DOSAL_SYSTEM_BSPTYPE=generic-linux \
+                        -DCMAKE_BUILD_TYPE=Release \
+                        -DOSAL_OMIT_DEPRECATED=TRUE \
+                        -DENABLE_UNIT_TESTS=TRUE \
+                        -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+```
 
-Conversely, the stream of bundles sent by the application is handled by the data reader and bundler writer
-threads. The __data reader__ thread calls `bplib_send()` to pass data from the application into the library
-to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the
-`bplib_cla_egress()` function to dequeue them out of storage and move them to the convergence layer.
+4. Install OSAL
 
-----------------------------------------------------------------------
-## 4. Application Programming Interface
-----------------------------------------------------------------------
+```
+# Navigate to the cFS directory
+cd $CFS_HOME
 
-The application programming interface is documented in the header files, and the documentation can be
-generated using the `doxygen` tool.
+# Install OSAL
+cd osal/
+cmake $CMAKE_OSAL_DEFS -B ../osal-build
+cd ../osal-build
+make DESTDIR=../osal-staging install
+```
 
-The NASA CFE/CFS infrastructure has scripts to build the documentation, and this component works with
-that infrastructure.  In a CFE/CFS environment, build the "docs" target to generate this documentation.
+- OSAL with Debug Configurations
+```
+# Navigate to the cFS directory
+cd $CFS_HOME
 
-### 4.1 Functions
+# Build OSAL with debug configurations
+cmake $CMAKE_BPLIB_DEBUG_DEFS -B $BPLIB_DEBUG_BUILD
+cd $BPLIB_DEBUG_BUILD
+make all
+```
 
-| Function                   | Purpose |
-| -------------------------- | ------- |
-| `bplib_init`               | Initialize the BP library - called once at program start |
-| `bplib_create_socket`      | Creates/opens a socket-like entity for application data |
-| `bplib_close_socket`       | Closes/Deletes the socket-like entity for application data |
-| `bplib_bind_socket`        | Logically binds the socket-like entity to a local IPN node number and service |
-| `bplib_connect_socket`     | Logically connects the socket-like entity to a remote IPN node number and service |
-| `bplib_create_ram_storage` | Creates a RAM storage (cache) logical entity |
-| `bplib_create_node_intf`   | Creates a basic data-passing logical entity |
-| `bplib_send`               | Send a single application PDU/datagram over the socket-like interface |
-| `bplib_recv`               | Receive a single application PDU/datagram over the socket-like interface |
-| `bplib_cla_ingress`        | Receive complete bundle from a remote system |
-| `bplib_cla_egress`         | Send complete bundle to remote system |
-| `bplib_query_integer`      | Get an operational value |
-| `bplib_config_integer`     | Set an operational value |
-| `bplib_display`            | Parse bundle and log a break-down of the bundle elements |
-| `bplib_eid2ipn`            | Utility function to translate an EID string into node and service numbers |
-| `bplib_ipn2eid`            | Utility function to translate node and service numbers into an EID string |
+- OSAL with Release Configurations
+```
+# Navigate to the cFS directory
+cd $CFS_HOME
 
+# Build OSAL with release configurations
+cmake $CMAKE_BPLIB_RELEASE_DEFS -B $BPLIB_RELEASE_BUILD
+cd $BPLIB_RELEASE_BUILD
+make all
+```
 
-----------------------------------------------------------------------
-## 5. Storage Service
-----------------------------------------------------------------------
+5. Run unit tests
+```
+ctest --output-on-failure 2>&1 | tee ctest.log
+```
 
-Storage services are still under active development, but the "offload" module
-provides an example of a functional filesystem-based storage service.
+## 6. Building a Standalone
+```
+# Run bpcat executable
+cd $CFS_HOME/osal/$BPLIB_RELEASE_BUILD/app
+./bpcat
+```
