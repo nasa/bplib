@@ -308,7 +308,7 @@ BPLib_Status_t BPLib_QM_DuctPull(BPLib_Instance_t* Inst, uint32_t EgressID, bool
         {
             /* 
             ** This should break the calling task's current wakeup cycle, this way some
-            ** wakeups are dedicated the loading batches from storage, others just to 
+            ** wakeups are dedicated to loading batches from storage, others just to 
             ** egressing loaded bundles from the queues 
             */
             Status = BPLIB_TIMEOUT;
