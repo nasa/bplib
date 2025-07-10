@@ -175,7 +175,7 @@ static const BPLib_QM_JobFunc_t job_funcs[NUM_GENWORKER_STATES] =
 
 BPLib_QM_JobFunc_t BPLib_QM_JobLookup(BPLib_QM_JobState_t job_state)
 {
-    if ((job_state >= 0) && (job_state < NUM_GENWORKER_STATES))
+    if (job_state < NUM_GENWORKER_STATES)
     {
         return job_funcs[job_state];
     }

@@ -53,7 +53,6 @@ void BPLib_BI_Test_Setup(void)
     DeserializedBundle.blocks.ExtBlocks[3].Header.BlockType = BPLib_BlockType_Reserved;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_TIME_GetMonotonicTime), UT_Handler_BPLib_TIME_GetMonotonicTime, NULL);
 }
 
 void BPLib_BI_Test_Teardown(void)

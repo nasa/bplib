@@ -60,7 +60,8 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* Inst, const void *Bun
     }
 
     /* Get reception time of bundle */
-    BPLib_TIME_GetMonotonicTime(&(CandidateBundle->blocks.PrimaryBlock.MonoTime));
+    CandidateBundle->blocks.PrimaryBlock.MonoTime.Time = BPLib_TIME_GetMonotonicTime();
+    CandidateBundle->blocks.PrimaryBlock.MonoTime.BootEra = BPLib_TIME_GetBootEra();
 
     /* Decode the bundle */
     Status = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
@@ -139,7 +140,6 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
     bool     PrevNodePresent = false;
     bool     AgeBlockPresent = false;
     bool     HopCountPresent = false;
-    BPLib_TIME_MonotonicTime_t CurrMonoTime;
 
     if (CandidateBundle == NULL)
     {
@@ -218,10 +218,8 @@ BPLib_Status_t BPLib_BI_ValidateBundle(BPLib_Bundle_t *CandidateBundle)
 
     /* If an age block is present, make sure the bundle is not expired */
     if (AgeBlockPresent && CandidateBundle->blocks.PrimaryBlock.Timestamp.CreateTime == 0)
-    { 
-        BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
-
-        if ((CurrMonoTime.Time - CandidateBundle->blocks.PrimaryBlock.MonoTime.Time + AgeBlkTime) >= 
+    {
+        if ((BPLib_TIME_GetMonotonicTime() - CandidateBundle->blocks.PrimaryBlock.MonoTime.Time + AgeBlkTime) >= 
              CandidateBundle->blocks.PrimaryBlock.Lifetime)
         {
             return BPLIB_BI_EXPIRED_BUNDLE_ERR;

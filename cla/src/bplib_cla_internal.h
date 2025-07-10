@@ -61,10 +61,11 @@ typedef struct
  *       None
  * 
  *  \param[in] candidate bundle pointer
+ *  \param[in] Size Message length
  * 
  *  \retval boolean true/false
  */
-bool BPLib_CLA_IsAControlMsg(const void *Bundle);
+bool BPLib_CLA_IsAControlMsg(const void *MsgPtr, size_t Size);
 
 /**
  * \brief Process received control messages from CLs
