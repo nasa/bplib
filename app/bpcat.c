@@ -43,7 +43,7 @@
 /*******************************************************************************
 ** Global State
 */
-static BPCat_AppData_t AppData;
+BPCat_AppData_t AppData;
 static BPCat_Task_t CLAOutTask;
 static BPCat_Task_t CLAInTask;
 static BPCat_Task_t GenWorkers[BPCAT_NUM_GEN_WORKER];
@@ -105,6 +105,7 @@ static BPCat_Status_t BPCat_StartTasks()
     CLAOutTask.TaskSetup = BPCat_CLAOutSetup;
     CLAOutTask.TaskTeardown = BPCat_CLAOutTeardown;
     CLAOutTask.TaskFunc = BPCat_CLAOutTaskFunc;
+    CLAOutTask.TaskId = 0;
     Status = BPCat_TaskInit(&CLAOutTask);
     if (Status != BPCAT_SUCCESS)
     {
@@ -114,6 +115,7 @@ static BPCat_Status_t BPCat_StartTasks()
     CLAInTask.TaskSetup = BPCat_CLAInSetup;
     CLAInTask.TaskTeardown = BPCat_CLAOutTeardown;
     CLAInTask.TaskFunc = BPCat_CLAInTaskFunc;
+    CLAInTask.TaskId = 0;
     Status = BPCat_TaskInit(&CLAInTask);
     if (Status != BPCAT_SUCCESS)
     {

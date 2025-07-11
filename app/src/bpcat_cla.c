@@ -39,31 +39,30 @@
 typedef struct CLAOutConfig
 {
     int SockFd;
-    uint16_t TxPort;
+    struct sockaddr_in ServerAddr;    
 } CLAOutConfig_t;
 
 typedef struct CLAInConfig
 {
     int SockFd;
-    uint16_t RxPort;
 } CLAInConfig_t;
 
-static CLAOutConfig_t TxCLAConfig = {
-    .SockFd = -1,
-    .TxPort = 4551,
-};
-
-static CLAInConfig_t RxCLAConfig = {
-    .SockFd = -1,
-    .RxPort = 4501,
-};
+static CLAOutConfig_t TxCLAConfig;
+static CLAInConfig_t RxCLAConfig;
 
 /*******************************************************************************
 * CLA Out Task Implementation 
 */
-BPCat_Status_t BPCat_CLAOutSetup()
+BPCat_Status_t BPCat_CLAOutSetup(uint32_t TaskId)
 {
     int SockFd;
+    
+    /* Pre-populate the ServerAddr here to prevent doing it in the run loop */
+    memset(&(TxCLAConfig.ServerAddr), 0, sizeof(TxCLAConfig.ServerAddr));
+    TxCLAConfig.ServerAddr.sin_family = AF_INET;
+    TxCLAConfig.ServerAddr.sin_addr.s_addr = inet_addr(AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaOutAddr);
+    TxCLAConfig.ServerAddr.sin_port = htons(AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaOutPort);
+
     SockFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (SockFd < 0)
     {
@@ -71,12 +70,13 @@ BPCat_Status_t BPCat_CLAOutSetup()
         return BPCAT_SOCKET_ERR;
     }
 
-    printf("Setup CLA Egress UDP socket on 127.0.0.1:%u\n", TxCLAConfig.TxPort);
+    printf("Setup CLA Egress UDP socket on %s:%u\n", AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaOutAddr,
+                                                      AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaOutPort);
     TxCLAConfig.SockFd = SockFd;
     return BPCAT_SUCCESS;
 }
 
-BPCat_Status_t BPCat_CLAOutTeardown()
+BPCat_Status_t BPCat_CLAOutTeardown(uint32_t TaskId)
 {
     close(TxCLAConfig.SockFd);
     TxCLAConfig.SockFd = -1;
@@ -89,13 +89,6 @@ void* BPCat_CLAOutTaskFunc(BPCat_AppData_t* AppData)
     int rc;
     uint8_t buffer[BPCAT_CLA_BUFLEN] = {0};
     size_t OutSize;
-    struct sockaddr_in ServerAddr;
-
-    /* Pre-populate the ServerAddr here to prevent doing it in the run loop */
-    memset(&ServerAddr, 0, sizeof(ServerAddr));
-    ServerAddr.sin_family = AF_INET;
-    ServerAddr.sin_port = htons(TxCLAConfig.TxPort);
-    ServerAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     while(AppData->Running)
     {
@@ -103,7 +96,8 @@ void* BPCat_CLAOutTaskFunc(BPCat_AppData_t* AppData)
             BPCAT_CLA_TIMEOUT);
         if (EgressStatus == BPLIB_SUCCESS)
         {
-            rc = sendto(TxCLAConfig.SockFd, buffer, OutSize, 0, (struct sockaddr*)&ServerAddr, sizeof(ServerAddr));
+            rc = sendto(TxCLAConfig.SockFd, buffer, OutSize, 0, 
+                (struct sockaddr*)&(TxCLAConfig.ServerAddr), sizeof(TxCLAConfig.ServerAddr));
             if (rc < 0)
             {
                 perror("sendto()");
@@ -121,7 +115,7 @@ void* BPCat_CLAOutTaskFunc(BPCat_AppData_t* AppData)
 /*******************************************************************************
 * CLA In Task Implementation 
 */
-BPCat_Status_t BPCat_CLAInSetup()
+BPCat_Status_t BPCat_CLAInSetup(uint32_t TaskId)
 {
     int SockFd;
     struct sockaddr_in BindAddr;
@@ -137,8 +131,8 @@ BPCat_Status_t BPCat_CLAInSetup()
     /* Bind the socket to localhost */
     memset(&BindAddr, 0, sizeof(struct sockaddr_in));
     BindAddr.sin_family = AF_INET;
-    BindAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    BindAddr.sin_port = htons(RxCLAConfig.RxPort);
+    BindAddr.sin_addr.s_addr = inet_addr(AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaInAddr);
+    BindAddr.sin_port = htons(AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaInPort);
     if (bind(SockFd, (const struct sockaddr*)&BindAddr,
         sizeof(struct sockaddr))) 
     {
@@ -147,12 +141,13 @@ BPCat_Status_t BPCat_CLAInSetup()
         return BPCAT_SOCKET_ERR;
     }
 
-    printf("Setup CLA Ingress UDP socket on 127.0.0.1:%u\n", RxCLAConfig.RxPort);
+    printf("Setup CLA Ingress UDP socket on %s:%u\n", AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaInAddr,
+                                                      AppData.ConfigPtrs.ContactsConfigPtr->ContactSet[TaskId].ClaInPort);
     RxCLAConfig.SockFd = SockFd;
     return BPCAT_SUCCESS;
 }
 
-BPCat_Status_t BPCat_CLAInTeardown()
+BPCat_Status_t BPCat_CLAInTeardown(uint32_t TaskId)
 {
     close(RxCLAConfig.SockFd);
     RxCLAConfig.SockFd = -1;

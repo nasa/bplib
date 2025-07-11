@@ -22,15 +22,15 @@
 
 #include "bpcat_types.h"
 
-BPCat_Status_t BPCat_CLAOutSetup();
+BPCat_Status_t BPCat_CLAOutSetup(uint32_t TaskId);
 
-BPCat_Status_t BPCat_CLAOutTeardown();
+BPCat_Status_t BPCat_CLAOutTeardown(uint32_t TaskId);
 
 void* BPCat_CLAOutTaskFunc();
 
-BPCat_Status_t BPCat_CLAInSetup();
+BPCat_Status_t BPCat_CLAInSetup(uint32_t TaskId);
 
-BPCat_Status_t BPCat_CLAOutTeardown();
+BPCat_Status_t BPCat_CLAOutTeardown(uint32_t TaskId);
 
 void* BPCat_CLAInTaskFunc();
 
