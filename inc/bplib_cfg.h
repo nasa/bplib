@@ -180,7 +180,7 @@ extern "C" {
 /**
  *  \brief List of all CLAs currently supported by this node
  */
-#define BPLIB_SUPPORTED_CLAS                    "UDP,SB"
+#define BPLIB_SUPPORTED_CLAS                    "UDP"
 
 /**
  *  \brief Maximum number of bundle bytes allowed in storage at any given time
