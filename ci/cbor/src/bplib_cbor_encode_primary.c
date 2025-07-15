@@ -123,6 +123,12 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePrimary(BPLib_Bundle_t* StoredBundle,
             OutputBufferSize,
             NumBytesCopied);
     }
+    /* Verify that the block offset values are reasonable */
+    else if (StoredBundle->blocks.PrimaryBlock.BlockOffsetStart >= StoredBundle->blocks.PrimaryBlock.BlockOffsetEnd)
+    {
+        *NumBytesCopied = 0;
+        ReturnStatus = BPLIB_CBOR_ENC_PRIM_SIZES_CRRPTD_ERR;
+    }
     else
     {
         /*

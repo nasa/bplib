@@ -138,19 +138,27 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     /* Unknown block - copy it all out */
     else if  (StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.BlockType == BPLib_BlockType_UNKNOWN)
     {
-        CurrExtBlock = &StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex];
-        TotalBlockSize = CurrExtBlock->Header.BlockOffsetEnd - CurrExtBlock->Header.BlockOffsetStart + 1;
-        
-        ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
-                    CurrExtBlock->Header.BlockOffsetStart, TotalBlockSize,
-                    OutputBuffer, OutputBufferSize);
-        if (ReturnStatus == BPLIB_SUCCESS)
+        if (CurrExtBlock->Header.BlockOffsetStart >= CurrExtBlock->Header.BlockOffsetEnd)
         {
-            *NumBytesCopied += TotalBlockSize;
+            *NumBytesCopied = 0;
+            ReturnStatus = BPLIB_CBOR_ENC_EXT_SIZES_CRRPTD_ERR;
         }
         else
         {
-            *NumBytesCopied = 0;
+            CurrExtBlock = &StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex];
+            TotalBlockSize = CurrExtBlock->Header.BlockOffsetEnd - CurrExtBlock->Header.BlockOffsetStart + 1;
+            
+            ReturnStatus = BPLib_MEM_CopyOutFromOffset(StoredBundle,
+                        CurrExtBlock->Header.BlockOffsetStart, TotalBlockSize,
+                        OutputBuffer, OutputBufferSize);
+            if (ReturnStatus == BPLIB_SUCCESS)
+            {
+                *NumBytesCopied += TotalBlockSize;
+            }
+            else
+            {
+                *NumBytesCopied = 0;
+            }
         }
     }
     else
