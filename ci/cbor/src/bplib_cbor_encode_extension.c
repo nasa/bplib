@@ -139,7 +139,7 @@ BPLib_Status_t BPLib_CBOR_EncodeExtensionBlock(BPLib_Bundle_t* StoredBundle,
     else if  (StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex].Header.BlockType == BPLib_BlockType_UNKNOWN)
     {
         CurrExtBlock = &StoredBundle->blocks.ExtBlocks[ExtensionBlockIndex];
-        if (CurrExtBlock->Header.BlockOffsetStart >= CurrExtBlock->Header.BlockOffsetEnd)
+        if (CurrExtBlock->Header.BlockOffsetStart >= (CurrExtBlock->Header.BlockOffsetEnd + 1))
         {
             *NumBytesCopied = 0;
             ReturnStatus = BPLIB_CBOR_ENC_EXT_SIZES_CRRPTD_ERR;

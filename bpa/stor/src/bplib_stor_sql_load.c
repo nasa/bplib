@@ -355,7 +355,8 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
             Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, " OR ");
         }
         /* Sanity check math */
-        if ((sizeof(WhereClause) - Offset) > sizeof(WhereClause))
+        if ((sizeof(WhereClause) - Offset) > sizeof(WhereClause) ||
+            (Offset >= sizeof(WhereClause)))
         {
             return BPLIB_STOR_SQL_LOAD_ERR;
         }

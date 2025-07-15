@@ -283,7 +283,8 @@ BPLib_Status_t BPLib_CBOR_CopyOrEncodePayload(BPLib_Bundle_t* StoredBundle,
                                                 NumBytesCopied);
     }
     /* Verify that the block offset values are reasonable */
-    else if (StoredBundle->blocks.PayloadHeader.BlockOffsetStart >= StoredBundle->blocks.PayloadHeader.BlockOffsetEnd)
+    else if (StoredBundle->blocks.PayloadHeader.BlockOffsetStart >= 
+             (StoredBundle->blocks.PayloadHeader.BlockOffsetEnd + 1))
     {
         *NumBytesCopied = 0;
         ReturnStatus = BPLIB_CBOR_ENC_PAYL_SIZES_CRRPTD_ERR;
