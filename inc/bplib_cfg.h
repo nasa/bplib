@@ -57,7 +57,7 @@ extern "C" {
  *          This drives the number of entries in the CLA configuration
  *          tables, as well as the number of CLA In/Out tasks in BPNode
  */
-#define BPLIB_MAX_NUM_CONTACTS 2
+#define BPLIB_MAX_NUM_CONTACTS                  1
 
 /**
  * \brief Maximum number of destination EID patterns per contact
@@ -180,7 +180,7 @@ extern "C" {
 /**
  *  \brief List of all CLAs currently supported by this node
  */
-#define BPLIB_SUPPORTED_CLAS                    "UDP,SB"
+#define BPLIB_SUPPORTED_CLAS                    "UDP"
 
 /**
  *  \brief Maximum number of bundle bytes allowed in storage at any given time

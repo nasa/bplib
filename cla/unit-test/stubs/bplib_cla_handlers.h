@@ -30,5 +30,6 @@
 #include "uttest.h"
 
 void UT_Handler_BPLib_CLA_GetContactRunState(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_Handler_BPLib_CLA_Egress(void* UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t* Context);
 
 #endif /* BPLIB_CLA_HANDLERS_H */
