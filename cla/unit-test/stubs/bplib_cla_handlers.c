@@ -33,3 +33,15 @@ void UT_Handler_BPLib_CLA_GetContactRunState(void *UserObj, UT_EntryKey_t FuncKe
         UT_Stub_CopyToLocal(UT_KEY(BPLib_CLA_GetContactRunState), ReturnState, sizeof(BPLib_CLA_ContactRunState_t*));
     }
 }
+
+void UT_Handler_BPLib_CLA_Egress(void* UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t* Context)
+{
+    size_t* MsgSize = UT_Hook_GetArgValueByName(Context, "Size", size_t*);
+    int32 Status;
+
+    UT_Stub_GetInt32StatusCode(Context, &Status);
+    if (Status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(BPLib_CLA_Egress), MsgSize, sizeof(size_t*));
+    }
+}
