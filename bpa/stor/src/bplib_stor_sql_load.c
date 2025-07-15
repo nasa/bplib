@@ -316,7 +316,9 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
 /* Helper function to make sure offset hasn't overflowed */
 static bool BPLib_SQL_HasOverflowed(size_t PrevOffset, size_t NewOffset)
 {
-    return (PrevOffset > NewOffset) || (sizeof(WhereClause) - NewOffset) > sizeof(WhereClause);
+    return (PrevOffset > NewOffset) || 
+           (sizeof(WhereClause) - NewOffset) > sizeof(WhereClause) || 
+           (NewOffset >= sizeof(WhereClause));
 }
 
 /*******************************************************************************
@@ -367,7 +369,8 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
         PrevOffset = Offset;
         Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, "%s",
             FindForEgressID_RangeClause);
-        if (BPLib_SQL_HasOverflowed(PrevOffset, Offset) || Offset >= sizeof(WhereClause))
+        /* Sanity check math */
+        if (BPLib_SQL_HasOverflowed(PrevOffset, Offset))
         {
             fprintf(stderr, "Programming Error: WHERE clause too long\n");
             return BPLIB_STOR_SQL_LOAD_ERR;
