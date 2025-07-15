@@ -323,6 +323,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     int SQLStatus, i;
     sqlite3* db = Inst->BundleStorage.db;
     size_t Offset;
+    size_t PrevOffset;
 
     if ((Inst == NULL) || (Batch == NULL) || (DestEIDs == NULL))
     {
@@ -344,6 +345,8 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     Offset = 0;
     for (i = 0; i < NumEIDs; i++)
     {
+        PrevOffset = Offset;
+        
         if (i > 0)
         {
             /* Sanity check math */
@@ -351,12 +354,11 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
             {
                 return BPLIB_STOR_SQL_LOAD_ERR;
             }
-
+            
             Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, " OR ");
         }
         /* Sanity check math */
-        if ((sizeof(WhereClause) - Offset) > sizeof(WhereClause) ||
-            (Offset >= sizeof(WhereClause)))
+        if (PrevOffset > Offset || (sizeof(WhereClause) - Offset) > sizeof(WhereClause))
         {
             return BPLIB_STOR_SQL_LOAD_ERR;
         }
