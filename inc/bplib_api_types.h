@@ -284,6 +284,9 @@ typedef enum
 #define BPLIB_CBOR_DEC_TYPES_EID_DTN_ERR               ((BPLib_Status_t) -177) /* CBOR decode types error: DTN EID decode failed */
 
 /* CBOR Encode Errors */
+#define BPLIB_CBOR_ENC_EXT_SIZES_CRRPTD_ERR            ((BPLib_Status_t) -188) /* BPLib_CBOR_EncodeExtensionBlock: Block Sizes Corrupted Error */
+#define BPLIB_CBOR_ENC_PAYL_SIZES_CRRPTD_ERR           ((BPLib_Status_t) -189) /* BPLib_CBOR_CopyOrEncodePayload: Block Sizes Corrupted Error */
+#define BPLIB_CBOR_ENC_PRIM_SIZES_CRRPTD_ERR           ((BPLib_Status_t) -189) /* BPLib_CBOR_CopyOrEncodePrimary: Block Sizes Corrupted Error */
 #define BPLIB_CBOR_ENC_PRIM_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -190) /* BPLib_CBOR_CopyOrEncodePrimary: Copy Size Error */
 #define BPLIB_CBOR_ENC_PAYL_COPY_SIZE_GT_OUTPUT_ERR    ((BPLib_Status_t) -191) /* BPLib_CBOR_CopyOrEncodePayload: Copy Size Error */
 #define BPLIB_CBOR_ENC_PRIM_QCBOR_FINISH_ERR           ((BPLib_Status_t) -192) /* BPLib_CBOR_EncodePrimary: QCBOREncode_Finish Error */
