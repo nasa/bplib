@@ -313,6 +313,12 @@ static int BPLib_SQL_MarkBatchEgressedImpl(BPLib_Instance_t* Inst, BPLib_STOR_Lo
     return SQLStatus;
 }
 
+/* Helper function to make sure offset hasn't overflowed */
+static bool BPLib_SQL_HasOverflowed(size_t PrevOffset, size_t NewOffset)
+{
+    return (PrevOffset > NewOffset) || (sizeof(WhereClause) - NewOffset) > sizeof(WhereClause);
+}
+
 /*******************************************************************************
 ** Exported Functions
 */
@@ -345,27 +351,23 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     Offset = 0;
     for (i = 0; i < NumEIDs; i++)
     {
-        PrevOffset = Offset;
-        
         if (i > 0)
         {
+            PrevOffset = Offset;
+            Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, " OR ");
+
             /* Sanity check math */
-            if ((sizeof(WhereClause) - Offset) > sizeof(WhereClause))
+            if (BPLib_SQL_HasOverflowed(PrevOffset, Offset))
             {
                 return BPLIB_STOR_SQL_LOAD_ERR;
             }
-            
-            Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, " OR ");
-        }
-        /* Sanity check math */
-        if (PrevOffset > Offset || (sizeof(WhereClause) - Offset) > sizeof(WhereClause))
-        {
-            return BPLIB_STOR_SQL_LOAD_ERR;
+
         }
     
+        PrevOffset = Offset;
         Offset += snprintf(WhereClause + Offset, sizeof(WhereClause) - Offset, "%s",
             FindForEgressID_RangeClause);
-        if (Offset >= sizeof(WhereClause))
+        if (BPLib_SQL_HasOverflowed(PrevOffset, Offset) || Offset >= sizeof(WhereClause))
         {
             fprintf(stderr, "Programming Error: WHERE clause too long\n");
             return BPLIB_STOR_SQL_LOAD_ERR;
