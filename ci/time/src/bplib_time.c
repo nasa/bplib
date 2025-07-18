@@ -84,13 +84,22 @@ BPLib_Status_t BPLib_TIME_Init(void) {
     return Status;
 }
 
-/* Get monotonic time */
-void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+/* Get current monotonic time */
+int64_t BPLib_TIME_GetMonotonicTime(void)
 {
-    if (BPLib_TIME_GlobalData.InitState == BPLIB_TIME_INIT && MonotonicTime != NULL)
+    return BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+}
+
+/* Get current boot era */
+uint32_t BPLib_TIME_GetBootEra(void)
+{
+    if (BPLib_TIME_GlobalData.InitState == BPLIB_TIME_INIT)
     {
-        MonotonicTime->BootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra;
-        MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+        return BPLib_TIME_GlobalData.TimeData.CurrBootEra;
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -156,11 +165,16 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 
 uint64_t BPLib_TIME_GetCurrentDtnTime(void)
 {
-    BPLib_TIME_MonotonicTime_t CurrMonoTime;
-
-    BPLib_TIME_GetMonotonicTime(&CurrMonoTime);
-
-    return BPLib_TIME_GetDtnTime(CurrMonoTime);
+    /* Return 0 if time has not been initialized or if the CF is 0 */
+    if (BPLib_TIME_GlobalData.InitState != BPLIB_TIME_INIT || 
+        BPLib_TIME_GlobalData.CurrentCf == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime() + BPLib_TIME_GlobalData.CurrentCf;
+    }
 }
 
 /* Get delta between two provided monotonic times */

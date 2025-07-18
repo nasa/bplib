@@ -37,11 +37,11 @@
 /* Function Definitions */
 /* ==================== */
 
-bool BPLib_CLA_IsAControlMsg(const void *MsgPtr)
+bool BPLib_CLA_IsAControlMsg(const void *MsgPtr, size_t Size)
 {
     BPLib_CLA_CtrlMsg_t* InCtrlMsgPtr = (BPLib_CLA_CtrlMsg_t*) MsgPtr;
     char TagStr[] = "BPNMSG";
-    if (strncmp(InCtrlMsgPtr->CtrlMsgTag, TagStr, strlen(TagStr)) == 0)
+    if (strncmp(InCtrlMsgPtr->CtrlMsgTag, TagStr, Size) == 0)
         return true;
     else
         return false;

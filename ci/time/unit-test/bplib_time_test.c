@@ -126,45 +126,11 @@ void Test_BPLib_TIME_Init_FailedRead(void)
 /* Test that monotonic time is returned in nominal case */
 void Test_BPLib_TIME_GetMonotonicTime_Nominal(void)
 {
-    BPLib_TIME_MonotonicTime_t MonotonicTime;
-    int32_t ExpBootEra = 1;
     int64_t TestMonotonicTime = 1234;
 
-    /* Set test data */
-    BPLib_TIME_GlobalData.TimeData.CurrBootEra = ExpBootEra;
-    
     UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetMonotonicTime), TestMonotonicTime);
 
-    BPLib_TIME_GetMonotonicTime(&MonotonicTime);
-
-    UtAssert_EQ(int64_t, MonotonicTime.Time, TestMonotonicTime);
-    UtAssert_INT32_EQ(MonotonicTime.BootEra, ExpBootEra);
-}
-
-/* Test that nothing happens if monotonic time is null */
-void Test_BPLib_TIME_GetMonotonicTime_Null(void)
-{
-    BPLib_TIME_MonotonicTime_t *MonotonicTime = NULL;
-
-    BPLib_TIME_GetMonotonicTime(MonotonicTime);
-
-    UtAssert_NULL(MonotonicTime);
-}
-
-/* Test that nothing happens if time is uninitialized */
-void Test_BPLib_TIME_GetMonotonicTime_Uninit(void)
-{
-    BPLib_TIME_MonotonicTime_t MonotonicTime;
-
-    MonotonicTime.BootEra = 1;
-    BPLib_TIME_GlobalData.TimeData.CurrBootEra = 2;
-
-    /* Set init state to uninitialized */
-    BPLib_TIME_GlobalData.InitState = BPLIB_TIME_UNINIT;
-
-    BPLib_TIME_GetMonotonicTime(&MonotonicTime);
-
-    UtAssert_INT32_NEQ(MonotonicTime.BootEra, BPLib_TIME_GlobalData.TimeData.CurrBootEra);
+    UtAssert_EQ(int64_t, BPLib_TIME_GetMonotonicTime(), TestMonotonicTime);
 }
 
 /* Test that a positive CF is returned */
@@ -493,8 +459,6 @@ void TestBplibTime_Register(void)
     ADD_TEST(Test_BPLib_TIME_Init_FailedRead);
 
     ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Nominal);
-    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Null);
-    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Uninit);
 
     ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor_NominalPos);
     ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor_NominalNeg);

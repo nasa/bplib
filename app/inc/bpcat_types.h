@@ -47,4 +47,7 @@ typedef struct BPCat_AppData
     BPLib_NC_ConfigPtrs_t ConfigPtrs;
 } BPCat_AppData_t;
 
+extern BPCat_AppData_t AppData;
+
+
 #endif /* BPLIB_BPCAT_TYPES_H */

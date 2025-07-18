@@ -126,9 +126,10 @@ BPLib_Status_t BPLib_TIME_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       - Time Management must already be initialized (see BPLib_TIME_Init)
  * 
- *  \param[in] MonotonicTime Pointer to time struct to populate
  */
-void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime);
+int64_t  BPLib_TIME_GetMonotonicTime(void);
+
+uint32_t BPLib_TIME_GetBootEra(void);
 
 /**
  * \brief Calculate Correlation Factor

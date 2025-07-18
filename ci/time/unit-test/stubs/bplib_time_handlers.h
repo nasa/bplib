@@ -37,7 +37,5 @@
 
 void UT_Handler_BPLib_TIME_GetTimeDelta(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
-void UT_Handler_BPLib_TIME_GetMonotonicTime(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-
 #endif /* BPLIB_TIME_HANDLERS_H */
  
