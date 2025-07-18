@@ -54,7 +54,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint32_t ContId, const 
     }
 
     /* Not a RFC 9171 bundle. Can be a control message or junk*/
-    if (BPLib_CLA_IsAControlMsg((const uint8_t*)Bundle))
+    if (BPLib_CLA_IsAControlMsg((const uint8_t*)Bundle, Size))
     {
         /* Processes the control message and pass to BI*/
         BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
@@ -368,19 +368,21 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t Contac
 
 BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState)
 {
-    BPLib_Status_t Status;
-
+    if (ReturnState == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
         *ReturnState = BPLib_CLA_ContactRunStates[ContactId];
-        Status = BPLIB_SUCCESS;
+        return BPLIB_SUCCESS;
     }
     else
     {
-        Status = BPLIB_INVALID_CONT_ID_ERR;
+        *ReturnState = BPLIB_CLA_EXITED;
+        return BPLIB_INVALID_CONT_ID_ERR;
     }
-
-    return Status;
 }
 
 BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId)

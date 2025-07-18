@@ -32,10 +32,6 @@
 
 void BPLib_NC_Noop(void)
 {
-    BPLib_TIME_MonotonicTime_t CurrTime;
-
-    BPLib_TIME_GetMonotonicTime(&CurrTime);
-
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
     BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID,
                         BPLib_EM_EventType_INFORMATION,
@@ -43,7 +39,7 @@ void BPLib_NC_Noop(void)
                         BPLIB_MAJOR_VERSION,
                         BPLIB_MINOR_VERSION,
                         BPLIB_REVISION,
-                        BPLIB_BUILD_NUMBER, CurrTime.BootEra);
+                        BPLIB_BUILD_NUMBER, BPLib_TIME_GetBootEra());
 }
 
 void BPLib_NC_AddAllApplications(void)

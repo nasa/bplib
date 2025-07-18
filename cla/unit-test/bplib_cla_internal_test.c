@@ -32,7 +32,7 @@ void Test_BPLib_CLA_IsAControlMsgNominal(void)
 {
     BPLib_CLA_CtrlMsg_t CtrlMsg;
     strcpy(CtrlMsg.CtrlMsgTag, "BPNMSG");
-    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(&CtrlMsg));
+    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(&CtrlMsg, 6));
 }
 
 void Test_BPLib_CLA_ProcessControlMessageNominal(void)

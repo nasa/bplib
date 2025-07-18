@@ -32,11 +32,12 @@
  * Generated stub function for BPLib_CLA_IsAControlMsg()
  * ----------------------------------------------------
  */
-bool BPLib_CLA_IsAControlMsg(const void *Bundle)
+bool BPLib_CLA_IsAControlMsg(const void *MsgPtr, size_t Size)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_CLA_IsAControlMsg, bool);
 
-    UT_GenStub_AddParam(BPLib_CLA_IsAControlMsg, const void *, Bundle);
+    UT_GenStub_AddParam(BPLib_CLA_IsAControlMsg, const void *, MsgPtr);
+    UT_GenStub_AddParam(BPLib_CLA_IsAControlMsg, size_t, Size);
 
     UT_GenStub_Execute(BPLib_CLA_IsAControlMsg, Basic, NULL);
 
@@ -57,4 +58,21 @@ BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t *CtrlMsgPtr)
     UT_GenStub_Execute(BPLib_CLA_ProcessControlMessage, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_CLA_ProcessControlMessage, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CLA_SetContactRunState()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CLA_SetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t RunState)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_CLA_SetContactRunState, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_CLA_SetContactRunState, uint32_t, ContactId);
+    UT_GenStub_AddParam(BPLib_CLA_SetContactRunState, BPLib_CLA_ContactRunState_t, RunState);
+
+    UT_GenStub_Execute(BPLib_CLA_SetContactRunState, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CLA_SetContactRunState, BPLib_Status_t);
 }

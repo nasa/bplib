@@ -152,7 +152,8 @@ void BPLib_AS_UnlockCounters(void)
 /* Initialize the static MIB reports telemetry values */
 void BPLib_AS_InitializeReportsHkTlm(void)
 {
-    BPLib_TIME_GetMonotonicTime(&InitTime);
+    InitTime.Time = BPLib_TIME_GetMonotonicTime();
+    InitTime.BootEra = BPLib_TIME_GetBootEra();
 
     memset(&BPLib_AS_NodeReportsPayload, 0, sizeof(BPLib_AS_NodeReportsPayload));
 
@@ -179,11 +180,7 @@ void BPLib_AS_InitializeReportsHkTlm(void)
 
 void BPLib_AS_UpdateReportsHkTlm(BPLib_Instance_t *Inst)
 {
-    BPLib_TIME_MonotonicTime_t CurrTime;
-
-    BPLib_TIME_GetMonotonicTime(&CurrTime);
-
-    BPLib_AS_NodeReportsPayload.SystemNodeUpTime = CurrTime.Time - InitTime.Time;
+    BPLib_AS_NodeReportsPayload.SystemNodeUpTime = BPLib_TIME_GetMonotonicTime() - InitTime.Time;
     BPLib_AS_NodeReportsPayload.BundleCountStored = Inst->BundleStorage.BundleCountStored;
     BPLib_AS_NodeReportsPayload.KbytesCountStorageAvailable = (BPLIB_MAX_STORED_BUNDLE_BYTES - Inst->BundleStorage.BytesStorageInUse) / 1000;
 }

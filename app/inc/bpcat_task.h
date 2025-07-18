@@ -28,9 +28,10 @@
 typedef struct BPCat_Task
 {
     void* (*TaskFunc)(BPCat_AppData_t* AppData);
-    BPCat_Status_t (*TaskSetup)(void);
-    BPCat_Status_t (*TaskTeardown)(void);
+    BPCat_Status_t (*TaskSetup)(uint32_t TaskId);
+    BPCat_Status_t (*TaskTeardown)(uint32_t TaskId);
     pthread_t Handle;
+    uint32_t TaskId;
 } BPCat_Task_t;
 
 

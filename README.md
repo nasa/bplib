@@ -1,12 +1,5 @@
 # Bundle Protocol Library (BPLib)
 
-[1. Overview](#1-overview)
-[2. Prerequisites](#2-prerequisites)
-[3. Installing cFS](#3-installing-cfs)
-[4. Running cFS](#4-running-cfs)
-[5. Building BPLib with OSAL](#5-building-bplib-with-osal)
-[6. Building a Standalone](#6-building-a-standalone)
-
 ## 1. Overview
 
 ```
@@ -27,9 +20,8 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
 
-The Bundle Protocol library (BPLib) implements a subset of the [RFC9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) and
-targets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
-of RFC9171. The build 7.0 library uses UDP convergance layer to manage the process of encapsulating
+The Bundle Protocol library (BPLib) implements a subset of the [RFC-9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) andtargets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
+of RFC-9171. The build 7.0 library uses a UDP convergance layer to manage the process of encapsulating
 application data in bundles, and extracting application data out of bundles.
 
 BPLib contains no threads and relies entirely on the calling application for its execution context
@@ -46,9 +38,7 @@ expiration
 1. The build has only been tested on Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler
 toolchain (by default __gcc__). Additionally, the __pkg-config__ tool is used to manage the flags
 required for dependencies. These can typically be installed via the built-in package management
-system on most Linux distributions. The required packages on Ubuntu 22.04 are: cmake, pkg-config,
-and build-essential. The versions used may change. The versions as of the last update of this
-document are:
+system on most Linux distributions. The required packages and versions on Ubuntu are the following:
 - cmake version 3.22.1
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
@@ -86,144 +76,72 @@ cmake --build build
 sudo make install
 ```
 
-## 3. Installing cFS
+## 3. Building BPLib with BPNode within cFS
 
-1. cFS
+To build BPLib within the cFS architecture, see the [BPNode](https://github.com/nasa/bp/tree/main/docs) documentation.
 
+## 5. Building BPLib as a Standalone
+
+1. Clone the repositories
 ```
 # Navigate to the install directory
 cd $INSTALL_DIR
 
-# Clone the cFS repository
-git clone https://github.com/nasa/cFS
-
-# Initialize and update the cFS submodules
-cd cFS
-git submodule init
-git submodule update
-
-# Store the location of the cFS install
-export CFS_HOME=$(pwd)
-```
-
-2. BPLib
-```
-# Navigate to the cFS library directory
-cd $CFS_HOME/libs
-
 # Clone the BPLib repository
-git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
-```
+git clone https://github.com/nasa/bplib
 
-3. BPNode
-```
-# Navigate to the cFS applications directory
-cd $CFS_HOME/apps
+cd bplib
 
-# Clone the BPNode repository
-git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bpnode.git
-```
-
-## 4. Running cFS
+# Clone the OSAL repository
+git clone https://github.com/nasa/OSAL
 
 ```
-cd $CFS_HOME
-make distclean
-make SIMULATION=native prep
-make
-make install
-```
 
-## 5. Building BPLib with OSAL
+If you wish to modify the contact configurations, such as the UDP address or destination EID mappings, you should edit `$INSTALL_DIR/bplib/app/src/bpcat_nc.c`
 
-1. Clone cFS
-```
-# Navigate to the install directory
-cd $INSTALL_DIR
-
-# Clone the cFS repository
-git clone https://github.com/nasa/cFS
-
-# Initialize and update the cFS submodules
-cd cFS
-git submodule init
-git submodule update
-
-# Store the location of the cFS install
-export CFS_HOME=$(pwd)
-```
-
-2. Clone BPLib
-```
-# Navigate to the cFS library directory
-cd $CFS_HOME/libs
-
-# Clone the BPLib repository
-git clone git@aetd-git.gsfc.nasa.gov:gsfc-dtn/forks/bp/bplib.git
-```
-
-If you wish to modify the UDP configurations for the contact, as well as the destination EID
-configurations, you should edit `$CFS_HOME/libs/bplib/app/src/bpcat_nc.c`
-
-3. Define OSAL environment variables
+3. Define build environment variables
 
 ```
-export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
+export NasaOsal_DIR="${INSTALL_DIR}/bplib/osal-staging/usr/local/lib/cmake
 export BPLIB_OS_LAYER=OSAL
 
-export BPLIB_DEBUG_BUILD=bplib-build-matrix-Debug-OSAL
-export BPLIB_RELEASE_BUILD=bplib-build-matrix-Release-OSAL
+# Choose a build configuration - choose between Debug or Release
+export MATRIX_BUILD_TYPE=Release
 
-export CMAKE_BPLIB_DEBUG_DEFS="-DCMAKE_VERBOSE_MAKEFILE=ON \
-                               -DCMAKE_BUILD_TYPE=Debug \
-                               -DBPLIB_OS_LAYER=OSAL \
-                               -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
-
-export CMAKE_BPLIB_RELEASE_DEFS="-DCMAKE_VERBOSE_MAKEFILE=ON \
-                                 -DCMAKE_BUILD_TYPE=Release \
-                                 -DBPLIB_OS_LAYER=OSAL \
-                                 -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
-
-export CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local \
-                        -DOSAL_SYSTEM_BSPTYPE=generic-linux \
-                        -DCMAKE_BUILD_TYPE=Release \
-                        -DOSAL_OMIT_DEPRECATED=TRUE \
-                        -DENABLE_UNIT_TESTS=TRUE \
-                        -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+# Define bplib build directory
+export BPLIB_BUILD="${BPLIB_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
 ```
 
-4. Install OSAL
+4. Build and Install OSAL
 
 ```
-# Navigate to the cFS directory
-cd $CFS_HOME
+# Navigate to the bplib directory
+cd $INSTALL_DIR/bplib
 
 # Install OSAL
 cd osal/
-cmake $CMAKE_OSAL_DEFS -B ../osal-build
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DOSAL_SYSTEM_BSPTYPE=generic-linux \
+      -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}"$ \
+      -DOSAL_OMIT_DEPRECATED=TRUE \
+      -DENABLE_UNIT_TESTS=TRUE \
+      -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON" -B ../osal-build
 cd ../osal-build
 make DESTDIR=../osal-staging install
 ```
 
-- OSAL with Debug Configurations
+4. Build and Install BPLib
+
 ```
 # Navigate to the cFS directory
-cd $CFS_HOME
+cd $INSTALL_DIR/bplib
 
 # Build OSAL with debug configurations
-cmake $CMAKE_BPLIB_DEBUG_DEFS -B $BPLIB_DEBUG_BUILD
-cd $BPLIB_DEBUG_BUILD
-make all
-```
-
-- OSAL with Release Configurations
-```
-# Navigate to the cFS directory
-cd $CFS_HOME
-
-# Build OSAL with release configurations
-cmake $CMAKE_BPLIB_RELEASE_DEFS -B $BPLIB_RELEASE_BUILD
-cd $BPLIB_RELEASE_BUILD
+cmake -DCMAKE_VERBOSE_MAKEFILE=ON \
+      -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
+      -DBPLIB_OS_LAYER=OSAL \
+      -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake -B "${BPLIB_BUILD}"
+cd $BPLIB_BUILD
 make all
 ```
 
@@ -235,6 +153,6 @@ ctest --output-on-failure 2>&1 | tee ctest.log
 ## 6. Building a Standalone
 ```
 # Run bpcat executable
-cd $CFS_HOME/osal/$BPLIB_RELEASE_BUILD/app
+cd $INSTALL_DIR/bplib/app
 ./bpcat
 ```

@@ -43,6 +43,20 @@ int64_t BPLib_TIME_CalculateCorrelationFactor(void)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetBootEra()
+ * ----------------------------------------------------
+ */
+uint32_t BPLib_TIME_GetBootEra(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetBootEra, uint32_t);
+
+    UT_GenStub_Execute(BPLib_TIME_GetBootEra, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetBootEra, uint32_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_GetCorrelationFactor()
  * ----------------------------------------------------
  */
@@ -90,11 +104,13 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
  * Generated stub function for BPLib_TIME_GetMonotonicTime()
  * ----------------------------------------------------
  */
-void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+int64_t BPLib_TIME_GetMonotonicTime(void)
 {
-    UT_GenStub_AddParam(BPLib_TIME_GetMonotonicTime, BPLib_TIME_MonotonicTime_t *, MonotonicTime);
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetMonotonicTime, int64_t);
 
     UT_GenStub_Execute(BPLib_TIME_GetMonotonicTime, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetMonotonicTime, int64_t);
 }
 
 /*

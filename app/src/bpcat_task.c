@@ -32,7 +32,7 @@ BPCat_Status_t BPCat_TaskInit(BPCat_Task_t* task)
         return BPCAT_NULL_PTR_ERR;
     }
 
-    Status = task->TaskSetup();
+    Status = task->TaskSetup(task->TaskId);
     if (Status != BPCAT_SUCCESS)
     {
         return Status;
@@ -74,7 +74,7 @@ BPCat_Status_t BPCat_TaskStop(BPCat_Task_t* task)
     /* Join */
     pthread_join(task->Handle, NULL);
 
-    Status = task->TaskTeardown();
+    Status = task->TaskTeardown(task->TaskId);
     if (Status != BPCAT_SUCCESS)
     {
         return Status;
