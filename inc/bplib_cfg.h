@@ -185,7 +185,7 @@ extern "C" {
 /**
  *  \brief Maximum number of bundle bytes allowed in storage at any given time
  */
-#define BPLIB_MAX_STORED_BUNDLE_BYTES            4000000000     /* 16 gigabytes */
+#define BPLIB_MAX_STORED_BUNDLE_BYTES            4000000000     /* 4 gigabytes */
 
 #ifdef __cplusplus
 } // extern "C"
