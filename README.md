@@ -20,7 +20,7 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
 
-The Bundle Protocol library (BPLib) implements a subset of the [RFC-9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) andtargets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
+The Bundle Protocol library (BPLib) implements a subset of the [RFC-9171 Bundle Protocol](https://www.rfc-editor.org/rfc/rfc9171.html) and targets embedded space flight applications via [BPNode](https://github.com/nasa/bp), with the goal of implementing the entirety
 of RFC-9171. The build 7.0 library uses a UDP convergance layer to manage the process of encapsulating
 application data in bundles, and extracting application data out of bundles.
 
@@ -35,13 +35,13 @@ expiration
 
 ## 2. Prerequisites
 
-1. The build has only been tested on Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler
+1. The build has only been tested on Ubuntu 20.04.6 LTS, the __cmake__ build system and a compiler
 toolchain (by default __gcc__). Additionally, the __pkg-config__ tool is used to manage the flags
 required for dependencies. These can typically be installed via the built-in package management
 system on most Linux distributions. The required packages and versions on Ubuntu are the following:
 - cmake version 3.22.1
 - pkg-config 0.29.1
-- gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+- gcc 9.4.0
 - libsqlite3-dev
 
 2. Create and store an install directory
