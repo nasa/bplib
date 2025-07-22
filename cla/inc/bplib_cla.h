@@ -53,6 +53,7 @@ typedef enum
     TCPType = 0x00000001,
     EPPType = 0x00000002,
     LTPType = 0x00000003,
+    SBType  = 0x00000004,
 } BPLib_CLA_Type_t;
 
 typedef struct
