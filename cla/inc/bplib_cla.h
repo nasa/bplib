@@ -42,9 +42,9 @@
 typedef enum
 {
     SentIt              = 0, /* LTP Only, CL sends out */
-    SessionComplete     = 1, /* For LTP, Other end received */
-    SessionCancelled    = 2, /* Session is cancelled, do nothing */
-    SessionStarted      = 3  /* Session started, do nothing */
+    SessionComplete     = 1, /*For LTP, Other end received*/
+    SessionCancelled    = 2, /* Session is cancelled, do nothing*/
+    SessionStarted      = 3 /* Session started, do nothing*/
 }BPLib_CLA_CtrlMsgTypes_t;
 
 typedef enum
@@ -53,16 +53,15 @@ typedef enum
     TCPType = 0x00000001,
     EPPType = 0x00000002,
     LTPType = 0x00000003,
-    SBType  = 0x00000004,
 } BPLib_CLA_Type_t;
 
 typedef struct
 {
-    char             CtrlMsgTag[8]; /* "BPNMSG" */
-    uint32_t         SessionID;
-    uint32_t         BundleID;
-    BPLib_CLA_Type_t ClaType;
-    uint8_t          MsgTypes;
+    char        CtrlMsgTag[8]; /* "BPNMSG" */
+    uint32_t    SessionID;
+    uint32_t    BundleID;
+    BPLib_CLA_Type_t   ClaType;
+    uint8_t     MsgTypes;
 } BPLib_CLA_CtrlMsg_t;
 
 typedef enum
