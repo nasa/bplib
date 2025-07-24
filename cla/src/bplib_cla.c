@@ -384,12 +384,3 @@ BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_Contac
         return BPLIB_INVALID_CONT_ID_ERR;
     }
 }
-
-BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId)
-{
-    BPLib_Status_t Status;
-
-    Status = BPLib_CLA_SetContactRunState(ContactId, BPLIB_CLA_EXITED);
-
-    return Status;
-}

@@ -167,19 +167,3 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t *Inst, uint32_t ContId, const 
 
     return UT_GenStub_GetReturnValue(BPLib_CLA_Ingress, BPLib_Status_t);
 }
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CLA_SetContactExited()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CLA_SetContactExited, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_CLA_SetContactExited, uint32_t, ContactId);
-
-    UT_GenStub_Execute(BPLib_CLA_SetContactExited, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CLA_SetContactExited, BPLib_Status_t);
-}
