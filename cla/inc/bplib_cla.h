@@ -231,15 +231,4 @@ BPLib_Status_t BPLib_CLA_ContactTeardown(BPLib_Instance_t *Inst, uint32_t Contac
   */
 BPLib_Status_t BPLib_CLA_GetContactRunState(uint32_t ContactId, BPLib_CLA_ContactRunState_t* ReturnState);
 
-/**
-  * \brief     Set the run state of the provided contact to BPLIB_CLA_EXITED
-  * \note      This function is for external use of the contact run state accessor. Only exiting the application is allowed
-  *            for the non-BPLib-CLA scope.
-  * \param[in] ContactId (uint32_t) Contact ID from the Contacts Configuration whose run state is being requested to change
-  * \return    Execution status (Status assigned by BPLib_CLA_SetContactRunState)
-  * \retval    BPLIB_SUCCESS: Successfully changed the run state of the provided contact ID to the provided run state
-  * \retval    BPLIB_INVALID_CONT_ID_ERR: Provided contact ID does not match a contact ID in the Contacts Configuration
-  */
-BPLib_Status_t BPLib_CLA_SetContactExited(uint32_t ContactId);
-
 #endif /* BPLIB_CLA_H */
