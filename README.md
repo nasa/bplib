@@ -153,6 +153,6 @@ ctest --output-on-failure 2>&1 | tee ctest.log
 ## 6. Building a Standalone
 ```
 # Run bpcat executable
-cd $INSTALL_DIR/bplib/app
+cd $BPLIB_BUILD/app
 ./bpcat
 ```
