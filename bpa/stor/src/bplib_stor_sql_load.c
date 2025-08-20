@@ -102,7 +102,7 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
             BundleHead = BPLib_MEM_BlockAlloc(Pool);
             if (BundleHead == NULL)
             {
-                SQLStatus = SQLITE_IOERR;
+                SQLStatus = SQLITE_NOMEM;
                 sqlite3_blob_close(blob);
                 break;
             }
@@ -136,7 +136,7 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
             NextBlock = BPLib_MEM_BlockAlloc(Pool);
             if (NextBlock == NULL)
             {
-                SQLStatus = SQLITE_IOERR;
+                SQLStatus = SQLITE_NOMEM;
                 sqlite3_blob_close(blob);
                 break;
             }
@@ -175,7 +175,7 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
     }
 
     /* Expecting SQLITE_DONE */
-    if (SQLStatus == SQLITE_DONE)
+    if (SQLStatus == SQLITE_DONE && BundleHead != NULL)
     {
         RetBundle = (BPLib_Bundle_t*)(BundleHead);
         RetBundle->blob = BundleHead->next;
@@ -472,9 +472,14 @@ BPLib_Status_t BPLib_SQL_LoadBundle(BPLib_Instance_t* Inst, int64_t BundleID, BP
 
     sqlite3_finalize(FindBlobStmt);
 
-    if (SQLStatus != SQLITE_OK)
+    if (SQLStatus == SQLITE_NOMEM)
     {
-        return BPLIB_STOR_SQL_LOAD_ERR;
+        Status = BPLIB_STOR_NO_MEM_ERR;
     }
-    return BPLIB_SUCCESS;
+    else if (SQLStatus != SQLITE_OK)
+    {
+        Status = BPLIB_STOR_SQL_LOAD_ERR;
+    }
+
+    return Status;
 }
