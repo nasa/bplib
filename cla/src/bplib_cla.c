@@ -168,7 +168,10 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint32_t ContactId)
 
     if (ContactId < BPLIB_MAX_NUM_CONTACTS)
     {
+        BPLib_NC_ReaderLock();
         ContactInfo = BPLib_NC_ConfigPtrs.ContactsConfigPtr->ContactSet[ContactId];
+        BPLib_NC_ReaderUnlock();
+        
         (void) BPLib_CLA_GetContactRunState(ContactId, &RunState); /* Ignore return since ContactId is already valid */
 
         if (RunState == BPLIB_CLA_TORNDOWN)
