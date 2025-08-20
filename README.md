@@ -93,7 +93,7 @@ git clone https://github.com/nasa/bplib
 cd bplib
 
 # Clone the OSAL repository
-git clone https://github.com/nasa/OSAL
+git clone https://github.com/nasa/OSAL osal
 
 ```
 
@@ -102,14 +102,14 @@ If you wish to modify the contact configurations, such as the UDP address or des
 3. Define build environment variables
 
 ```
-export NasaOsal_DIR="${INSTALL_DIR}/bplib/osal-staging/usr/local/lib/cmake
+export NasaOsal_DIR="${INSTALL_DIR}/bplib/osal-staging/usr/local/lib/cmake"
 export BPLIB_OS_LAYER=OSAL
 
 # Choose a build configuration - choose between Debug or Release
 export MATRIX_BUILD_TYPE=Release
 
 # Define bplib build directory
-export BPLIB_BUILD="${BPLIB_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
+export BPLIB_BUILD="${INSTALL_DIR}/bplib/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
 ```
 
 4. Build and Install OSAL
@@ -122,10 +122,10 @@ cd $INSTALL_DIR/bplib
 cd osal/
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DOSAL_SYSTEM_BSPTYPE=generic-linux \
-      -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}"$ \
+      -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
       -DOSAL_OMIT_DEPRECATED=TRUE \
       -DENABLE_UNIT_TESTS=TRUE \
-      -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON" -B ../osal-build
+      -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON -B ../osal-build
 cd ../osal-build
 make DESTDIR=../osal-staging install
 ```
@@ -153,6 +153,6 @@ ctest --output-on-failure 2>&1 | tee ctest.log
 ## 6. Building a Standalone
 ```
 # Run bpcat executable
-cd $INSTALL_DIR/bplib/app
+cd $BPLIB_BUILD/app
 ./bpcat
 ```
