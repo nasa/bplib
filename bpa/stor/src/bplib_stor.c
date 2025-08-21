@@ -301,16 +301,21 @@ BPLib_Status_t BPLib_STOR_EgressForID(BPLib_Instance_t* Inst, uint32_t EgressID,
                     BPLib_MEM_BundleFree(&Inst->pool, CurrBundle);
                     break;
                 }
+
+                /* After the bundle made it into the destination queue, mark it consumed */
+                (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
+                EgressCnt++;
+            }
+            else if (Status == BPLIB_STOR_NO_BUNDLE_FOUND_ERR)
+            {
+                /* Bundle ID belongs to a bundle that is now invalid, discard it but keep going */
+                (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
             }
             else
             {
                 /* If LoadBundle Failed, don't keep trying. */
                 break;
             }
-
-            /* After the bundle made it into the destination queue, mark it consumed */
-            (void) BPLib_STOR_LoadBatch_AdvanceReader(LoadBatch);
-            EgressCnt++;
         }
     }
 

@@ -321,10 +321,14 @@ typedef enum
 #define BPLIB_STOR_BATCH_CONSUMED                      ((BPLib_Status_t) -237)
 #define BPLIB_STOR_DB_FULL_ERR                         ((BPLib_Status_t) -238)
 #define BPLIB_STOR_NO_MEM_ERR                          ((BPLib_Status_t) -239)
+#define BPLIB_STOR_SQL_OVERFLOW_ERR                    ((BPLib_Status_t) -240)
+#define BPLIB_STOR_SQL_LOAD_IDS_ERR                    ((BPLib_Status_t) -241)
+#define BPLIB_STOR_SQL_MARK_EGRESSED_ERR               ((BPLib_Status_t) -242)
+#define BPLIB_STOR_NO_BUNDLE_FOUND_ERR                 ((BPLib_Status_t) -243)
 
 /* Bundle Interface Errors */
-#define BPLIB_BI_INVALID_BUNDLE_ERR                    ((BPLib_Status_t) -240)
-#define BPLIB_BI_EXPIRED_BUNDLE_ERR                    ((BPLib_Status_t) -241)
+#define BPLIB_BI_INVALID_BUNDLE_ERR                    ((BPLib_Status_t) -250)
+#define BPLIB_BI_EXPIRED_BUNDLE_ERR                    ((BPLib_Status_t) -251)
 
 /** @} */
 

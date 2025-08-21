@@ -91,7 +91,7 @@ static const char* CreateTableSQL =
 static const char* DiscardExpiredSQL =
     "WITH to_delete AS ("
     "    SELECT id FROM bundle_data "
-    "    WHERE action_timestamp < ? "
+    "    WHERE (action_timestamp < ?) AND (egress_attempted = 0) "
     "    LIMIT ?"
     ") "
     "DELETE FROM bundle_data "
@@ -299,7 +299,7 @@ static int BPLib_SQL_DiscardExpiredImpl(sqlite3* db, size_t* NumDiscarded, BPLib
     const char* ExpiredBytesSQL =
     "WITH expired_bytes AS (\n"
     "   SELECT id, bundle_bytes FROM bundle_data\n"
-    "   WHERE action_timestamp < ?\n"
+    "   WHERE (action_timestamp < ?) AND (egress_attempted = 0)\n"
     "   LIMIT ?)\n"
     "SELECT SUM(bundle_bytes)\n"
     "AS bytes_deleted\n"

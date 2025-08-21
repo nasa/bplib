@@ -174,8 +174,17 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
         sqlite3_blob_close(blob);
     }
 
+    if (BundleHead == NULL)
+    {
+        *Bundle = NULL;
+
+        /* 
+        ** Leave status code as is, could be either a lack of memory issue (SQLITE_NOMEM)
+        ** or an indication that the bundle no longer exists in storage 
+        */
+    }
     /* Expecting SQLITE_DONE */
-    if (SQLStatus == SQLITE_DONE && BundleHead != NULL)
+    else if (SQLStatus == SQLITE_DONE)
     {
         RetBundle = (BPLib_Bundle_t*)(BundleHead);
         RetBundle->blob = BundleHead->next;
@@ -184,7 +193,7 @@ static int BPLib_SQL_LoadBundleImpl(BPLib_Instance_t* Inst, int64_t BundleID,
         /* For consistency with other helpers, set status to SQLITE_OK */
         SQLStatus = SQLITE_OK;
     }
-    else if (BundleHead != NULL)
+    else
     {
         /* Something in the loop above went wrong: Free memory */
         BPLib_MEM_BlockListFree(Pool, BundleHead);
@@ -361,7 +370,8 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
             /* Sanity check math */
             if (BPLib_SQL_HasOverflowed(PrevOffset, Offset))
             {
-                return BPLIB_STOR_SQL_LOAD_ERR;
+                fprintf(stderr, "Programming Error: WHERE clause too long\n");
+                return BPLIB_STOR_SQL_OVERFLOW_ERR;
             }
 
         }
@@ -373,7 +383,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
         if (BPLib_SQL_HasOverflowed(PrevOffset, Offset))
         {
             fprintf(stderr, "Programming Error: WHERE clause too long\n");
-            return BPLIB_STOR_SQL_LOAD_ERR;
+            return BPLIB_STOR_SQL_OVERFLOW_ERR;
         }
     }
     WhereClause[Offset] = '\0';
@@ -386,7 +396,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     if (Offset >= sizeof(FindForEgressIdSQL))
     {
         fprintf(stderr, "Programming Error: final SQL query too long\n");
-        return BPLIB_STOR_SQL_LOAD_ERR;
+        return BPLIB_STOR_SQL_OVERFLOW_ERR;
     }
     FindForEgressIdSQL[Offset] = '\0';
 
@@ -394,7 +404,8 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
     SQLStatus = sqlite3_prepare_v2(db, FindForEgressIdSQL, -1, &FindForEgressIDStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        Status = BPLIB_STOR_SQL_LOAD_ERR;
+        fprintf(stderr, "Programming Error: FindForEgressIdSQL prepare failed, error=%s\n", sqlite3_errmsg(db));
+        Status = BPLIB_STOR_SQL_LOAD_IDS_ERR;
     }
 
     if (Status == BPLIB_SUCCESS)
@@ -403,7 +414,7 @@ BPLib_Status_t BPLib_SQL_FindForEIDs(BPLib_Instance_t* Inst, BPLib_STOR_LoadBatc
         SQLStatus = BPLib_SQL_FindForEIDsImpl(Inst, Batch, DestEIDs, NumEIDs, BPLIB_STOR_LOADBATCHSIZE);
         if (SQLStatus != SQLITE_OK)
         {
-            Status = BPLIB_STOR_SQL_LOAD_ERR;
+            Status = BPLIB_STOR_SQL_LOAD_IDS_ERR;
         }
     }
 
@@ -427,7 +438,8 @@ BPLib_Status_t BPLib_SQL_MarkBatchEgressed(BPLib_Instance_t* Inst, BPLib_STOR_Lo
     SQLStatus = sqlite3_prepare_v2(db, MarkEgressedSQL, -1, &MarkEgressedStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
-        Status = BPLIB_STOR_SQL_LOAD_ERR;
+        fprintf(stderr, "Programming Error: MarkEgressedSQL prepare failed, error=%s\n", sqlite3_errmsg(db));
+        Status = BPLIB_STOR_SQL_MARK_EGRESSED_ERR;
     }
 
     if (Status == BPLIB_SUCCESS)
@@ -439,7 +451,8 @@ BPLib_Status_t BPLib_SQL_MarkBatchEgressed(BPLib_Instance_t* Inst, BPLib_STOR_Lo
 
     if (SQLStatus != SQLITE_OK)
     {
-        return BPLIB_STOR_SQL_LOAD_ERR;
+        fprintf(stderr, "Programming Error: MarkEgressedSQL finalize failed, error=%s\n", sqlite3_errmsg(db));
+        return BPLIB_STOR_SQL_MARK_EGRESSED_ERR;
     }
     return BPLIB_SUCCESS;
 }
@@ -462,6 +475,7 @@ BPLib_Status_t BPLib_SQL_LoadBundle(BPLib_Instance_t* Inst, int64_t BundleID, BP
     SQLStatus = sqlite3_prepare_v2(db, FindBlobSQL, -1, &FindBlobStmt, 0);
     if (SQLStatus != SQLITE_OK)
     {
+        fprintf(stderr, "Programming Error: FindBlobSQL prepare failed, error=%s\n", sqlite3_errmsg(db));
         Status = BPLIB_STOR_SQL_LOAD_ERR;
     }
 
@@ -475,6 +489,10 @@ BPLib_Status_t BPLib_SQL_LoadBundle(BPLib_Instance_t* Inst, int64_t BundleID, BP
     if (SQLStatus == SQLITE_NOMEM)
     {
         Status = BPLIB_STOR_NO_MEM_ERR;
+    }
+    else if (*Bundle == NULL)
+    {
+        Status = BPLIB_STOR_NO_BUNDLE_FOUND_ERR;
     }
     else if (SQLStatus != SQLITE_OK)
     {
