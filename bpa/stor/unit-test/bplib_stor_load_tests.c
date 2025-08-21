@@ -213,7 +213,7 @@ void Test_BPLib_STOR_EgressForID_SQLFail(void)
     /* Force sql statements to fail by passing a NULL instance */
     BplibInst.BundleStorage.db = NULL;
     UtAssert_INT32_EQ(BPLib_STOR_EgressForID(&BplibInst, 0, true, &NumEgressed),
-        BPLIB_STOR_SQL_LOAD_ERR);
+        BPLIB_STOR_SQL_LOAD_IDS_ERR);
 
     /* Look for event message */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 1);
