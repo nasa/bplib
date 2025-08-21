@@ -31,7 +31,7 @@
  */
 #define BPLIB_MAJOR_VERSION (7u)  /*!< @brief Major version number */
 #define BPLIB_MINOR_VERSION (0u)  /*!< @brief Minor version number */
-#define BPLIB_REVISION      (0u)  /*!< @brief Revision version number. Value of 0 indicates a development version.*/
+#define BPLIB_REVISION      (2u)  /*!< @brief Revision version number. Value of 0 indicates a development version.*/
 
 /*
  * Development Build Macro Definitions
