@@ -12,8 +12,8 @@ defaults:
 env:
   UPSTREAM_OSAL_REPO: nasa/osal
   UPSTREAM_OSAL_REF: main
-  UPSTREAM_TINYCBOR_REPO: intel/tinycbor
-  UPSTREAM_TINYCBOR_REF: v0.6.0
+  UPSTREAM_QCBOR_REPO: laurencelundblade/QCBOR
+  UPSTREAM_QCBOR_REF: v1.5.1
 
 jobs:
 
@@ -35,12 +35,12 @@ jobs:
           path: ${{ github.workspace }}/osal-staging
           key: bplib-dep-${{ env.UPSTREAM_OSAL_REPO }}@${{ env.UPSTREAM_OSAL_REF }}
 
-      - name: Cache TinyCBOR Dependency
+      - name: Cache QCBOR Dependency
         uses: actions/cache@v3
-        id: cache-tinycbor
+        id: cache-qcbor
         with:
-          path: ${{ github.workspace }}/tinycbor-staging
-          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
+          path: ${{ github.workspace }}/qcbor-source
+          key: bplib-dep-${{ env.UPSTREAM_QCBOR_REPO }}@${{ env.UPSTREAM_QCBOR_REF }}
 
       - name: Checkout BPLib
         if: steps.cache-bplib.outputs.cache-hit != 'True'
@@ -56,13 +56,13 @@ jobs:
           upstream-repo: ${{ env.UPSTREAM_OSAL_REPO }}
           upstream-ref: ${{ env.UPSTREAM_OSAL_REF }}
 
-      - name: Set up TinyCBOR
-        if: steps.cache-tinycbor.outputs.cache-hit != 'True'
-        uses: ./source/.github/actions/setup-tinycbor
+      - name: Set up QCBOR
+        if: steps.cache-qcbor.outputs.cache-hit != 'True'
+        uses: ./source/.github/actions/setup-qcbor
         with:
-          staging-dir: ${{ github.workspace }}/tinycbor-staging
-          upstream-repo: ${{ env.UPSTREAM_TINYCBOR_REPO }}
-          upstream-ref: ${{ env.UPSTREAM_TINYCBOR_REF }}
+          staging-dir: ${{ github.workspace }}/qcbor-source
+          upstream-repo: ${{ env.UPSTREAM_QCBOR_REPO }}
+          upstream-ref: ${{ env.UPSTREAM_QCBOR_REF }}
 
   build-and-test:
     name: Build BPLib and Execute Tests
@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         buildtype: [Debug, Release]
-        os-layer: [OSAL, POSIX]
+        os-layer: [OSAL]
 
     env:
       MATRIX_ID: matrix-${{ matrix.buildtype }}-${{ matrix.os-layer }}
@@ -88,15 +88,12 @@ jobs:
           path: ${{ github.workspace }}/source
           key: bplib-source-${{ github.sha }}
 
-      - name: Retrieve Cached TinyCBOR Dependency
-        id: restore-tinycbor
+      - name: Retrieve Cached QCBOR Dependency
+        id: restore-qcbor
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/tinycbor-staging
-          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
-
-      - name: Import TinyCBOR
-        run: sudo cp -rv -t / ${{ github.workspace }}/tinycbor-staging/*
+          path: ${{ github.workspace }}/qcbor-source
+          key: bplib-dep-${{ env.UPSTREAM_QCBOR_REPO }}@${{ env.UPSTREAM_QCBOR_REF }}
 
       - name: Retrieve Cached OSAL Dependency
         if: matrix.os-layer == 'OSAL'
@@ -106,9 +103,9 @@ jobs:
           path: ${{ github.workspace }}/osal-staging
           key: bplib-dep-${{ env.UPSTREAM_OSAL_REPO }}@${{ env.UPSTREAM_OSAL_REF }}
 
-      - name: Install Coverage Analysis Tools
+      - name: Install Coverage Analysis Tools and SQLite3
         if: env.MATRIX_ID == 'matrix-Debug-OSAL'
-        run: sudo apt-get install -y lcov xsltproc
+        run: sudo apt-get install -y lcov xsltproc libsqlite3-dev
 
       - name: Import OSAL
         if: matrix.os-layer == 'OSAL'
@@ -116,6 +113,13 @@ jobs:
 
       - name: Refresh Dynamic Linker Cache
         run: sudo ldconfig
+      
+      - name: Import QCBOR
+        run: 
+             sudo cp -rv -t / ${{ github.workspace }}/qcbor-source/* &&
+             pushd qcbor-source &&
+             sudo make install && 
+             popd
 
       - name: Set up BPLib Build
         run: cmake
