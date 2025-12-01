@@ -1,12 +1,12 @@
-## README for the BPLib docs folder - BPLib API Guide Source
+# BPLib Documentation
 
-BPLib docs - The BPLib API Guide build folder
+Most official documentation on the GSFC Bundle Protocol v7 implementation can be found at: https://github.com/nasa/bp/tree/main/docs. This directory includes some legal forms, documentation for older versions of bplib, and doxygen source files.
+
+## Building Doxygen API Guide
 
 The BPLib Doxygen Build folder `bplib/docs/doc-src` contains the Doxygen source files for the API Guide.
 
 The `bplib/CMakeLists.txt` file includes `docs/doc-src` as a subdirectory to prepare the build folder for the `bplibguide` make target.
-
-### Usage
 
 The `dtn-cfs/Makefile` has a target `bplibguide` (consistent with the existing `osalguide` for the OSAL API Guide).
 
