@@ -14,15 +14,22 @@ project(BPLIB_TEST_APP C)
 # Sanity check: bpcat assumes a POSIX system
 # and uses pthread calls.  If not POSIX, then
 # this tool will not build.
-if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
-  message(FATAL_ERROR "BPLib Test applications require POSIX")
-endif()
+#if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
+#  message(FATAL_ERROR "BPLib Test applications require POSIX")
+#endif()
 
 set(BPAPP_COMPILE_FEATURES "c_std_99")
-set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
+set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror;-g;>")
 set(BPAPP_LINK_LIBRARIES bplib)
 
-add_executable(bpcat bpcat.c)
+add_executable(bpcat
+    bpcat.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_task.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_fwp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_nc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpcat_cla.c
+)
+target_include_directories(bpcat PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 # compile this app as c99 (but this does not impose the same requirement on other users)
 target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})

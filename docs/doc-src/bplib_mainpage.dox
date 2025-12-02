@@ -1,0 +1,73 @@
+/**
+  \mainpage BPLib API Guide Main Page
+
+  \subpage bplibIntro
+
+  <table> <caption style="text-align:left" id="bplib-apis">BPLib APIs</caption>
+    <tr style="vertical-align:top">
+      <td>
+        <UL>
+          <LI> Administrative Agent (AA)
+          <UL>
+            <LI> \subpage bplib/aa/arp/inc/bplib_arp.h "Admin Records Processor (ARP)"
+            <LI> \subpage bplib/aa/as/inc/bplib_as.h "Admin Statistics (AS)"
+            <LI> \subpage bplib/aa/fwp/inc/bplib_fwp.h "Framework Proxy (FWP)"
+            <LI> \subpage bplib/aa/nc/inc/bplib_nc.h "Node Configuration (NC)"
+          </UL>
+          <LI> Bundle Protocol Agent (BPA)
+          <UL>
+            <LI> \subpage bplib/bpa/bi/inc/bplib_bi.h "Bundle Interface (BI)"
+            <LI> \subpage bplib/bpa/ct/inc/bplib_ct.h "Custody Transfer (CT)"
+            <LI> \subpage bplib/bpa/ebp/inc/bplib_ebp.h "Extension Block Processor (EBP)"
+            <LI> \subpage bplib/bpa/pdb/inc/bplib_pdb.h "Policy Database (PDB)"
+            <LI> \subpage bplib/bpa/pi/inc/bplib_pi.h "Payload Interface (PI)"
+            <LI> Storage (STOR)
+            <UL>
+              <LI> \subpage bplib/bpa/stor/inc/bplib_stor.h "STOR Module API"
+              <LI> \subpage bplib/bpa/stor/cache/inc/bplib_stor_cache.h "Bundle Cache (CACHE)"
+              <LI> \subpage bplib/bpa/stor/qm/inc/bplib_stor_qm.h "Queue Manager (QM)"
+            </UL>
+          </UL>
+          <LI> \subpage bplib/cla/inc/bplib_cla.h "Convergence Layer Adapter (CLA)"
+          <LI> \subpage bplib/version/inc/bplib_version.h "Version"
+        </UL>
+      </td>
+      <td>
+        <UL>
+          <LI> Core Infrastructure (CI)
+          <UL>
+            <LI> \subpage bplib/ci/cbor/inc/bplib_cbor.h "Concise Binary Object Representation (CBOR)"
+            <LI> \subpage bplib/ci/crc/inc/bplib_crc.h "Cyclic Redundancy Check (CRC)"
+            <LI> \subpage bplib/ci/em/inc/bplib_em.h "Events Management (EM)"
+            <LI> \subpage bplib/ci/job/inc/bplib_job.h "Job Scheduler (JOB)"
+            <LI> \subpage bplib/ci/mem/inc/bplib_mem.h "Memory Allocator (MEM)"
+            <LI> \subpage bplib/ci/pl/inc/bplib_pl.h "Performance Logger (PL)"
+            <LI> \subpage bplib/ci/rbt/inc/bplib_rbt.h "Red-Black Tree (RBT)"
+            <LI> \subpage bplib/ci/time/inc/bplib_time.h "Time Management (TIME)"
+          </UL>
+        </UL>
+      </td>
+    </tr>
+  </table>
+
+  <UL>
+    <LI> \ref bplib_walkthroughs "BPLib Code Walkthroughs"
+    <LI> \ref BPLib_ReturnCodes "BPLib Return Codes"
+    <LI> \ref BPLib_ErrorCodes "BPLib Error Codes"
+    <LI> \subpage bplib/inc/bplib_eventids.h "BPLib Events"
+    <LI> \subpage bplib.h "BPLib Reference"
+    <LI> \subpage bplib_api_types.h "API Types Reference"
+  </UL>
+
+**/
+
+/**
+ \page bplibIntro BPLib Description
+
+ BPLib provides Bundle Protocol processing functions according to the
+ RFC 9171 Bundle Protocol standard.
+ 
+ **/
+
+
+

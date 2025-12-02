@@ -1,0 +1,1988 @@
+/*
+ * NASA Docket No. GSC-19,559-1, and identified as "Delay/Disruption Tolerant Networking 
+ * (DTN) Bundle Protocol (BP) v7 Core Flight System (cFS) Application Build 7.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this 
+ * file except in compliance with the License. You may obtain a copy of the License at 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under 
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF 
+ * ANY KIND, either express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License. The copyright notice to be 
+ * included in the software is as follows: 
+ *
+ * Copyright 2025 United States Government as represented by the Administrator of the 
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ *
+ */
+
+/* ======== */
+/* Includes */
+/* ======== */
+
+#include "bplib_nc.h"
+#include "bplib_nc_directives.h"
+#include "bplib_nc_test_utils.h"
+#include "bplib_eventids.h"
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+void Test_BPLib_NC_Init_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_True(BPLib_NC_ConfigPtrs.ChanConfigPtr      == TestConfigPtrs.ChanConfigPtr,      "BPLib_NC_ConfigPtrs ChanConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.ContactsConfigPtr  == TestConfigPtrs.ContactsConfigPtr,  "BPLib_NC_ConfigPtrs ContactsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CrsConfigPtr       == TestConfigPtrs.CrsConfigPtr,       "BPLib_NC_ConfigPtrs CrsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CustodianConfigPtr == TestConfigPtrs.CustodianConfigPtr, "BPLib_NC_ConfigPtrs CustodianConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.CustodyConfigPtr   == TestConfigPtrs.CustodyConfigPtr,   "BPLib_NC_ConfigPtrs CustodyConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.MibPnConfigPtr     == TestConfigPtrs.MibPnConfigPtr,     "BPLib_NC_ConfigPtrs MibPnConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.MibPsConfigPtr     == TestConfigPtrs.MibPsConfigPtr,     "BPLib_NC_ConfigPtrs MibPsConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.ReportConfigPtr    == TestConfigPtrs.ReportConfigPtr,    "BPLib_NC_ConfigPtrs ReportConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.AuthConfigPtr      == TestConfigPtrs.AuthConfigPtr,      "BPLib_NC_ConfigPtrs AuthConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.LatConfigPtr       == TestConfigPtrs.LatConfigPtr,       "BPLib_NC_ConfigPtrs LatConfigPtr successfully modified");
+    UtAssert_True(BPLib_NC_ConfigPtrs.StorConfigPtr      == TestConfigPtrs.StorConfigPtr,      "BPLib_NC_ConfigPtrs StorConfigPtr successfully modified");
+}
+
+void Test_BPLib_NC_Init_AS_Init_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_ERROR);
+
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullConfigPtrs_Error(void)
+{
+    BPLib_Status_t Status;
+    BPLib_NC_ConfigPtrs_t* NullConfigPtr;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    NullConfigPtr = NULL;
+    Status = BPLib_NC_Init(NullConfigPtr);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullChanTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.ChanConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullContactsTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.ContactsConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullCrsTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.CrsConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullCustodianTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.CustodianConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullCustodyTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.CustodyConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullMibPnTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.MibPnConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullMibPsTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.MibPsConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullReportTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.ReportConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullAuthTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.AuthConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullLatTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.LatConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Init_NullStorTblPtr_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    TestConfigPtrs.StorConfigPtr = NULL;
+    Status = BPLib_NC_Init(&TestConfigPtrs);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
+void Test_BPLib_NC_Noop_Nominal(void)
+{
+    BPLib_NC_Noop();
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_NOOP_SUCCESS_EID,
+                                "BPLib Version: v%u.%u.%u-sprint-%u. NODE_STARTUP_COUNTER is %d");
+}
+
+void Test_BPLib_NC_AddAllApplications_Nominal(void)
+{
+    BPLib_NC_AddAllApplications();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_ALL_APPS_SUCCESS_EID,
+                                "Add all applications directive is unimplemented");
+}
+
+void Test_BPLib_NC_AddAllApplications_Error(void)
+{
+    /*
+    BPLib_NC_AddAllApplications();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_StartAllApplications_Nominal(void)
+{
+    BPLib_NC_StartAllApplications();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0,BPLIB_NC_START_ALL_APPS_SUCCESS_EID,
+                                "Start all applications directive not implemented");
+}
+
+void Test_BPLib_NC_StartAllApplications_Error(void)
+{
+    /* BPLib_NC_StartAllApplications();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_VerifyBundleStorage_Nominal(void)
+{
+    BPLib_NC_VerifyBundleStorage();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_VERIF_BNDL_SUCCESS_EID,
+                                "Verify bundle storage directive not implemented");
+}
+
+void Test_BPLib_NC_VerifyBundleStorage_Error(void)
+{
+    /* BPLib_NC_VerifyBundleStorage();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_InitBundleStorage_Nominal(void)
+{
+    BPLib_NC_InitBundleStorage();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_INIT_BNDL_STOR_SUCCESS_EID,
+                                "Initialize bundle storage directive not implemented");
+}
+
+void Test_BPLib_NC_InitBundleStorage_Error(void)
+{
+    /* BPLib_NC_InitBundleStorage();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_VerifyBundleMetadata_Nominal(void)
+{
+    BPLib_NC_VerifyBundleMetadata();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_VERIF_BNDL_META_SUCCESS_EID,
+                                "Verify bundle metadata (7.2) directive not implemented");
+}
+
+void Test_BPLib_NC_VerifyBundleMetadata_Error(void)
+{
+    /* BPLib_NC_VerifyBundleMetadata();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_RebuildBundleMetadata_Nominal(void)
+{
+    BPLib_NC_RebuildBundleMetadata();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_REBUILD_BNDL_META_SUCCESS_EID,
+                                "Rebuild bundle metadata directive not implemented");
+}
+
+void Test_BPLib_NC_RebuildBundleMetadata_Error(void)
+{
+    /* BPLib_NC_RebuildBundleMetadata();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_ClearVolatile_Nominal(void)
+{
+    BPLib_NC_ClearVolatile();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CLR_VOLATILE_SUCCESS_EID,
+                                "Clear volatile directive not implemented");
+}
+
+void Test_BPLib_NC_ClearVolatile_Error(void)
+{
+    /* BPLib_NC_ClearVolatile();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_ReloadSavedData_Nominal(void)
+{
+    BPLib_NC_ReloadSavedData();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RELOAD_SVD_DATA_SUCCESS_EID,
+                                "Reload saved data (7.2) directive not implemented");
+}
+
+void Test_BPLib_NC_ReloadSavedData_Error(void)
+{
+    /* BPLib_NC_ReloadSavedData();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1); */
+}
+
+void Test_BPLib_NC_ResetAllCounters_Nominal(void)
+{
+    BPLib_NC_ResetAllCounters();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
+                                "Successful reset-all-counters directive");
+
+    UtAssert_STUB_COUNT(BPLib_AS_ResetAllCounters, 1);
+}
+
+void Test_BPLib_NC_ResetAllCounters_Error(void)
+{
+    /* Not applicable as of right now */
+}
+
+void Test_BPLib_NC_ResetCounter_Nominal(void)
+{
+    BPLib_ResetCounter_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetCounter_Payload_t));
+
+    Payload.MibArrayIndex = 4;
+    Payload.Counter       = BUNDLE_COUNT_DELETED_CANCELLED;
+
+    BPLib_NC_ResetCounter(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_CTR_SUCCESS_EID,
+                                "Successful reset-counter directive for counter %d at MIB counter array index %d");
+}
+
+void Test_BPLib_NC_ResetCounter_Error(void)
+{
+    BPLib_ResetCounter_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetCounter_Payload_t));
+
+    /* Put dummy values into the payload */
+    Payload.Counter       = 0;
+    Payload.MibArrayIndex = 0;
+
+    /* === BPLIB_AS_INVALID_EID returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetCounter), BPLIB_AS_INVALID_MIB_INDEX);
+
+    /* Run the function under test */
+    BPLib_NC_ResetCounter(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d at MIB counter array index %d, RC = %d");
+
+    /* === BPLIB_AS_UNKNOWN_NODE_CNTR returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetCounter), BPLIB_AS_UNKNOWN_NODE_CNTR);
+
+    /* Run the function under test */
+    BPLib_NC_ResetCounter(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 2);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 2);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(1, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d at MIB counter array index %d, RC = %d");
+
+    /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetCounter), BPLIB_AS_UNKNOWN_SRC_CNTR);
+
+    /* Run the function under test */
+    BPLib_NC_ResetCounter(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 3);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 3);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(2, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d at MIB counter array index %d, RC = %d");
+}
+
+void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
+{
+    BPLib_ResetSourceCounters_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetSourceCounters_Payload_t));
+
+    Payload.MibArrayIndex = 2;
+    BPLib_NC_ResetSourceCounters(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID,
+                                "Successful reset-source-counters directive for MIB counter array index %d");
+}
+
+void Test_BPLib_NC_ResetSourceCounters_Error(void)
+{
+    BPLib_ResetSourceCounters_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetSourceCounters_Payload_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetSourceCounters), BPLIB_AS_INVALID_MIB_INDEX);
+
+    Payload.MibArrayIndex = 19;
+    BPLib_NC_ResetSourceCounters(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_SRC_CTRS_ERR_EID,
+                                "Could not reset source counters at index %d, RC = %d");
+}
+
+void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
+{
+    BPLib_NC_ResetBundleCounters();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID,
+                                "Successful reset-bundle-counters command");
+}
+
+void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
+{
+    BPLib_ResetErrorCounters_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
+
+    Payload.MibArrayIndex = 2;
+    BPLib_NC_ResetErrorCounters(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID,
+                                "Successful reset-error-counters for source MIB counters at index %d");
+}
+
+void Test_BPLib_NC_ResetErrorCounters_Error(void)
+{
+    BPLib_ResetErrorCounters_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetErrorCounters), BPLIB_AS_INVALID_MIB_INDEX);
+
+    Payload.MibArrayIndex = 19;
+    BPLib_NC_ResetErrorCounters(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ERR_CTRS_ERR_EID,
+                                "Could not reset error counters for source MIB counters at index %d, RC = %d");
+}
+
+void Test_BPLib_NC_AddApplication_Nominal(void)
+{
+    BPLib_AddApplication_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_AddApplication_Payload_t));
+
+    Payload.ChanId = 1;
+    BPLib_NC_AddApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_APP_SUCCESS_EID,
+                                "Successful add-application directive for ChanId=%d");
+}
+
+void Test_BPLib_NC_AddApplication_Error(void)
+{
+    BPLib_AddApplication_Payload_t Payload;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_AddApplication_Payload_t));
+
+    /* Check channel error return code */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_AddApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 2;
+    BPLib_NC_AddApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_APP_ERR_EID,
+                                "Could not add application with channel ID %d, RC = %d");
+}
+
+void Test_BPLib_NC_RemoveApplication_Nominal(void)
+{
+    BPLib_RemoveApplication_Payload_t Payload;
+    BPLib_Instance_t Inst;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
+
+    Payload.ChanId = 2;
+    BPLib_NC_RemoveApplication(&Inst, Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_SUCCESS_EID,
+                                "Successful remove-application directive for ChanId=%d");
+}
+
+void Test_BPLib_NC_RemoveApplication_Error(void)
+{
+    BPLib_RemoveApplication_Payload_t Payload;
+    BPLib_Instance_t Inst;
+
+    memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
+
+    /* Check channel error return code */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_RemoveApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 2;
+    BPLib_NC_RemoveApplication(&Inst, Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_ERR_EID,
+                                "Could not remove application with channel ID %d, RC = %d");
+}
+
+void Test_BPLib_NC_SetRegistrationState_Nominal(void)
+{
+    BPLib_SetRegistrationState_Payload_t Payload;
+
+    Payload.ExampleParameter = 3;
+    BPLib_NC_SetRegistrationState(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_REGI_STAT_SUCCESS_EID,
+                                "Set registration state directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_SetRegistrationState_Error(void)
+{
+    /*
+    BPLib_SetRegistrationState_Payload_t Payload;
+
+    Payload.ExampleParameter = 3;
+    BPLib_NC_SetRegistrationState(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_StartApplication_Nominal(void)
+{
+    BPLib_StartApplication_Payload_t Payload;
+
+    Payload.ChanId = 1;
+    BPLib_NC_StartApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_START_APP_SUCCESS_EID,
+                                "Successful start-application directive for ChanId=%d");
+}
+
+void Test_BPLib_NC_StartApplication_Error(void)
+{
+    BPLib_StartApplication_Payload_t Payload;
+
+    /* Channel error return code check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_StartApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 1;
+    BPLib_NC_StartApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_START_APP_ERR_EID,
+                                "Could not start application with channel ID %d, RC = %d");
+}
+
+void Test_BPLib_NC_StopApplication_Nominal(void)
+{
+    BPLib_StopApplication_Payload_t Payload;
+
+    Payload.ChanId = 1;
+    BPLib_NC_StopApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_STOP_APP_SUCCESS_EID,
+                                "Successful stop-application directive for ChanId=%d");
+}
+
+void Test_BPLib_NC_StopApplication_Error(void)
+{
+    BPLib_StopApplication_Payload_t Payload;
+
+    /* Invalid channel return code test */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_PI_StopApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 1;
+    BPLib_NC_StopApplication(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_STOP_APP_ERR_EID,
+                                "Could not stop application with channel ID %d, RC = %d");
+}
+
+void Test_BPLib_NC_AddAuthSources_Nominal(void)
+{
+    BPLib_AddAuthSources_Payload_t Payload;
+
+    Payload.ExampleParameter = 6;
+    BPLib_NC_AddAuthSources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_SRCS_SUCCESS_EID,
+                                "Add authorized sources directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddAuthSources_Error(void)
+{
+    /*
+    BPLib_AddAuthSources_Payload_t Payload;
+
+    Payload.ExampleParameter = 6;
+    BPLib_NC_AddAuthSources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_RemoveAuthSources_Nominal(void)
+{
+    BPLib_RemoveAuthSources_Payload_t Payload;
+
+    Payload.ExampleParameter = 7;
+    BPLib_NC_RemoveAuthSources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_SRCS_SUCCESS_EID,
+                                "Remove authorized sources directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveAuthSources_Error(void)
+{
+    /*
+    BPLib_RemoveAuthSources_Payload_t Payload;
+
+    Payload.ExampleParameter = 7;
+    BPLib_NC_RemoveAuthSources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_AddAuthCustodySources_Nominal(void)
+{
+    BPLib_AddAuthCustodySources_Payload_t Payload;
+
+    Payload.ExampleParameter = 8;
+    BPLib_NC_AddAuthCustodySources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_CUST_SRCS_SUCCESS_EID,
+                                "Add authorized custody sources directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddAuthCustodySources_Error(void)
+{
+    /*
+    BPLib_AddAuthCustodySources_Payload_t Payload;
+
+    Payload.ExampleParameter = 8;
+    BPLib_NC_AddAuthCustodySources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_RemoveAuthCustodySources_Nominal(void)
+{
+    BPLib_RemoveAuthCustodySources_Payload_t Payload;
+
+    Payload.ExampleParameter = 9;
+    BPLib_NC_RemoveAuthCustodySources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_CUST_SRCS_SUCCESS_EID,
+                                "Remove authorized custody sources directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveAuthCustodySources_Error(void)
+{
+    /*
+    BPLib_RemoveAuthCustodySources_Payload_t Payload;
+
+    Payload.ExampleParameter = 9;
+    BPLib_NC_RemoveAuthCustodySources(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_AddAuthCustodians_Nominal(void)
+{
+    BPLib_AddAuthCustodians_Payload_t Payload;
+
+    Payload.ExampleParameter = 10;
+    BPLib_NC_AddAuthCustodians(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_CUSTODIANS_SUCCESS_EID,
+                                "Add authorized custodians directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddAuthCustodians_Error(void)
+{
+    /*
+    BPLib_AddAuthCustodians_Payload_t Payload;
+
+    Payload.ExampleParameter = 10;
+    BPLib_NC_AddAuthCustodians(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_RemoveAuthCustodians_Nominal(void)
+{
+    BPLib_RemoveAuthCustodians_Payload_t Payload;
+
+    Payload.ExampleParameter = 11;
+    BPLib_NC_RemoveAuthCustodians(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_CUSTODIANS_SUCCESS_EID,
+                                "Remove authorized custodians directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveAuthCustodians_Error(void)
+{
+    /*
+    BPLib_RemoveAuthCustodians_Payload_t Payload;
+
+    Payload.ExampleParameter = 11;
+    BPLib_NC_RemoveAuthCustodians(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_AddAuthReportToEid_Nominal(void)
+{
+    BPLib_AddAuthReportToEid_Payload_t Payload;
+
+    Payload.ExampleParameter = 12;
+    BPLib_NC_AddAuthReportToEid(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_RPT_EID_SUCCESS_EID,
+                                "Add authorized report-to eid directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddAuthReportToEid_Error(void)
+{
+    /*
+    BPLib_AddAuthReportToEid_Payload_t Payload;
+
+    Payload.ExampleParameter = 12;
+    BPLib_NC_AddAuthReportToEid(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_RemoveAuthReportToEid_Nominal(void)
+{
+    BPLib_RemoveAuthReportToEid_Payload_t Payload;
+
+    Payload.ExampleParameter = 13;
+    BPLib_NC_RemoveAuthReportToEid(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_RPT_EID_SUCCESS_EID,
+                                "Remove authorized report-to eid directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveAuthReportToEid_Error(void)
+{
+    /*
+    BPLib_RemoveAuthReportToEid_Payload_t Payload;
+
+    Payload.ExampleParameter = 13;
+    BPLib_NC_RemoveAuthReportToEid(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_AddLatency_Nominal(void)
+{
+    BPLib_AddLatency_Payload_t Payload;
+
+    Payload.ExampleParameter = 14;
+    BPLib_NC_AddLatency(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_LATENCY_SUCCESS_EID,
+                                "Add latency directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddLatency_Error(void)
+{
+    /*
+    BPLib_AddLatency_Payload_t Payload;
+
+    Payload.ExampleParameter = 14;
+    BPLib_NC_AddLatency(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_RemoveLatency_Nominal(void)
+{
+    BPLib_RemoveLatency_Payload_t Payload;
+
+    Payload.ExampleParameter = 15;
+    BPLib_NC_RemoveLatency(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_LATENCY_SUCCESS_EID,
+                                "Remove latency directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveLatency_Error(void)
+{
+    /*
+    BPLib_RemoveLatency_Payload_t Payload;
+
+    Payload.ExampleParameter = 15;
+    BPLib_NC_RemoveLatency(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_ContactSetup_Nominal(void)
+{
+    BPLib_ContactSetup_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactSetup), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactSetup(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
+                                "Successful contact-setup directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactSetup_Error(void)
+{
+    BPLib_ContactSetup_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactSetup), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactSetup(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_ERR_EID,
+                                "Failed contact-setup directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactStart_Nominal(void)
+{
+    BPLib_ContactStart_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStart), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactStart(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_SUCCESS_EID,
+                                "Successful contact-start directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactStart_Error(void)
+{
+    BPLib_ContactStart_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStart), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactStart(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_ERR_EID,
+                                "Failed contact-start directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactStop_Nominal(void)
+{
+    BPLib_ContactStop_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStop), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactStop(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
+                                "Successful contact-stop directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactStop_Error(void)
+{
+    BPLib_ContactStop_Payload_t Payload;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactStop), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactStop(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_ERR_EID,
+                                "Failed contact-stop directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactTeardown_Nominal(void)
+{
+    BPLib_ContactTeardown_Payload_t Payload;
+    BPLib_Instance_t Inst;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_SUCCESS);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactTeardown(&Inst, Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
+                                "Successful contact-teardown directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_ContactTeardown_Error(void)
+{
+    BPLib_ContactTeardown_Payload_t Payload;
+    BPLib_Instance_t Inst;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ContactTeardown), BPLIB_ERROR);
+
+    Payload.ContactId = 0;
+    BPLib_NC_ContactTeardown(&Inst, Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_ERR_EID,
+                                "Failed contact-teardown directive for contact ID = %d");
+}
+
+void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
+{
+    BPLib_AddMibArrayKey_Payload_t Payload;
+
+    /* Force AS_AddMibArrayKey function to return success */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_SUCCESS);
+
+    /* Run function under test */
+    BPLib_NC_AddMibArrayKey(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_SUCCESS_EID,
+                                "Successful add-mib-array-key directive");
+}
+
+// void Test_BPLib_NC_AddMibArrayKey_Error(void)
+// {
+//     BPLib_AddMibArrayKey_Payload_t Payload;
+
+//     /* Force AS_AddMibArrayKey function to return success */
+//     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_INVALID_EID_PATTERN);
+
+//     /* Run function under test */
+//     BPLib_NC_AddMibArrayKey(Payload);
+
+//     // Verify directive counter was incremented
+//     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+//     /* Verify event */
+//     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_ERR_EID,
+//                                 "An error occurred while attempting to add a MIB array key");
+// }
+
+void Test_BPLib_NC_RemoveMibArrayKey_Nominal(void)
+{
+    BPLib_RemoveMibArrayKey_Payload_t Payload;
+
+    Payload.ExampleParameter = 21;
+    BPLib_NC_RemoveMibArrayKey(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_MIB_ARR_KEY_SUCCESS_EID,
+                                "Remove mib array key directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveMibArrayKey_Error(void)
+{
+    /*
+    BPLib_RemoveMibArrayKey_Payload_t Payload;
+
+    Payload.ExampleParameter = 21;
+    BPLib_NC_RemoveMibArrayKey(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_SetMibItem_NodeNom(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+
+    TestMibPnTbl.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 10;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+    
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
+                                "Set MIB item #%d to %d.");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], Payload.Value);
+}
+
+void Test_BPLib_NC_SetMibItem_SrcNom(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), false);
+    
+    BPLib_NC_SetMibItem(Payload);
+
+    /* Verify event */
+    // TODO when source configs are implemented, this should succeed
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+}
+
+void Test_BPLib_NC_SetMibItem_NodeInvMib(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+    memset(TestConfigPtrs.MibPnConfigPtr, 0, sizeof(BPLib_NC_MibPerNodeConfig_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // Invalid MIB item index
+    Payload.MibItem = BPLIB_NC_NODE_MIB_CONFIG_NUM;
+
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+}
+
+void Test_BPLib_NC_SetMibItem_NodeInvVal(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // MIB value will fail validation
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 2000; 
+    BPLib_NC_ConfigPtrs.MibPnConfigPtr->Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 0;
+
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+}
+
+void Test_BPLib_NC_SetMibItem_NodeTblErr(void)
+{
+    BPLib_SetMibItem_Payload_t Payload;
+
+    memset(&Payload, 0, sizeof(Payload));
+    memset(TestConfigPtrs.MibPnConfigPtr, 0, sizeof(BPLib_NC_MibPerNodeConfig_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsMatch), true);
+
+    // Table update will fail
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
+
+    Payload.MibItem = PARAM_SET_MAX_BUNDLE_LENGTH;
+    Payload.Value = 1234;
+
+    BPLib_NC_SetMibItem(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_ERR_EID, "Failed to set MIB item #%d to %d, RC=%d");
+    UtAssert_EQ(uint32_t, TestMibPnTbl.Configs[PARAM_SET_MAX_BUNDLE_LENGTH], 0);
+}
+
+void Test_BPLib_NC_AddStorageAllocation_Nominal(void)
+{
+    BPLib_AddStorageAllocation_Payload_t Payload;
+
+    Payload.ExampleParameter = 23;
+    BPLib_NC_AddStorageAllocation(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_STOR_ALLOC_SUCCESS_EID,
+                                "Add storage allocation directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_AddStorageAllocation_Error(void)
+{
+    /*
+    BPLib_AddStorageAllocation_Payload_t Payload;
+
+    // Storage allocation error
+    Payload.ExampleParameter = 23;
+    BPLib_NC_AddStorageAllocation(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // configuration update error
+    Payload.ExampleParameter = 23;
+    BPLib_NC_AddStorageAllocation(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 2);
+    */
+}
+
+void Test_BPLib_NC_RemoveStorageAllocation_Nominal(void)
+{
+    BPLib_RemoveStorageAllocation_Payload_t Payload;
+
+    Payload.ExampleParameter = 24;
+    BPLib_NC_RemoveStorageAllocation(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_STOR_ALLOC_SUCCESS_EID,
+                                "Remove storage allocation directive not implemented, received %d in payload");
+}
+
+void Test_BPLib_NC_RemoveStorageAllocation_Error(void)
+{
+    /*
+    BPLib_RemoveStorageAllocation_Payload_t Payload;
+
+    Payload.ExampleParameter = 24;
+    BPLib_NC_RemoveStorageAllocation(Payload);
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_PerformSelfTest_Nominal(void)
+{
+    BPLib_NC_PerformSelfTest();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_PERFORM_SELF_TEST_SUCCESS_EID,
+                                "Perform self test (7.2) directive not implemented");
+}
+
+void Test_BPLib_NC_PerformSelfTest_Error(void)
+{
+    /*
+    BPLib_NC_PerformSelfTest();
+
+    // Verify directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    */
+}
+
+void Test_BPLib_NC_SendNodeMibConfigHk_Nominal(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_SUCCESS);
+
+    BPLib_NC_SendNodeMibConfigHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
+
+void Test_BPLib_NC_SendNodeMibConfigHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_ERROR);
+
+    BPLib_NC_SendNodeMibConfigHk();
+
+    // Verify that the error was reported
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_NODE_CONFIG_ERR_EID,
+                                "Could not send node MIB configuration packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendSourceMibConfigHk_Nominal(void)
+{
+    BPLib_NC_SendSourceMibConfigHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
+
+void Test_BPLib_NC_SendSourceMibConfigHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibConfigPkt), BPLIB_ERROR);
+
+    BPLib_NC_SendSourceMibConfigHk();
+
+    // Verify that the error was reported
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_SRC_CONFIG_ERR_EID,
+                                "Could not send source MIB configuration packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
+{
+    BPLib_NC_SendNodeMibCountersHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibCountersHk, 1);
+}
+
+void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
+{
+    // Cause BPLib_NC_SendNodeMibCountersHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibCountersHk), BPLIB_ERROR);
+
+    BPLib_NC_SendNodeMibCountersHk();
+
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibCountersHk, 1);
+
+    // Verify rejected directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // Verify the error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_NODE_CNTRS_ERR_EID,
+                                "Could not send node MIB counters packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendNodeMibReportsHk_Nominal(void)
+{
+    BPLib_Instance_t Inst;
+
+    BPLib_NC_SendNodeMibReportsHk(&Inst);
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+
+    /* Verify downstream function was called */
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibReportsHk, 1);
+}
+
+void Test_BPLib_NC_SendNodeMibReportsHk_Error(void)
+{
+    BPLib_Instance_t Inst;
+
+    // Cause BPLib_NC_SendNodeMibReportsHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibReportsHk), BPLIB_ERROR);
+
+    BPLib_NC_SendNodeMibReportsHk(&Inst);
+
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibReportsHk, 1);
+
+    // Verify rejected directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // Verify the error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_REPORTS_ERR_EID,
+                                "Could not send node MIB reports packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
+{
+    BPLib_NC_SendSourceMibCountersHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendSourceMibCountersHk, 1);
+}
+
+void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
+{
+    // Cause BPLib_NC_SendSourceMibCountersHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendSourceMibCountersHk), BPLIB_ERROR);
+
+    BPLib_NC_SendSourceMibCountersHk();
+
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendSourceMibCountersHk, 1);
+
+    // Verify rejected directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // Verify error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_SRC_CNTRS_ERR_EID,
+                                "Could not send source MIB counters packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendStorageHk_Nominal(void)
+{
+    BPLib_Instance_t Inst;
+
+    memset(&Inst, 0, sizeof(BPLib_Instance_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_SUCCESS);
+
+    BPLib_NC_SendStorageHk(&Inst);
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
+
+void Test_BPLib_NC_SendStorageHk_Error(void)
+{
+    BPLib_Instance_t Inst;
+
+    memset(&Inst, 0, sizeof(BPLib_Instance_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_ERROR);
+
+    BPLib_NC_SendStorageHk(&Inst);
+
+    // Verify error was reported
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_STORAGE_ERR_EID,
+                                "Could not send storage packet, RC = %d");
+}
+
+void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendChannelContactPkt), BPLIB_SUCCESS);
+
+    BPLib_NC_SendChannelContactStatHk();
+
+    // Verify directive counter was not incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
+
+void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendChannelContactPkt), BPLIB_ERROR);
+
+    BPLib_NC_SendChannelContactStatHk();
+
+    // Verify rejected directive counter was incremented
+    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+
+    // Verify error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_CONTACTS_ERR_EID,
+                                "Could not send channel contact statistics packet, RC = %d");
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 5;
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH]  = 10;
+    TestTblData.Configs[PARAM_SET_MAX_SEQUENCE_NUM]   = 10;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_DtnEidErr(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    TestTblData.InstanceEID.Scheme = BPLIB_EID_SCHEME_DTN;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_EidInvalid(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_SizeNoFragInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_BUNDLE_SIZE_NO_FRAGMENT] = BPLIB_MAX_BUNDLE_LEN + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_PayloadInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = BPLIB_MAX_PAYLOAD_SIZE + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLenInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = BPLIB_MAX_BUNDLE_LEN + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLthPayload(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 11;
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 10;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_LifetimeInv(void)
+{
+    BPLib_NC_MibPerNodeConfig_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+
+    TestTblData.Configs[PARAM_SET_MAX_PAYLOAD_LENGTH] = 5;
+    TestTblData.Configs[PARAM_SET_MAX_BUNDLE_LENGTH] = 10;
+    
+    TestTblData.Configs[PARAM_SET_MAX_LIFETIME] = BPLIB_MAX_LIFETIME_ALLOWED + 1;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData),
+                                                BPLIB_INVALID_CONFIG_ERR);
+}
+
+void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal(void)
+{
+    BPLib_NC_MIBConfigPSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    TestTblData.Sources[0].Configs[0] = 10;
+    UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);
+}
+
+void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid(void)
+{
+    BPLib_NC_MIBConfigPSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData),
+                                                BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
+
+void Test_BPLib_NC_GetSetAppState_Nominal(void)
+{
+    uint8_t ChanId;
+    BPLib_NC_ApplicationState_t State;
+
+    ChanId = BPLIB_MAX_NUM_CHANNELS - 1;
+    State  = BPLIB_NC_APP_STATE_ADDED;
+
+    BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
+
+    State = BPLIB_NC_APP_STATE_STARTED;
+    BPLib_NC_SetAppState(ChanId, State);
+
+    UtAssert_EQ(BPLib_NC_ApplicationState_t, State, BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State);
+
+    /* Verify that the state has changed without modifying the payload's value before calling this function */
+    State = BPLib_NC_GetAppState(ChanId);
+
+    UtAssert_EQ(BPLib_NC_ApplicationState_t, BPLIB_NC_APP_STATE_STARTED, State);
+}
+
+void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* Force configuration updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_SUCCESS);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    /* Show that the function returned success */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Show that 0 configuration update events were issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Show that an attempt to update all configurations was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
+void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    BPLib_NC_ConfigPtrs.ChanConfigPtr = TestConfigPtrs.ChanConfigPtr;
+    BPLib_NC_ConfigPtrs.ContactsConfigPtr = TestConfigPtrs.ContactsConfigPtr;
+
+    /* Force configuration updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Verify that every configuration update event was issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
+    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel configuration");
+    BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts configuration");
+    BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting configuration");
+    BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(4,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custody Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(5,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Node configuration");
+    BPLib_NC_Test_Verify_Event(6,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Source configuration");
+    BPLib_NC_Test_Verify_Event(7,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Report-to-EID Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy configuration");
+    BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy configuration");
+    BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage configuration");
+
+    /* Show that an attempt to update all configurations was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
+void Test_BPLib_NC_TableUpdate_Error_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* Force configuration updates to report only errors */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_ERROR);
+
+    /* Run function under test */
+    Status = BPLib_NC_ConfigUpdate();
+
+    /* Show that the function returned an error */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
+
+    /* Show that 0 configuration update events were issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Show that upon table update error, table updates aborted */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 1);
+    BPNode_Test_TABLEP_TableUpdate(0,  BPLIB_CHANNEL);
+    BPNode_Test_TABLEP_TableUpdate(1,  BPLIB_CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  BPLIB_COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  BPLIB_CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  BPLIB_CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  BPLIB_MIB_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  BPLIB_MIB_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  BPLIB_REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  BPLIB_SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  BPLIB_SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, BPLIB_STORAGE);
+}
+
+void TestBplibNc_Register(void)
+{
+    ADD_TEST(Test_BPLib_NC_Init_Nominal);
+    ADD_TEST(Test_BPLib_NC_Init_AS_Init_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullConfigPtrs_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullChanTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullContactsTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullCrsTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullCustodianTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullCustodyTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullMibPnTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullMibPsTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullReportTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullAuthTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullLatTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullStorTblPtr_Error);
+    ADD_TEST(Test_BPLib_NC_Noop_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAllApplications_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
+    ADD_TEST(Test_BPLib_NC_StartAllApplications_Nominal);
+    ADD_TEST(Test_BPLib_NC_StartAllApplications_Error);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Error);
+    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Nominal);
+    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Error);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Error);
+    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Nominal);
+    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Error);
+    ADD_TEST(Test_BPLib_NC_ClearVolatile_Nominal);
+    ADD_TEST(Test_BPLib_NC_ClearVolatile_Error);
+    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Nominal);
+    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Error);
+    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Error);
+    ADD_TEST(Test_BPLib_NC_ResetCounter_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetCounter_Error);
+    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Error);
+    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Error);
+    ADD_TEST(Test_BPLib_NC_AddApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddApplication_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveApplication_Error);
+    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Nominal);
+    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Error);
+    ADD_TEST(Test_BPLib_NC_StartApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_StartApplication_Error);
+    ADD_TEST(Test_BPLib_NC_StopApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_StopApplication_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthSources_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthSources_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Error);
+    ADD_TEST(Test_BPLib_NC_AddLatency_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddLatency_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveLatency_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveLatency_Error);
+    ADD_TEST(Test_BPLib_NC_ContactSetup_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactSetup_Error);
+    ADD_TEST(Test_BPLib_NC_ContactStart_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStart_Error);
+    ADD_TEST(Test_BPLib_NC_ContactStop_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStop_Error);
+    ADD_TEST(Test_BPLib_NC_ContactTeardown_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactTeardown_Error);
+    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Nominal);
+    // ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Error);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeNom);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_SrcNom);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeInvMib);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeInvVal);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_NodeTblErr);
+    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Error);
+    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Nominal);
+    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibReportsHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibReportsHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendStorageHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_DtnEidErr);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_EidInvalid);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_SizeNoFragInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_PayloadInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLenInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_BundleLthPayload);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_LifetimeInv);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
+    ADD_TEST(Test_BPLib_NC_GetSetAppState_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Success_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Update_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Error_Nominal);
+}

@@ -77,7 +77,7 @@ endif()
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation -g)
 endif()
 
 # If standalone build and not cross compile, then enable creation of the "make test" target
@@ -85,33 +85,33 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
-add_subdirectory(os)
-add_subdirectory(common)
-add_subdirectory(lib)
-add_subdirectory(mpool)
-add_subdirectory(cache)
-add_subdirectory(v7)
-
-# v7 implementation parts
-list(APPEND BPLIB_SRC
-  store/file_offload.c
-
-  $<TARGET_OBJECTS:bplib_os>
-  $<TARGET_OBJECTS:bplib_common>
-  $<TARGET_OBJECTS:bplib_cache>
-  $<TARGET_OBJECTS:bplib_v7>
-  $<TARGET_OBJECTS:bplib_mpool>
-  $<TARGET_OBJECTS:bplib_base>
+list (APPEND BPLIB_COMPONENT_DIRS
+  version cla aa/arp aa/as aa/fwp aa/nc bpa/bi bpa/ct
+  bpa/ebp bpa/pdb bpa/pi bpa/stor
+  ci/cbor ci/em ci/mem ci/pl ci/qm ci/time ci/crc ci/eid ci/rbt
 )
 
-list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-  $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
+  add_subdirectory(${COMPONENT})
+endforeach()
+
+list(APPEND BPLIB_COMPONENTS
+  bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
+  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi
+  bplib_stor bplib_cbor bplib_em bplib_mem bplib_pl bplib_time
+  bplib_crc bplib_version bplib_qm bplib_eid bplib_rbt
 )
+
+foreach(COMPONENT ${BPLIB_COMPONENTS})
+  list(APPEND BPLIB_SRC 
+    $<TARGET_OBJECTS:${COMPONENT}>
+  )
+  
+  list(APPEND BPLIB_COMPONENT_INCLUDE_DIRS
+    $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
+  )
+
+endforeach()
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
@@ -122,7 +122,8 @@ if (IS_CFS_ARCH_BUILD)
   # The CFE build system determines whether to create a shared or static object inside this routine
   add_cfe_app(bplib ${BPLIB_SRC})
 
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
+  # link with the requisite dependencies
+  target_link_libraries(bplib qcbor m sqlite3)
 
 else()
 
@@ -133,7 +134,7 @@ else()
   add_library(bplib ${BPLIB_SRC})
 
   # link with the requisite dependencies
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
+  target_link_libraries(bplib qcbor m sqlite3)
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done
@@ -175,29 +176,24 @@ else()
 
   endif()
 
-  # Build the test tools, if directed
-  if (BPLIB_BUILD_TEST_TOOLS)
-    add_subdirectory(app)
-  endif()
+  # Build bpcat always
+  add_subdirectory(app)
 
 endif()
 
 get_target_property(IS_PIC bplib POSITION_INDEPENDENT_CODE)
 if (IS_PIC)
-  set_target_properties(
-    bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os
-    PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC}
-  )
+  set_target_properties(${BPLIB_COMPONENTS} PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC})
 endif()
 
 # Set the standard compile options for all submodules (c99, full warnings)
-foreach(TGT bplib bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os)
-  target_compile_features(${TGT} PRIVATE c_std_99)
-  target_compile_options(${TGT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
+foreach(COMPONENT ${BPLIB_COMPONENTS})
+  target_compile_features(${COMPONENT} PRIVATE c_std_99)
+  target_compile_options(${COMPONENT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 endforeach()
 
-# Internal/private header files exist within the implementation directories
-target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
+target_compile_features(bplib PRIVATE c_std_99)
+target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
@@ -207,12 +203,32 @@ target_include_directories(bplib PUBLIC
   $<INSTALL_INTERFACE:include/bplib>
 )
 
-if (BPLIB_ENABLE_UNIT_TESTS)
-  add_subdirectory(ut-stubs)
+# This makes the public header files for each component accessible to external apps
+foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
+  target_include_directories(bplib PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${COMPONENT}/inc>
+    $<INSTALL_INTERFACE:${COMPONENT}/inc>
+  )
 
-  # BPLib Sanity checks are only for standalone builds, sanity checks
-  # for CFE/CFS builds should be part of the BP app, as opposed to BPLib
+endforeach()
+
+# BPLib Sanity checks are only for standalone builds, sanity checks
+# for CFE/CFS builds should be part of the BP app, as opposed to BPLib
+if (BPLIB_ENABLE_UNIT_TESTS)
+
+  # Link all stubs into single library
+  add_library(coverage-bplib-stubs INTERFACE)
+
+  foreach(COMPONENT ${BPLIB_COMPONENTS})
+    target_link_libraries(coverage-bplib-stubs INTERFACE ${COMPONENT}_stubs)
+  endforeach()
+
   if (NOT IS_CFS_ARCH_BUILD)
     add_subdirectory(ut-functional)
   endif (NOT IS_CFS_ARCH_BUILD)
+  
 endif (BPLIB_ENABLE_UNIT_TESTS)
+
+# Prepare the BPLib Doxygen build.
+set(BPLIB_API_INCLUDE_DIRECTORIES ${BPLIB_COMPONENT_INCLUDE_DIRS})
+add_subdirectory(docs/doc-src)

@@ -1,0 +1,230 @@
+/*
+ * NASA Docket No. GSC-19,559-1, and identified as "Delay/Disruption Tolerant Networking 
+ * (DTN) Bundle Protocol (BP) v7 Core Flight System (cFS) Application Build 7.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this 
+ * file except in compliance with the License. You may obtain a copy of the License at 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under 
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF 
+ * ANY KIND, either express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License. The copyright notice to be 
+ * included in the software is as follows: 
+ *
+ * Copyright 2025 United States Government as represented by the Administrator of the 
+ * National Aeronautics and Space Administration. All Rights Reserved.
+ *
+ */
+
+#ifndef BPLIB_PI_H
+#define BPLIB_PI_H
+
+/*
+** Include
+*/
+
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
+#include "bplib_as.h"
+#include "bplib_eid.h"
+#include "bplib_qm.h"
+
+/*
+** Type Definitions
+*/
+
+/**
+** \brief Canonical block configurations
+*/
+typedef struct
+{
+
+    bool              IncludeBlock;
+    BPLib_CRC_Type_t  CrcType;
+    uint16_t          Spare;
+    uint32_t          BlockNum;
+    uint64_t          BlockProcFlags;
+} BPLib_PI_CanBlkConfig_t;
+
+/**
+** \brief Channel registration state
+*/
+typedef enum {
+    BPLIB_PI_ACTIVE = 0,
+    BPLIB_PI_PASSIVE_DEFER = 1,
+    BPLIB_PI_PASSIVE_ABANDON = 2
+} BPLib_PI_RegistrationState_t;
+
+/**
+** \brief Channel configurations
+*/
+typedef struct
+{
+    bool                    AddAutomatically;
+    bool                    RequestCustody;
+    bool                    AduWrapping;
+    bool                    AduUnwrapping;
+    uint8_t                 RegState;
+    uint8_t                 HopLimit;
+    BPLib_CRC_Type_t        CrcType;
+    uint8_t                 Spare;
+    size_t                  IngressBitsPerCycle;
+    size_t                  EgressBitsPerCycle;
+    uint64_t                LocalServiceNumber;
+    uint64_t                MaxBundlePayloadSize;    
+    uint64_t                BundleProcFlags;
+    uint64_t                Lifetime;
+    BPLib_EID_t             DestEID;
+    BPLib_EID_t             ReportToEID;
+    BPLib_PI_CanBlkConfig_t PrevNodeBlkConfig;
+    BPLib_PI_CanBlkConfig_t AgeBlkConfig;
+    BPLib_PI_CanBlkConfig_t HopCountBlkConfig;
+    BPLib_PI_CanBlkConfig_t PayloadBlkConfig;
+} BPLib_PI_Config_t;
+
+/**
+** \brief Channel configuration table
+*/
+typedef struct
+{
+    BPLib_PI_Config_t Configs[BPLIB_MAX_NUM_CHANNELS];
+} BPLib_PI_ChannelTable_t;
+
+
+/*
+** Exported Functions
+*/
+
+/**
+ * \brief Add Application
+ *
+ *  \par Description
+ *       Run add-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_AddApplication(uint32_t ChanId);
+
+/**
+ * \brief Start Application
+ *
+ *  \par Description
+ *       Run start-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StartApplication(uint32_t ChanId);
+
+/**
+ * \brief Stop Application
+ *
+ *  \par Description
+ *       Run stop-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_StopApplication(uint32_t ChanId);
+
+/**
+ * \brief Remove Application
+ *
+ *  \par Description
+ *       Run remove-application directive operations by updating the app state and
+ *       calling the relevant framework proxy function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] ChanId Channel ID
+ *  \param[in] Inst Instance of bplib
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_RemoveApplication(BPLib_Instance_t *Inst, uint32_t ChanId);
+
+/**
+ * \brief Validate configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management.
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */
+BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData);
+
+/**
+ * \brief Bundle Ingress
+ *
+ *  \par Description
+ *       PI receives an ADU, turns it into a deserialized bundle, and pushes it to QM
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Inst Pointer to an the BPLib instance state struct
+ *  \param[in] ChanId Channel ID
+ *  \param[in] AduPtr Pointer to the ADU
+ *  \param[in] AduSize Length of the provided ADU
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint32_t ChanId, 
+                                                        void *AduPtr, size_t AduSize);
+
+/**
+ * \brief Bundle Egress
+ *
+ *  \par Description
+ *       PI pulls an ADU off the relevant channel out queue to return to calling function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Inst Pointer to an the BPLib instance state struct
+ *  \param[in] ChanId Channel ID
+ *  \param[in] AduPtr Pointer to the returned ADU
+ *  \param[in] AduSize Pointer to set to the received ADU's size
+ *  \param[in] BufLen Length of the buffer provided (the ADU pointer)
+ *  \param[in] Timeout Total time to pend on channel out queue (in milliseconds)
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ */
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint32_t ChanId, void *AduPtr, 
+                                    size_t *AduSize, size_t BufLen, uint32_t Timeout);
+
+                                    
+#endif /* BPLIB_PI_H */
