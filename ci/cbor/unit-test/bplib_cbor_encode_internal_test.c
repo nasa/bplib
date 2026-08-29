@@ -350,9 +350,18 @@ void Test_BPLib_CBOR_EncodePayload_Nominal(void)
 {
     BPLib_Status_t ReturnStatus;
     BPLib_Bundle_t StoredBundleIn;
-    char OutputBuffer[512];
+    uint8_t OutputBuffer[512];
     size_t OutputBufferSize = sizeof(OutputBuffer);
     size_t NumBytesCopied = 0;
+    size_t i;
+    const uint8_t ExpectedBlock[] = {
+        0x85, /* five-item canonical block array (CRC type none) */
+        0x00, /* block type */
+        0x00, /* block number */
+        0x00, /* block processing flags */
+        0x00, /* CRC type none */
+        0x40  /* empty payload byte string */
+    };
 
     /* Setup nominal inputs */
     memset(&StoredBundleIn, 0, sizeof(StoredBundleIn));
@@ -360,6 +369,12 @@ void Test_BPLib_CBOR_EncodePayload_Nominal(void)
     /* Call UUT and check status */
     ReturnStatus = BPLib_CBOR_EncodePayload(&StoredBundleIn, OutputBuffer, OutputBufferSize, &NumBytesCopied);
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+    UtAssert_EQ(size_t, NumBytesCopied, sizeof(ExpectedBlock));
+
+    for (i = 0; i < NumBytesCopied; i++)
+    {
+        UtAssert_EQ(uint8_t, OutputBuffer[i], ExpectedBlock[i]);
+    }
 }
 
 void Test_BPLib_CBOR_EncodePayload_Ccs(void)

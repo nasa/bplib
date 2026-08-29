@@ -136,17 +136,25 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t* StoredBundle,
     /*
     ** Jam in an "open definite array" character
     ** Major Type: 4 (array)
-    ** Additional Info: number of data items in array (6 total)
+    ** Additional Info: number of data items in array (5 without a CRC, 6 with a CRC)
     **  1. Block Type
     **  2. Block Num
     **  3. Block Processing Flags
     **  4. CRC Type
     **  5. Block-Specific Data (ADU)
-    **  6. CRC Value
-    ** 0b100_00110 == 0x86
+    **  6. CRC Value (omitted when CRC type is none)
+    ** 0b100_00101 == 0x85 (no CRC)
+    ** 0b100_00110 == 0x86 (CRC present)
     */
     CurrentOutputBufferAddr = (uintptr_t)(OutputBuffer);
-    *(uint8_t*)CurrentOutputBufferAddr = 0x86;
+    if (StoredBundle->blocks.PayloadHeader.CrcType == BPLib_CRC_Type_None)
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = 0x85;
+    }
+    else
+    {
+        *(uint8_t*)CurrentOutputBufferAddr = 0x86;
+    }
     TotalBytesCopied = 1;
     CurrentOutputBufferAddr++;
     BytesLeftInOutputBuffer = OutputBufferSize - TotalBytesCopied;
