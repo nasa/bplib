@@ -15,6 +15,9 @@ env:
   UPSTREAM_QCBOR_REPO: laurencelundblade/QCBOR
   UPSTREAM_QCBOR_REF: v1.5.1
 
+permissions:
+  contents: read
+
 jobs:
 
   prepare-dependencies:
