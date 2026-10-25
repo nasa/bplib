@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 #define BPCAT_CLA_TIMEOUT              100
-#define BPCAT_CLA_BUFLEN               4096
+#define BPCAT_CLA_BUFLEN               BPLIB_MAX_BUNDLE_LEN
 
 /* These configurations are going to be greatly improved
 ** once there is a) time to do so and b) an ability to pass
